@@ -8,6 +8,7 @@ from loguru import logger
 
 ARISTA_TOKEN = os.getenv('ARISTA_TOKEN', '')
 
+
 def read_cli():
     parser = argparse.ArgumentParser(description='EOS downloader script.')
     parser.add_argument('--token', required=False,

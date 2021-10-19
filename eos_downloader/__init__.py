@@ -14,9 +14,9 @@ import xml.etree.ElementTree as ET
 from eos_downloader.data import DATA_MAPPING
 from tqdm import tqdm
 
-_author_ = '@titom73'
-_date_ = '2021-10-15'
-_version_ = 0.1
+__author__ = '@titom73'
+__date__ = '2021-10-15'
+__version__ = 0.1
 
 ARISTA_GET_SESSION = "https://www.arista.com/custom_data/api/cvp/getSessionCode/"
 ARISTA_SOFTWARE_FOLDER_TREE = "https://www.arista.com/custom_data/api/cvp/getFolderTree/"
@@ -400,6 +400,24 @@ class ObjectDownloader():
         return True
 
     def provision_eve(self, noztp: bool = False, checksum: bool = True):
+        """
+        provision_eve Entrypoint for EVE-NG download and provisioning
+
+        Do following actions:
+        - Get remote file path
+        - Get URL from file path
+        - Download file
+        - Convert file to qcow2 format
+        - Create new version to EVE-NG
+        - Disable ZTP (optional)
+
+        Parameters
+        ----------
+        noztp : bool, optional
+            Flag to deactivate ZTP in EOS image, by default False
+        checksum : bool, optional
+            Flag to ask for hash validation, by default True
+        """
         # Build image name to use in folder path
         eos_image_name = self.filename.rstrip(".vmdk").lower()
         if noztp:
