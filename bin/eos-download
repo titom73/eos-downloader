@@ -9,16 +9,18 @@ from loguru import logger
 ARISTA_TOKEN = os.getenv('ARISTA_TOKEN', '')
 
 def read_cli():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='EOS downloader script.')
     parser.add_argument('--token', required=False,
-                        default=ARISTA_TOKEN, help='arista.com user API key')
+                        default=ARISTA_TOKEN,
+                        help='arista.com user API key - can use ENV:ARISTA_TOKEN')
     parser.add_argument('--image', required=False,
                         default='EOS', help='Type of EOS image required')
     parser.add_argument('--version', required=True,
                         default='', help='EOS version to download from website')
 
     parser.add_argument('--destination', required=False,
-                        default=str(os.getcwd()), help='Path where to save EOS package downloaded')
+                        default=str(os.getcwd()),
+                        help='Path where to save EOS package downloaded')
 
     parser.add_argument('--eve', required=False, action='store_true',
                         help="Option to install EOS package to EVE-NG")
@@ -29,6 +31,7 @@ def read_cli():
                         default='info', help='Script verbosity')
 
     return parser.parse_args()
+
 
 if __name__ == '__main__':
 
