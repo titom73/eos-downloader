@@ -11,9 +11,10 @@ with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 setup(
-    name="arista-downloader",
+    name="eos_downloader",
     version="0.1",
     python_requires=">=3.6",
+    packages=['eos_downloader'],
     scripts=["bin/arista-download"],
     install_requires=required,
     include_package_data=True,

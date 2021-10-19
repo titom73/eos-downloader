@@ -1,6 +1,7 @@
 cryptography
 paramiko
-requests==2.20.0
+requests>=2.20.0
 requests-toolbelt
 scp
 tqdm
+loguru
