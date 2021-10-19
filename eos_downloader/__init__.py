@@ -29,7 +29,7 @@ MSG_TOKEN_INVALID = """
 The API token is incorrect. Please visit arista.com, click on your profile and
 check the Access Token. Then re-run the script with the correct token.
 """
-XPATH_EOS_SECTIONS = ['Active Releases']
+EVE_QEMU_FOLDER_PATH = '/opt/unetlab/addons/qemu/'
 
 
 class ObjectDownloader():
@@ -140,13 +140,14 @@ class ObjectDownloader():
         """
         remote_hash_file = self._get_remote_hashpath(hash_method=self.hash_method)
         hash_url = self._get_url(remote_file_path=remote_hash_file)
-        self._download_file(url=hash_url, file_path=file_path + "/" + os.path.basename(remote_hash_file))
+        hash_downloaded = self._download_file_raw(url=hash_url, file_path=file_path + "/" + os.path.basename(remote_hash_file))
         hash_content = 'unset'
-        with open(os.path.basename(remote_hash_file), 'r') as f:
+        with open(hash_downloaded, 'r') as f:
             hash_content = f.read()
         return hash_content.split(' ')[0]
 
-    def _compute_hash_md5sum(self, file: str, hash_expected: str):
+    @staticmethod
+    def _compute_hash_md5sum(file: str, hash_expected: str):
         """
         _compute_hash_md5sum Compare MD5 sum
 
@@ -175,7 +176,8 @@ class ObjectDownloader():
                        hash_expected)
         return False
 
-    def _compute_hash_sh512sum(self, file: str, hash_expected: str):
+    @staticmethod
+    def _compute_hash_sh512sum(file: str, hash_expected: str):
         """
         _compute_hash_sh512sum Compare SHA512 sum
 
@@ -278,7 +280,8 @@ class ObjectDownloader():
         logger.critical('Server returns following message: {}', result.json())
         return False
 
-    def _download_file(self, url: str, file_path: str):
+    @staticmethod
+    def _download_file_raw(url: str, file_path: str):
         """
         _download_file Helper to download file from Arista.com
 
@@ -305,6 +308,24 @@ class ObjectDownloader():
                     pbar.update(len(chunk))
                 f.write(chunk)
         return file_path
+
+    def _download_file(self, file_path: str, filename: str, ):
+        remote_file_path = self._get_remote_filepath()
+        logger.info('File found on arista server: {}', remote_file_path)
+        file_url = self._get_url(remote_file_path=remote_file_path)
+        if file_url is not False:
+            return self._download_file_raw(url=file_url, file_path=os.path.join(file_path, filename))
+        logger.error('Cannot download file {}', file_path)
+        return None
+
+    @staticmethod
+    def _create_destination_folder(path):
+        # os.makedirs(path, mode, exist_ok=True)
+        os.system('mkdir -p ' + path)
+
+    @staticmethod
+    def _disable_ztp(file_path: str):
+        pass
 
     # ------------------------------------------------------------------------ #
     # Public METHODS
@@ -361,26 +382,44 @@ class ObjectDownloader():
         bool
             True if everything went well, False if any problem appears
         """
-        remote_file_path = self._get_remote_filepath()
-        logger.info('File found on arista server: {}', remote_file_path)
-        file_url = self._get_url(remote_file_path=remote_file_path)
-        if file_url is not False:
-            self._download_file(url=file_url, file_path=file_path + "/" + os.path.basename(remote_file_path))
-        else:
-            logger.error('Cannot download file {}', file_path)
-            return False
+        file_downloaded = self._download_file(file_path=file_path, filename=self.filename)
 
         # Check file HASH
         hash_result = False
-        if checksum and self.hash_method == 'md5sum':
-            hash_expected = self._get_hash(file_path=file_path)
-            hash_result = self._compute_hash_md5sum(file=file_path + "/" + os.path.basename(remote_file_path), hash_expected=hash_expected)
-        elif checksum and self.hash_method == 'sha512sum':
-            hash_expected = self._get_hash(file_path=file_path)
-            hash_result = self._compute_hash_sh512sum(file=file_path + "/" + os.path.basename(remote_file_path), hash_expected=hash_expected)
-        if hash_result:
-            logger.warning('Downloaded file is correct.')
-        else:
+        if checksum:
+            if self.hash_method == 'md5sum':
+                hash_expected = self._get_hash(file_path=file_path)
+                hash_result = self._compute_hash_md5sum(file=file_downloaded, hash_expected=hash_expected)
+            elif self.hash_method == 'sha512sum':
+                hash_expected = self._get_hash(file_path=file_path)
+                hash_result = self._compute_hash_sh512sum(file=file_downloaded, hash_expected=hash_expected)
+        if not hash_result:
             logger.error('Downloaded file is corrupted, please check your connection')
             return False
+        logger.warning('Downloaded file is correct.')
         return True
+
+    def provision_eve(self, noztp: bool = False, checksum: bool = True):
+        # Build image name to use in folder path
+        eos_image_name = self.filename.rstrip(".vmdk").lower()
+        if noztp:
+            eos_image_name = eos_image_name + '-noztp'
+        # Create full path for EVE-NG
+        file_path = os.path.join(EVE_QEMU_FOLDER_PATH, eos_image_name.rstrip())
+        # Create folders in filesystem
+        self._create_destination_folder(path=file_path)
+
+        # Download file to local destination
+        file_downloaded = self._download_file(
+            file_path=file_path, filename=self.filename)
+
+        # Convert to QCOW2 format
+        file_qcow2 = os.path.join(file_path, "hda.qcow2")
+        logger.info('Converting VMDK to QCOW2 format')
+        os.system(f'$(which qemu-img) convert -f vmdk -O qcow2 {file_downloaded} {file_qcow2}')
+        logger.info('Applying unl_wrapper to fix permissions')
+        os.system('/opt/unetlab/wrappers/unl_wrapper -a fixpermissions')
+        os.system(f'rm -f {file_downloaded}')
+
+        if noztp:
+            self._disable_ztp(file_path=file_path)
