@@ -12,10 +12,10 @@ with open('requirements.txt') as f:
 
 setup(
     name="eos_downloader",
-    version="0.1",
+    version="0.2",
     python_requires=">=3.6",
     packages=['eos_downloader'],
-    scripts=["bin/arista-download"],
+    scripts=["bin/arista-download", "bin/eos-download"],
     install_requires=required,
     include_package_data=True,
     url="https://github.com/titom73/arista-downloader",

@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import argparse
+import eos_downloader.eos
+from loguru import logger
+
+ARISTA_TOKEN = os.getenv('ARISTA_TOKEN', '')
+
+def read_cli():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--token', required=False,
+                        default=ARISTA_TOKEN, help='arista.com user API key')
+    parser.add_argument('--image', required=False,
+                        default='EOS', help='Type of EOS image required')
+    parser.add_argument('--version', required=True,
+                        default='', help='EOS version to download from website')
+
+    parser.add_argument('--destination', required=False,
+                        default=str(os.getcwd()), help='Path where to save EOS package downloaded')
+
+    parser.add_argument('--eve', required=False, action='store_true',
+                        help="Option to install EOS package to EVE-NG")
+    parser.add_argument('--noztp', required=False, action='store_true',
+                        help="Option to deactivate ZTP when used with EVE-NG")
+
+    parser.add_argument('--verbose', required=False,
+                        default='info', help='Script verbosity')
+
+    return parser.parse_args()
+
+if __name__ == '__main__':
+
+    cli_options = read_cli()
+
+    logger.remove()
+    logger.add(sys.stderr, level=str(cli_options.verbose).upper())
+
+    my_download = eos_downloader.eos.EOSDownloader(
+        image=cli_options.image,
+        software='EOS',
+        version=cli_options.version,
+        token=cli_options.token,
+        hash_method='sha512sum')
+
+    my_download.authenticate()
+
+    if cli_options.eve:
+        my_download.provision_eve(noztp=cli_options.noztp, checksum=True)
+    else:
+        my_download.download_local(file_path=cli_options.destination, checksum=True)
+
+    sys.exit(0)
