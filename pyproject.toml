@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "eos_downloader"
+version = "0.1.0"
+description = "A toolkit to download Arista softwares"
+authors = ["Thomas Grimonet <tgrimonet@arista.com>"]
+license = "APACHE"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+cryptography = "*"
+paramiko = "*"
+requests = "*"
+requests-toolbelt = "*"
+scp = "*"
+tqdm = "*"
+loguru = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

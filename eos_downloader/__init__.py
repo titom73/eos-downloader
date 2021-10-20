@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 __author__ = '@titom73'
 __date__ = '2021-10-15'
-__version__ = 0.1
+__version__ = 0.2
 
 ARISTA_GET_SESSION = "https://www.arista.com/custom_data/api/cvp/getSessionCode/"
 ARISTA_SOFTWARE_FOLDER_TREE = "https://www.arista.com/custom_data/api/cvp/getFolderTree/"

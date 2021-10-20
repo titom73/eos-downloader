@@ -3,6 +3,7 @@
 
 import shutil
 from setuptools import setup
+import eos_downloader
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -12,7 +13,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="eos_downloader",
-    version="0.2",
+    version=eos_downloader.__version__,
     python_requires=">=3.6",
     packages=['eos_downloader'],
     scripts=["bin/arista-download", "bin/eos-download"],
