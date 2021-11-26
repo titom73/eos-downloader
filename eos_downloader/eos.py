@@ -17,25 +17,6 @@ class EOSDownloader(ObjectDownloader):
     ObjectDownloader : ObjectDownloader
         Base object
     """
-    def get_remote_filepath(self):
-        """
-        _get_remote_filepath Helper to get path of the file to download
-
-        Set XPATH and return result of _parse_xml for the file to download.
-        XPATH are EOS software oriented
-
-        Returns
-        -------
-        str
-            Remote path of the file to download
-        """
-        root = self.get_folder_tree()
-        logger.debug("GET XML content from ARISTA.com")
-        if self.image == 'EOS':
-            xpath = './/dir[@label="' + self.software + '"]//dir[@label="EOS-' + self.version + '"]//file'
-        else:
-            xpath = './/dir[@label="' + self.software + '"]//dir[@label="EOS-' + self.version + '"]//dir[@label="' + self.image + '"]/file'
-        return self._parse_xml(root_xml=root, xpath=xpath, search_file=self.filename)
 
     @staticmethod
     def _disable_ztp(file_path: str):

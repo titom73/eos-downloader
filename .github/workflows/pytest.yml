@@ -1,0 +1,33 @@
+---
+name: "Pytest Validation"
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.6', '3.7', '3.8']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          echo "PY_COLORS=1" >> $GITHUB_ENV
+          echo "ANSIBLE_FORCE_COLOR=1" >> $GITHUB_ENV
+          pip install poetry
+          poetry install
+      - name: Run Pytest
+        run: |
+          echo "PY_COLORS=1" >> $GITHUB_ENV
+          echo "ANSIBLE_FORCE_COLOR=1" >> $GITHUB_ENV
+          poetry run pytest -v --html=tests/report.html --self-contained-html --cov-report=html --cov=eos_downloader
+        env: # Or as an environment variable
+          ARISTA_TOKEN: ${{ secrets.ARISTA_TOKEN }}

@@ -16,7 +16,11 @@ tqdm = "*"
 loguru = "*"
 
 [tool.poetry.dev-dependencies]
-pytest = "^3.4"
+pytest = "*"
+pytest-cov = "*"
+pytest-html = "*"
+pytest-dependency = "*"
+pytest-metadata = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

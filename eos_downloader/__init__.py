@@ -9,6 +9,7 @@ import base64
 import hashlib
 import requests
 from loguru import logger
+import logging
 import json
 import xml.etree.ElementTree as ET
 from eos_downloader.data import DATA_MAPPING
@@ -16,7 +17,7 @@ from tqdm import tqdm
 
 __author__ = '@titom73'
 __date__ = '2021-10-15'
-__version__ = 0.2
+__version__ = '0.1.0'
 
 ARISTA_GET_SESSION = "https://www.arista.com/custom_data/api/cvp/getSessionCode/"
 ARISTA_SOFTWARE_FOLDER_TREE = "https://www.arista.com/custom_data/api/cvp/getFolderTree/"
@@ -356,9 +357,12 @@ class ObjectDownloader():
             logger.error(MSG_TOKEN_EXPIRED)
             return False
 
-        self.session_id = (result.json()["data"]["session_code"])
-        logger.info('Authenticated on arista.com')
-        return True
+        if 'data' in result.json():
+            self.session_id = (result.json()["data"]["session_code"])
+            logger.info('Authenticated on arista.com')
+            return True
+        logger.debug('{}'.format(result.json()))
+        return False
 
     def download_local(self, file_path: str, checksum: bool = False):
         """
@@ -387,6 +391,7 @@ class ObjectDownloader():
         # Check file HASH
         hash_result = False
         if checksum:
+            logging.info('Running checksum validation')
             if self.hash_method == 'md5sum':
                 hash_expected = self._get_hash(file_path=file_path)
                 hash_result = self._compute_hash_md5sum(file=file_downloaded, hash_expected=hash_expected)
