@@ -3,7 +3,7 @@
 
 import os
 from loguru import logger
-from eos_downloader import ObjectDownloader
+from eos_downloader.object_downloader import ObjectDownloader
 
 
 class EOSDownloader(ObjectDownloader):
