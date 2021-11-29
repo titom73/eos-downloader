@@ -8,14 +8,14 @@
 from __future__ import (absolute_import, division, print_function)
 import sys
 import os
+import platform
 import logging
 import pytest
-import unittest
 import eos_downloader
 from eos_downloader.eos import EOSDownloader
 
 # Get Auth token
-eos_token = os.getenv('ARISTA_TOKEN', '')
+eos_token = os.getenv('ARISTA_TOKEN', 'unset_token')
 
 # Moock data to use for testing
 eos_data = [
@@ -71,7 +71,7 @@ def create_download_instance(request, DOWNLOAD_INFO):
 
 @pytest.mark.usefixtures("create_download_instance")
 @pytest.mark.parametrize("DOWNLOAD_INFO", eos_data, ids=['EOS-sha512', 'EOS-md5' ,'vEOS-lab-no-hash'])
-class TestEosDownload():
+class TestEosDownload_Valid():
     def test_data(self, DOWNLOAD_INFO):
         print(str(DOWNLOAD_INFO))
 
@@ -85,13 +85,6 @@ class TestEosDownload():
         print(my_download)
         assert type(my_download) is eos_downloader.eos.EOSDownloader
 
-    # TODO: Set CI for auth testing
-    @pytest.mark.xfail(reason="Deliberate - CI not set for testing AUTH")
-    @pytest.mark.skipif(eos_token == '', reason="Token is not set correctly")
-    @pytest.mark.dependency()
-    def test_eos_download_authenticate(self):
-        assert self.eos_downloader.authenticate() is True
-
     def test_eos_download_repr_string(self, DOWNLOAD_INFO):
         expected = '{} - {} - {}'.format(DOWNLOAD_INFO['software'], DOWNLOAD_INFO['image'], DOWNLOAD_INFO['version'])
         assert str(self.eos_downloader) == expected
@@ -99,16 +92,23 @@ class TestEosDownload():
     def test_eos_download_build_filename(self, DOWNLOAD_INFO):
         assert self.eos_downloader._build_filename() == DOWNLOAD_INFO['filename']
 
-    @pytest.mark.dependency(depends=["test_eos_download_authenticate"])
+    @pytest.mark.dependency(name='authentication')
+    @pytest.mark.skipif(platform.system() != 'Darwin', reason="Not Macos Laptop")
+    @pytest.mark.skipif(eos_token == 'unset_token', reason="Token is not set correctly")
+    # @pytest.mark.xfail(reason="Deliberate - CI not set for testing AUTH")
+    def test_eos_download_authenticate(self):
+        assert self.eos_downloader.authenticate() is True
+
+    @pytest.mark.dependency(depends=["authentication"], scope='class')
     def test_eos_download_get_remote_file_path(self, DOWNLOAD_INFO):
         assert self.eos_downloader._get_remote_filepath() == DOWNLOAD_INFO['remote_path']
 
-    @pytest.mark.dependency(depends=["test_eos_download_authenticate"])
+    @pytest.mark.dependency(depends=["authentication"], scope='class')
     def test_eos_download_get_file_url(self, DOWNLOAD_INFO):
         url = self.eos_downloader._get_url(remote_file_path = DOWNLOAD_INFO['remote_path'])
         print(str(url))
         assert 'https://downloads.arista.com/EOS-USA/Active%20Releases/' in url
 
-    @pytest.mark.dependency(depends=["test_eos_download_authenticate"])
+    @pytest.mark.dependency(depends=["authentication"], scope='class')
     def test_eos_download_dl_local(self, DOWNLOAD_INFO):
         assert self.eos_downloader.download_local(file_path='.', checksum=DOWNLOAD_INFO['compute_checksum']) is DOWNLOAD_INFO['compute_checksum']

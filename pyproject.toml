@@ -3,6 +3,7 @@ name = "eos_downloader"
 version = "0.1.0"
 description = "A toolkit to download Arista softwares"
 authors = ["Thomas Grimonet <tgrimonet@arista.com>"]
+repository = "https://github.com/titom73/arista-downloader"
 license = "APACHE"
 
 [tool.poetry.dependencies]
