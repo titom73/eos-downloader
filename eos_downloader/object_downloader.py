@@ -42,7 +42,7 @@ class ObjectDownloader():
         """
         self.software = software
         self.image = image
-        self.version = version
+        self._version = version
         self.token = token
         self.folder_level = 0
         self.session_id = None
@@ -58,6 +58,15 @@ class ObjectDownloader():
 
     def __str__(self):
         return self.software + ' - ' + self.image + ' - ' + self.version
+
+    @property
+    def version(self):
+        return self._version
+
+    @version.setter
+    def version(self, value: str):
+        self._version = value
+        self.filename = self._build_filename()
 
     # ------------------------------------------------------------------------ #
     # Private METHODS

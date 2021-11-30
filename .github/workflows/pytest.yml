@@ -3,6 +3,8 @@ name: "Pytest Validation"
 
 on:
   push:
+    branches:
+      main
   pull_request:
 
 jobs:
@@ -28,6 +30,6 @@ jobs:
         run: |
           echo "PY_COLORS=1" >> $GITHUB_ENV
           echo "ANSIBLE_FORCE_COLOR=1" >> $GITHUB_ENV
-          poetry run pytest -v --html=tests/report.html --self-contained-html --cov-report=html --cov=eos_downloader
+          make test
         env: # Or as an environment variable
           ARISTA_TOKEN: ${{ secrets.ARISTA_TOKEN }}
