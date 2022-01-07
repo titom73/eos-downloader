@@ -44,11 +44,39 @@ optional arguments:
   - `cEOS`: Docker version of EOS
   - `cEOS64`: Docker version of EOS running in 64 bits
 
+### Cloudvision Image uploader
+
+Create an image bundle on Cloudvision.
+
+```bash
+cvp-upload -h
+usage: cvp-upload [-h]
+    [--token TOKEN]
+    [--image IMAGE]
+    --cloudvision CLOUDVISION
+    [--create_bundle]
+    [--timeout TIMEOUT]
+    [--verbose VERBOSE]
+
+Cloudvision Image uploader script.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --token TOKEN         CVP Authentication token - can use ENV:ARISTA_AVD_CV_TOKEN
+  --image IMAGE         Type of EOS image required
+  --cloudvision CLOUDVISION
+                        Cloudvision instance where to upload image
+  --create_bundle       Option to create image bundle with new uploaded image
+  --timeout TIMEOUT     Timeout connection. Default is set to 1200sec
+  --verbose VERBOSE     Script verbosity
+```
+
 ## Requirements
 
 Repository requires Python `>=3.6` with following requirements:
 
 ```requirements
+cvprac
 cryptography
 paramiko
 requests

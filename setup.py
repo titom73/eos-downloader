@@ -16,7 +16,7 @@ setup(
     version=eos_downloader.__version__,
     python_requires=">=3.6",
     packages=['eos_downloader'],
-    scripts=["bin/arista-download", "bin/eos-download"],
+    scripts=["bin/arista-download", "bin/eos-download", "bin/cvp-upload"],
     install_requires=required,
     include_package_data=True,
     url="https://github.com/titom73/arista-downloader",
