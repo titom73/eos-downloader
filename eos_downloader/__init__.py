@@ -8,7 +8,9 @@ import json
 
 __author__ = '@titom73'
 __date__ = '2021-10-15'
-__version__ = '0.1.0'
+__version__ = '0.2.0'
+
+__all__ = ["CvpAuthenticationItem", "CvFeatureManager", "EOSDownloader", "ObjectDownloader", "reverse"]
 
 ARISTA_GET_SESSION = "https://www.arista.com/custom_data/api/cvp/getSessionCode/"
 

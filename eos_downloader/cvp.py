@@ -12,6 +12,9 @@ from typing import List
 
 @dataclass
 class CvpAuthenticationItem:
+    """
+     Data structure to represent Cloudvision Authentication
+    """
     server: str
     port: int = 443
     token: str = None
@@ -20,6 +23,9 @@ class CvpAuthenticationItem:
 
 
 class Filer():
+    """
+    Filer Helper for file management
+    """
     def __init__(self, path: str):
         self.file_exist = False
         self.filename = ''
@@ -37,7 +43,18 @@ class Filer():
 
 
 class CvFeatureManager():
+    """
+    CvFeatureManager Object to interect with Cloudvision
+    """
     def __init__(self, authentication: CvpAuthenticationItem):
+        """
+        __init__ Class Creator
+
+        Parameters
+        ----------
+        authentication : CvpAuthenticationItem
+            Authentication information to use to connect to Cloudvision
+        """
         self._authentication = authentication
         # self._cv_instance = CvpClient()
         self._cv_instance = self._connect(authentication=authentication)
@@ -45,6 +62,19 @@ class CvFeatureManager():
         # self._cv_bundles = self.__get_bundles()
 
     def _connect(self, authentication: CvpAuthenticationItem):
+        """
+        _connect Connection management
+
+        Parameters
+        ----------
+        authentication : CvpAuthenticationItem
+            Authentication information to use to connect to Cloudvision
+
+        Returns
+        -------
+        CvpClient
+            cvprac session to cloudvision
+        """
         client = CvpClient()
         if authentication.token is not None:
             try:
@@ -70,6 +100,14 @@ class CvFeatureManager():
         return client
 
     def __get_images(self):
+        """
+        __get_images Collect information about images on Cloudvision
+
+        Returns
+        -------
+        dict
+            Fact returned by Cloudvision
+        """
         images = []
         logger.debug('  -> Collecting images')
         images = self._cv_instance.api.get_images()['data']
@@ -78,6 +116,14 @@ class CvFeatureManager():
         return None
 
     def __get_bundles(self):
+        """
+        __get_bundles [Not In use] Collect information about bundles on Cloudvision
+
+        Returns
+        -------
+        dict
+            Fact returned by Cloudvision
+        """
         bundles = []
         logger.debug('  -> Collecting images bundles')
         bundles = self._cv_instance.api.get_image_bundles()['data']
@@ -87,32 +133,77 @@ class CvFeatureManager():
         return None
 
     def __check_api_result(self, arg0):
+        """
+        __check_api_result Check API calls return content
+
+        Parameters
+        ----------
+        arg0 : any
+            Element to test
+
+        Returns
+        -------
+        bool
+            True if data are correct False in other cases
+        """
         logger.debug(arg0)
         return len(arg0) > 0
 
     def _does_image_exist(self, image_name):
+        """
+        _does_image_exist Check if an image is referenced in Cloudvision facts
+
+        Parameters
+        ----------
+        image_name : str
+            Name of the image to search for
+
+        Returns
+        -------
+        bool
+            True if present
+        """
         return any(image_name == image['name'] for image in self._cv_images)
 
     def _does_bundle_exist(self, bundle_name):
+        """
+        _does_bundle_exist Check if an image is referenced in Cloudvision facts
+
+        Parameters
+        ----------
+        bundle_name : str
+            Name of the bundle to search for
+
+        Returns
+        -------
+        bool
+            True if present
+        """
         # return any(bundle_name == bundle['name'] for bundle in self._cv_bundles)
         return False
 
-    def _image_cancel(self, image_name: str):
-        images = self._cv_instance.api.get_images()
-        logger.debug('List of images: {}'.format(images))
-        if images['total'] > 0:
-            for image in images['data']:
-                if image['name'] == image_name:
-                    self._cv_instance.api.cancel_image(image['name'])
-
     def upload_image(self, image_path: str):
+        """
+        upload_image Upload an image to Cloudvision server
+
+        Parameters
+        ----------
+        image_path : str
+            Path to the local file to upload
+
+        Returns
+        -------
+        bool
+            True if succeeds
+        """
         image_item = Filer(path=image_path)
         if image_item.file_exist is False:
             logger.error('File not found: {}'.format(image_item.relative_path))
             return False
         logger.info('File path for image: {}'.format(image_item))
-        self._image_cancel(image_name=image_item.filename.split('.')[0])
-
+        if self._does_image_exist(image_name=image_item.filename):
+            logger.error("Image found in Cloudvision , Please delete it before running this script")
+            return  False
         try:
             upload_result = self._cv_instance.api.add_image(filepath=image_item.absolute_path)
         except Exception as e:
@@ -154,7 +245,22 @@ class CvFeatureManager():
         else:
             return None
 
-    def create_bundle(self, name: str, images_name: List[str] ):
+    def create_bundle(self, name: str, images_name: List[str]):
+        """
+        create_bundle Create a bundle with a list of images.
+
+        Parameters
+        ----------
+        name : str
+            Name of the bundle
+        images_name : List[str]
+            List of images available on Cloudvision
+
+        Returns
+        -------
+        bool
+            True if succeeds
+        """
         logger.debug('Init creation of an image bundle {0} with following images {1}'.format(name, str(images_name)))
         all_images_present : List[bool] = []
         self._cv_images = self.__get_images()
