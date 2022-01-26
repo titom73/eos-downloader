@@ -93,7 +93,9 @@ tqdm
 $ pip install git+https://github.com/titom73/arista-downloader
 ```
 
-### Poetry
+<!-- ### Poetry
+
+Deactivated since pyproject.toml is first source for pip and do not cover script section of setup.py
 
 ```bash
 # Install dependencies
@@ -101,7 +103,7 @@ poetry install
 
 # Run script
 poetry run python <script>
-```
+``` -->
 
 ## Author
 

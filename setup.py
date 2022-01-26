@@ -12,8 +12,8 @@ with open('requirements.txt') as f:
 
 setup(
     name="eos_downloader",
-    version=eos_downloader.__version__,
-    python_requires=">=3.6",
+    version="{}".format(eos_downloader.__version__),
+    python_requires=">=3.8",
     packages=['eos_downloader'],
     scripts=["bin/eos-download", "bin/cvp-upload"],
     install_requires=required,
