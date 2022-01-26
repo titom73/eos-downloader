@@ -7,8 +7,9 @@ import dataclasses
 import json
 
 __author__ = '@titom73'
-__date__ = '2021-10-15'
-__version__ = '0.2.0'
+__email__ = 'tom@inetsix.net'
+__date__ = '2022-01-26'
+__version__ = '0.2.1'
 
 __all__ = ["CvpAuthenticationItem", "CvFeatureManager", "EOSDownloader", "ObjectDownloader", "reverse"]
 
