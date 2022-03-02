@@ -20,12 +20,12 @@ DATA_MAPPING = {
             "folder_level": 1
         },
         "cEOS": {
-            "extension": ".tar.xy",
+            "extension": ".tar.xz",
             "prepend": "cEOS-lab",
             "folder_level": 0
         },
         "cEOS64": {
-            "extension": ".tar.xy",
+            "extension": ".tar.xz",
             "prepend": "cEOS64-lab",
             "folder_level": 0
         },
