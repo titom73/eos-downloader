@@ -7,4 +7,4 @@ COVERAGE = --cov=eos_downloader
 
 .PHONY: test
 test:
-	poetry run pytest $(TEST_OPT) $(REPORT) $(COVERAGE) -m '$(TAG)' $(TESTS)
+	pytest $(TEST_OPT) $(REPORT) $(COVERAGE) -m '$(TAG)' $(TESTS)

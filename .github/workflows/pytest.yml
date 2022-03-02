@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.6', '3.7', '3.8']
+        python-version: ['3.7', '3.8', '3.9']
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -24,12 +24,13 @@ jobs:
         run: |
           echo "PY_COLORS=1" >> $GITHUB_ENV
           echo "ANSIBLE_FORCE_COLOR=1" >> $GITHUB_ENV
-          pip install poetry
-          poetry install
+          pip install pytest pytest-cov pytest-html pytest-dependency pytest-metadata
+          pip install -r requirements.txt
       - name: Run Pytest
         run: |
           echo "PY_COLORS=1" >> $GITHUB_ENV
           echo "ANSIBLE_FORCE_COLOR=1" >> $GITHUB_ENV
+          python setup.py develop
           make test
         env: # Or as an environment variable
           ARISTA_TOKEN: ${{ secrets.ARISTA_TOKEN }}
