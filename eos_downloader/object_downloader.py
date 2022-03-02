@@ -439,3 +439,9 @@ class ObjectDownloader():
 
         if noztp:
             self._disable_ztp(file_path=file_path)
+
+
+    def docker_import(self, version: str, image_name: str = "arista/ceos"):
+        docker_image = f'{image_name}:{self.version}'
+        logger.info(f'Importing image {self.filename} to {docker_image}')
+        os.system(f'$(which docker) import {self.filename} {docker_image}')

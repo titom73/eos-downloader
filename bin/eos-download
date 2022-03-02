@@ -28,6 +28,12 @@ def read_cli():
     parser.add_argument('--noztp', required=False, action='store_true',
                         help="Option to deactivate ZTP when used with EVE-NG")
 
+    parser.add_argument('--import_docker', required=False, action='store_true',
+                        help="Option to import cEOS image to docker")
+    parser.add_argument('--docker_name', required=False,
+                        default='arista/ceos',
+                        help='Docker image name to use')
+
     parser.add_argument('--verbose', required=False,
                         default='info', help='Script verbosity')
 
@@ -54,5 +60,11 @@ if __name__ == '__main__':
         my_download.provision_eve(noztp=cli_options.noztp, checksum=True)
     else:
         my_download.download_local(file_path=cli_options.destination, checksum=True)
+
+    if cli_options.import_docker:
+        my_download.docker_import(
+            version=cli_options.version,
+            image_name=cli_options.docker_name
+        )
 
     sys.exit(0)

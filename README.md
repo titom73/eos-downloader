@@ -7,14 +7,7 @@ Script to download Arista softwares to local folder, Cloudvision or EVE-NG.
 ### eos-download
 
 ```bash
-eos-download -h
-usage: eos-download [-h] [--token TOKEN]
-    --version VERSION
-    [--image IMAGE]
-    [--destination DESTINATION]
-    [--eve]
-    [--noztp]
-    [--verbose VERBOSE]
+usage: eos-download [-h]
 
 EOS downloader script.
 
@@ -27,6 +20,9 @@ optional arguments:
                         Path where to save EOS package downloaded
   --eve                 Option to install EOS package to EVE-NG
   --noztp               Option to deactivate ZTP when used with EVE-NG
+  --import_docker       Option to import cEOS image to docker
+  --docker_name DOCKER_NAME
+                        Docker image name to use, (default is arista/ceos)
   --verbose VERBOSE     Script verbosity
 ```
 
