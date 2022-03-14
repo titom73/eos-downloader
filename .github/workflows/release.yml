@@ -1,0 +1,29 @@
+---
+name: "Tag & Release management"
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+jobs:
+  build:
+    name: Create Github Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Generate Changelog
+        run: |
+          export TAG_CURRENT=$(git describe --abbrev=0 --tags)
+          export TAG_PREVIOUS=$(git describe --abbrev=0 --tags `git rev-list --tags --skip=1  --max-count=1`)
+          echo "Previous tag is: ${TAG_PREVIOUS}"
+          echo "Current tag is: ${TAG_CURRENT}"
+          zsh .github/changelog.sh ${TAG_CURRENT} ${TAG_PREVIOUS} md > CHANGELOG.md
+          cat CHANGELOG.md
+
+      - name: Release on Github
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          body_path: CHANGELOG.md
