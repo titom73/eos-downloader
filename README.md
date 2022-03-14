@@ -40,6 +40,33 @@ optional arguments:
   - `cEOS`: Docker version of EOS
   - `cEOS64`: Docker version of EOS running in 64 bits
 
+#### Examples
+
+- Download vEOS-lab image and install in EVE-NG
+
+```bash
+eos-download --image vEOS-lab --version 4.25.7M --eve --noztp
+```
+
+- Download Docker image
+
+```bash
+eos-download --image cEOS --version 4.27.1F
+```
+
+- Download Docker image and install
+
+```bash
+eos-download --image cEOS --version 4.27.1F --import_docker --docker_name test/ceos
+```
+
+__Note:__ `ARISTA_TOKEN` should be set in your .profile and not set for each command. If not set, you can use `--token` knob.
+
+```bash
+# Export Token
+export ARISTA_TOKEN="xxxxxxx"
+```
+
 ### Cloudvision Image uploader
 
 Create an image bundle on Cloudvision.
