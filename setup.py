@@ -2,10 +2,13 @@
 # coding: utf-8 -*-
 
 from setuptools import setup
+from pathlib import Path
 import eos_downloader
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
+
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
@@ -22,5 +25,6 @@ setup(
     license="APACHE",
     author="{}".format(eos_downloader.__author__),
     author_email="{}".format(eos_downloader.__email__),
-    description=long_description,
+    long_description=long_description,
+    long_description_content_type='text/markdown'
 )
