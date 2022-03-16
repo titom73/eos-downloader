@@ -1,8 +1,12 @@
-![GitHub](https://img.shields.io/github/license/titom73/arista-downloader) [![Pytest Validation](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml/badge.svg)](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml)  ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/arista-downloader) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/titom73/arista-downloader) 
+![GitHub](https://img.shields.io/github/license/titom73/arista-downloader) [![Pytest Validation](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml/badge.svg)](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml)  ![PyPI](https://img.shields.io/pypi/v/eos-downloader) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/titom73/arista-downloader)
 
 # Arista Software Downloader
 
 Script to download Arista softwares to local folder, Cloudvision or EVE-NG.
+
+```bash
+pip install eos-downloader
+```
 
 ## scripts
 
@@ -115,7 +119,11 @@ tqdm
 ### Python PIP
 
 ```bash
+# Development version from github
 $ pip install git+https://github.com/titom73/arista-downloader
+
+# Stable versions
+pip install eos-downloader
 ```
 
 <!-- ### Poetry
