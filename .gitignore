@@ -177,6 +177,8 @@ Temporary Items
 .history/
 
 *.swi
+*.sha512sum
+.idea
 
 .python-version
 

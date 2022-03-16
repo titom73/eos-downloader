@@ -115,7 +115,7 @@ class ObjectDownloader():
             if node.text.lower() == search_file.lower():
                 logger.info('Found {} at {}', node.text, node.get('path'))
                 return node.get('path')
-        logger.error('Requested file ({}) not found !', self.filename)
+        logger.error('🚫 Requested file ({}) not found !', self.filename)
         return False
 
     def _get_hash(self, file_path: str):
@@ -165,7 +165,7 @@ class ObjectDownloader():
                 hash_md5.update(chunk)
         if str(hash_md5.hexdigest()) == hash_expected:
             return True
-        logger.warning('Downloaded file is corrupt: local md5 ({}) is different to md5 from arista ({})',
+        logger.warning('⛔ Downloaded file is corrupt: local md5 ({}) is different to md5 from arista ({})',
                        hash_md5.hexdigest(),
                        hash_expected)
         return False
@@ -195,7 +195,7 @@ class ObjectDownloader():
                 hash_sha512.update(chunk)
         if str(hash_sha512.hexdigest()) == hash_expected:
             return True
-        logger.warning('Downloaded file is corrupt: local sha512 ({}) is different to sha512 from arista ({})',
+        logger.warning('⛔ Downloaded file is corrupt: local sha512 ({}) is different to sha512 from arista ({})',
                        hash_sha512.hexdigest(),
                        hash_expected)
         return False
@@ -305,11 +305,11 @@ class ObjectDownloader():
 
     def _download_file(self, file_path: str, filename: str, ):
         remote_file_path = self._get_remote_filepath()
-        logger.info('File found on arista server: {}', remote_file_path)
+        logger.info('🔎 File found on arista server: {}', remote_file_path)
         file_url = self._get_url(remote_file_path=remote_file_path)
         if file_url is not False:
             return self._download_file_raw(url=file_url, file_path=os.path.join(file_path, filename))
-        logger.error('Cannot download file {}', file_path)
+        logger.error('❌ Cannot download file {}', file_path)
         return None
 
     @staticmethod
@@ -352,7 +352,7 @@ class ObjectDownloader():
 
         if 'data' in result.json():
             self.session_id = (result.json()["data"]["session_code"])
-            logger.info('Authenticated on arista.com')
+            logger.info('✅ Authenticated on arista.com')
             return True
         logger.debug('{}'.format(result.json()))
         return False
@@ -384,7 +384,7 @@ class ObjectDownloader():
         # Check file HASH
         hash_result = False
         if checksum:
-            logging.info('Running checksum validation')
+            logging.info('🚀 Running checksum validation')
             if self.hash_method == 'md5sum':
                 hash_expected = self._get_hash(file_path=file_path)
                 hash_result = self._compute_hash_md5sum(file=file_downloaded, hash_expected=hash_expected)
@@ -392,9 +392,9 @@ class ObjectDownloader():
                 hash_expected = self._get_hash(file_path=file_path)
                 hash_result = self._compute_hash_sh512sum(file=file_downloaded, hash_expected=hash_expected)
         if not hash_result:
-            logger.error('Downloaded file is corrupted, please check your connection')
+            logger.error('❌ Downloaded file is corrupted, please check your connection')
             return False
-        logger.warning('Downloaded file is correct.')
+        logger.warning('✅ Downloaded file is correct.')
         return True
 
     def provision_eve(self, noztp: bool = False, checksum: bool = True):
@@ -431,7 +431,7 @@ class ObjectDownloader():
 
         # Convert to QCOW2 format
         file_qcow2 = os.path.join(file_path, "hda.qcow2")
-        logger.info('Converting VMDK to QCOW2 format')
+        logger.info('🚀 Converting VMDK to QCOW2 format')
         os.system(f'$(which qemu-img) convert -f vmdk -O qcow2 {file_downloaded} {file_qcow2}')
         logger.info('Applying unl_wrapper to fix permissions')
         os.system('/opt/unetlab/wrappers/unl_wrapper -a fixpermissions')
@@ -443,5 +443,5 @@ class ObjectDownloader():
 
     def docker_import(self, version: str, image_name: str = "arista/ceos"):
         docker_image = f'{image_name}:{self.version}'
-        logger.info(f'Importing image {self.filename} to {docker_image}')
+        logger.info(f'🚀 Importing image {self.filename} to {docker_image}')
         os.system(f'$(which docker) import {self.filename} {docker_image}')
