@@ -9,7 +9,7 @@ import json
 __author__ = '@titom73'
 __email__ = 'tom@inetsix.net'
 __date__ = '2022-03-16'
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 __all__ = ["CvpAuthenticationItem", "CvFeatureManager", "EOSDownloader", "ObjectDownloader", "reverse"]
 
