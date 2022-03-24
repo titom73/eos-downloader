@@ -120,7 +120,7 @@ tqdm
 
 ```bash
 # Development version from github
-$ pip install git+https://github.com/titom73/arista-downloader
+$ pip install git+https://github.com/titom73/eos-downloader
 
 # Stable versions
 pip install eos-downloader
