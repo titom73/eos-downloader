@@ -1,4 +1,4 @@
-![GitHub](https://img.shields.io/github/license/titom73/arista-downloader) [![Pytest Validation](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml/badge.svg)](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml)  ![PyPI](https://img.shields.io/pypi/v/eos-downloader) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/titom73/arista-downloader)
+![GitHub](https://img.shields.io/github/license/titom73/arista-downloader) [![Pytest Validation](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml/badge.svg)](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/eos-downloader) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/titom73/arista-downloader) ![PyPI - Format](https://img.shields.io/pypi/format/eos-downloader) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eos-downloader)
 
 # Arista Software Downloader
 
