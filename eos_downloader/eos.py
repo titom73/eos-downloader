@@ -2,8 +2,12 @@
 # coding: utf-8 -*-
 
 import os
+import rich
 from loguru import logger
 from eos_downloader.object_downloader import ObjectDownloader
+from rich import console
+
+console = rich.get_console()
 
 
 class EOSDownloader(ObjectDownloader):
@@ -30,7 +34,8 @@ class EOSDownloader(ObjectDownloader):
         file_path : str
             Path where EOS image is located
         """
-        logger.info('🚀 Mounting volume to disable ZTP')
+        logger.info('Mounting volume to disable ZTP')
+        console.print('🚀 Mounting volume to disable ZTP')
         raw_folder = os.path.join(file_path, "raw")
         os.system(f"rm -rf {raw_folder}")
         os.system(f"mkdir -p {raw_folder}")

@@ -6,16 +6,21 @@ from __future__ import (absolute_import, division,
 # from builtins import *
 import os
 import base64
+import time
 import hashlib
 import requests
-from loguru import logger
-import logging
+import rich
 import json
 import xml.etree.ElementTree as ET
+from loguru import logger
+from urllib.request import urlopen
+from rich import console
+from eos_downloader.download import DownloadProgressBar
 from eos_downloader.data import DATA_MAPPING
 from eos_downloader import ARISTA_GET_SESSION, ARISTA_SOFTWARE_FOLDER_TREE, ARISTA_DOWNLOAD_URL, MSG_TOKEN_EXPIRED
 from tqdm import tqdm
 
+console = rich.get_console()
 
 class ObjectDownloader():
     """
@@ -108,14 +113,17 @@ class ObjectDownloader():
         str
             File Path on Arista server side
         """
-        logger.debug('Using xpath {}', xpath)
-        logger.debug('Search for file {}', search_file)
+        logger.debug(f'Using xpath {xpath}')
+        logger.debug(f'Search for file {search_file}')
+        console.print(f'🔎  Searching file {search_file}')
         for node in root_xml.findall(xpath):
             # logger.debug('Found {}', node.text)
             if node.text.lower() == search_file.lower():
+                path = node.get('path')
+                console.print(f'    -> Found file at {path}' )
                 logger.info('Found {} at {}', node.text, node.get('path'))
                 return node.get('path')
-        logger.error('🚫 Requested file ({}) not found !', self.filename)
+        logger.error('Requested file ({}) not found !', self.filename)
         return False
 
     def _get_hash(self, file_path: str):
@@ -134,7 +142,10 @@ class ObjectDownloader():
         """
         remote_hash_file = self._get_remote_hashpath(hash_method=self.hash_method)
         hash_url = self._get_url(remote_file_path=remote_hash_file)
-        hash_downloaded = self._download_file_raw(url=hash_url, file_path=file_path + "/" + os.path.basename(remote_hash_file))
+        # hash_downloaded = self._download_file_raw(url=hash_url, file_path=file_path + "/" + os.path.basename(remote_hash_file))
+        dl_rich_progress_bar = DownloadProgressBar()
+        hash_downloaded = dl_rich_progress_bar.download(urls=[hash_url], dest_dir=file_path)
+        hash_downloaded = file_path + "/" + os.path.basename(remote_hash_file)
         hash_content = 'unset'
         with open(hash_downloaded, 'r') as f:
             hash_content = f.read()
@@ -165,7 +176,7 @@ class ObjectDownloader():
                 hash_md5.update(chunk)
         if str(hash_md5.hexdigest()) == hash_expected:
             return True
-        logger.warning('⛔ Downloaded file is corrupt: local md5 ({}) is different to md5 from arista ({})',
+        logger.warning('Downloaded file is corrupt: local md5 ({}) is different to md5 from arista ({})',
                        hash_md5.hexdigest(),
                        hash_expected)
         return False
@@ -195,7 +206,7 @@ class ObjectDownloader():
                 hash_sha512.update(chunk)
         if str(hash_sha512.hexdigest()) == hash_expected:
             return True
-        logger.warning('⛔ Downloaded file is corrupt: local sha512 ({}) is different to sha512 from arista ({})',
+        logger.warning('Downloaded file is corrupt: local sha512 ({}) is different to sha512 from arista ({})',
                        hash_sha512.hexdigest(),
                        hash_expected)
         return False
@@ -303,13 +314,19 @@ class ObjectDownloader():
                 f.write(chunk)
         return file_path
 
-    def _download_file(self, file_path: str, filename: str, ):
+    def _download_file(self, file_path: str, filename: str, rich_interface: bool = True):
         remote_file_path = self._get_remote_filepath()
-        logger.info('🔎 File found on arista server: {}', remote_file_path)
+        logger.info('File found on arista server: {}', remote_file_path)
         file_url = self._get_url(remote_file_path=remote_file_path)
-        if file_url is not False:
-            return self._download_file_raw(url=file_url, file_path=os.path.join(file_path, filename))
-        logger.error('❌ Cannot download file {}', file_path)
+        if rich_interface is True:
+            if file_url is not False:
+                rich_downloader = DownloadProgressBar()
+                rich_downloader.download(urls=[file_url], dest_dir=file_path)
+                return os.path.join(file_path, filename)
+        else:
+            if file_url is not False:
+                return self._download_file_raw(url=file_url, file_path=os.path.join(file_path, filename))
+        logger.error('Cannot download file {}', file_path)
         return None
 
     @staticmethod
@@ -344,15 +361,18 @@ class ObjectDownloader():
         result = requests.post(session_code_url, data=json.dumps(jsonpost))
 
         if result.json()["status"]["message"] == 'Access token expired':
+            console.print('❌  ', MSG_TOKEN_EXPIRED, style="bold green")
             logger.error(MSG_TOKEN_EXPIRED)
             return False
         elif result.json()["status"]["message"] == 'Invalid access token':
             logger.error(MSG_TOKEN_EXPIRED)
+            console.print('❌  ', MSG_TOKEN_EXPIRED, style="bold green")
             return False
 
         if 'data' in result.json():
             self.session_id = (result.json()["data"]["session_code"])
-            logger.info('✅ Authenticated on arista.com')
+            logger.info('Authenticated on arista.com')
+            console.print('✅ Authenticated on arista.com')
             return True
         logger.debug('{}'.format(result.json()))
         return False
@@ -384,7 +404,8 @@ class ObjectDownloader():
         # Check file HASH
         hash_result = False
         if checksum:
-            logging.info('🚀 Running checksum validation')
+            logger.info('🚀  Running checksum validation')
+            console.print('🚀  Running checksum validation')
             if self.hash_method == 'md5sum':
                 hash_expected = self._get_hash(file_path=file_path)
                 hash_result = self._compute_hash_md5sum(file=file_downloaded, hash_expected=hash_expected)
@@ -392,9 +413,11 @@ class ObjectDownloader():
                 hash_expected = self._get_hash(file_path=file_path)
                 hash_result = self._compute_hash_sh512sum(file=file_downloaded, hash_expected=hash_expected)
         if not hash_result:
-            logger.error('❌ Downloaded file is corrupted, please check your connection')
+            logger.error('Downloaded file is corrupted, please check your connection')
+            console.print('❌  Downloaded file is corrupted, please check your connection')
             return False
-        logger.warning('✅ Downloaded file is correct.')
+        logger.info('Downloaded file is correct.')
+        console.print('✅  Downloaded file is correct.')
         return True
 
     def provision_eve(self, noztp: bool = False, checksum: bool = True):
@@ -431,9 +454,14 @@ class ObjectDownloader():
 
         # Convert to QCOW2 format
         file_qcow2 = os.path.join(file_path, "hda.qcow2")
-        logger.info('🚀 Converting VMDK to QCOW2 format')
+        logger.info('Converting VMDK to QCOW2 format')
+        console.print('🚀  Converting VMDK to QCOW2 format...')
+
         os.system(f'$(which qemu-img) convert -f vmdk -O qcow2 {file_downloaded} {file_qcow2}')
+
         logger.info('Applying unl_wrapper to fix permissions')
+        console.print('Applying unl_wrapper to fix permissions')
+
         os.system('/opt/unetlab/wrappers/unl_wrapper -a fixpermissions')
         os.system(f'rm -f {file_downloaded}')
 
@@ -443,5 +471,6 @@ class ObjectDownloader():
 
     def docker_import(self, version: str, image_name: str = "arista/ceos"):
         docker_image = f'{image_name}:{self.version}'
-        logger.info(f'🚀 Importing image {self.filename} to {docker_image}')
+        logger.info(f'Importing image {self.filename} to {docker_image}')
+        console.print(f'🚀 Importing image {self.filename} to {docker_image}')
         os.system(f'$(which docker) import {self.filename} {docker_image}')
