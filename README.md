@@ -1,4 +1,4 @@
-![GitHub](https://img.shields.io/github/license/titom73/arista-downloader) [![Pytest Validation](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml/badge.svg)](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/eos-downloader) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/titom73/arista-downloader) ![PyPI - Format](https://img.shields.io/pypi/format/eos-downloader) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eos-downloader)
+[![Pytest Validation](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml/badge.svg)](https://github.com/titom73/arista-downloader/actions/workflows/pytest.yml) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/eos-downloader) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/titom73/arista-downloader) ![PyPI - Format](https://img.shields.io/pypi/format/eos-downloader) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eos-downloader) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/titom73/eos-downloader/edge)
 
 # Arista Software Downloader
 
@@ -84,28 +84,6 @@ Releases/4.27/EOS-4.27.2F/cEOS-lab/cEOS-lab-4.27.2F.tar.xz.sha512sum
 ✅  Downloaded file is correct.
 ```
 
-- Download Docker image and install
-
-```bash
-$ eos-download --image cEOS --version 4.27.1F --import_docker --docker_name test/ceos
-🪐 eos-downloader is starting...
-    - Image Type: cEOS
-    - Version: 4.27.2F
-✅ Authenticated on arista.com
-🔎  Searching file cEOS-lab-4.27.2F.tar.xz
-    -> Found file at /support/download/EOS-USA/Active Releases/4.27/EOS-4.27.2F/cEOS-lab/cEOS-lab-4.27.2F.tar.xz
-💾  Downloading cEOS-lab-4.27.2F.tar.xz ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • 17.1 MB/s • 451.6/451.6 MB • 0:00:19 •
-🚀  Running checksum validation
-🔎  Searching file cEOS-lab-4.27.2F.tar.xz.sha512sum
-    -> Found file at /support/download/EOS-USA/Active
-Releases/4.27/EOS-4.27.2F/cEOS-lab/cEOS-lab-4.27.2F.tar.xz.sha512sum
-💾  Downloading cEOS-lab-4.27.2F.tar.xz.sha512sum ━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • ? • 154/154 bytes • 0:00:00 •
-✅  Downloaded file is correct.
-🚀 Importing image cEOS-lab-4.27.2F.tar.xz to arista/ceos:4.27.2F
-sha256:a535f5744590523861d23bc0b92a9ab0006368b0c976ca735aedac80e535d975
-✅  processing done !
-```
-
 __Note:__ `ARISTA_TOKEN` should be set in your .profile and not set for each command. If not set, you can use `--token` knob.
 
 ```bash
@@ -178,6 +156,14 @@ poetry install
 poetry run python <script>
 ``` -->
 
+A docker image is also available when Python cannot be used.
+
+```bash
+$ docker pull titom73/eos-downloader:edge
+$ docker run -it -rm -v ${PWD}:/download titom73/eos-downloader:edge bash
+$ cd /download
+$ eos-download --image cEOS --version 4.27.1F
+```
 ## Author
 
 From an original idea of [@Mark Rayson](https://github.com/Sparky-python) in [arista-netdevops-community/eos-scripts](https://github.com/arista-netdevops-community/eos-scripts)
