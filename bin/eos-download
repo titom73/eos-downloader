@@ -5,6 +5,7 @@ import os
 import argparse
 import eos_downloader.eos
 from loguru import logger
+from rich.console import Console
 
 ARISTA_TOKEN = os.getenv('ARISTA_TOKEN', '')
 
@@ -36,6 +37,8 @@ def read_cli():
 
     parser.add_argument('--verbose', required=False,
                         default='info', help='Script verbosity')
+    parser.add_argument('--log', required=False, action='store_true',
+                        help="Option to activate logging to eos-downloader.log file")
 
     return parser.parse_args()
 
@@ -44,8 +47,16 @@ if __name__ == '__main__':
 
     cli_options = read_cli()
 
+    console = Console()
+
     logger.remove()
-    logger.add(sys.stderr, level=str(cli_options.verbose).upper())
+    if cli_options.log:
+        logger.add("eos-downloader.log", rotation="10 MB", level=str(cli_options.verbose).upper())
+
+    console.print("🪐 [bold blue]eos-downloader[/bold blue] is starting...", )
+    console.print(f'    - Image Type: {cli_options.image}')
+    console.print(f'    - Version: {cli_options.version}')
+
 
     my_download = eos_downloader.eos.EOSDownloader(
         image=cli_options.image,
@@ -66,5 +77,5 @@ if __name__ == '__main__':
             version=cli_options.version,
             image_name=cli_options.docker_name
         )
-
+    console.print('✅  processing done !')
     sys.exit(0)

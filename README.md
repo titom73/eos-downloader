@@ -14,6 +14,16 @@ pip install eos-downloader
 
 ```bash
 usage: eos-download [-h]
+  --version VERSION
+  [--token TOKEN]
+  [--image IMAGE]
+  [--destination DESTINATION]
+  [--eve]
+  [--noztp]
+  [--import_docker]
+  [--docker_name DOCKER_NAME]
+  [--verbose VERBOSE]
+  [--log]
 
 EOS downloader script.
 
@@ -28,8 +38,9 @@ optional arguments:
   --noztp               Option to deactivate ZTP when used with EVE-NG
   --import_docker       Option to import cEOS image to docker
   --docker_name DOCKER_NAME
-                        Docker image name to use, (default is arista/ceos)
+                        Docker image name to use
   --verbose VERBOSE     Script verbosity
+  --log                 Option to activate logging to eos-downloader.log file
 ```
 
 - Token are read from `ENV:ARISTA_TOKEN` unless you specify a specific token with CLI.
@@ -51,19 +62,48 @@ optional arguments:
 - Download vEOS-lab image and install in EVE-NG
 
 ```bash
-eos-download --image vEOS-lab --version 4.25.7M --eve --noztp
+$ eos-download --image vEOS-lab --version 4.25.7M --eve --noztp
 ```
 
 - Download Docker image
 
 ```bash
-eos-download --image cEOS --version 4.27.1F
+$ eos-download --image cEOS --version 4.27.1F
+🪐 eos-downloader is starting...
+    - Image Type: cEOS
+    - Version: 4.27.2F
+✅ Authenticated on arista.com
+🔎  Searching file cEOS-lab-4.27.2F.tar.xz
+    -> Found file at /support/download/EOS-USA/Active Releases/4.27/EOS-4.27.2F/cEOS-lab/cEOS-lab-4.27.2F.tar.xz
+💾  Downloading cEOS-lab-4.27.2F.tar.xz ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • 17.1 MB/s • 451.6/451.6 MB • 0:00:19 •
+🚀  Running checksum validation
+🔎  Searching file cEOS-lab-4.27.2F.tar.xz.sha512sum
+    -> Found file at /support/download/EOS-USA/Active
+Releases/4.27/EOS-4.27.2F/cEOS-lab/cEOS-lab-4.27.2F.tar.xz.sha512sum
+💾  Downloading cEOS-lab-4.27.2F.tar.xz.sha512sum ━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • ? • 154/154 bytes • 0:00:00 •
+✅  Downloaded file is correct.
 ```
 
 - Download Docker image and install
 
 ```bash
-eos-download --image cEOS --version 4.27.1F --import_docker --docker_name test/ceos
+$ eos-download --image cEOS --version 4.27.1F --import_docker --docker_name test/ceos
+🪐 eos-downloader is starting...
+    - Image Type: cEOS
+    - Version: 4.27.2F
+✅ Authenticated on arista.com
+🔎  Searching file cEOS-lab-4.27.2F.tar.xz
+    -> Found file at /support/download/EOS-USA/Active Releases/4.27/EOS-4.27.2F/cEOS-lab/cEOS-lab-4.27.2F.tar.xz
+💾  Downloading cEOS-lab-4.27.2F.tar.xz ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • 17.1 MB/s • 451.6/451.6 MB • 0:00:19 •
+🚀  Running checksum validation
+🔎  Searching file cEOS-lab-4.27.2F.tar.xz.sha512sum
+    -> Found file at /support/download/EOS-USA/Active
+Releases/4.27/EOS-4.27.2F/cEOS-lab/cEOS-lab-4.27.2F.tar.xz.sha512sum
+💾  Downloading cEOS-lab-4.27.2F.tar.xz.sha512sum ━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • ? • 154/154 bytes • 0:00:00 •
+✅  Downloaded file is correct.
+🚀 Importing image cEOS-lab-4.27.2F.tar.xz to arista/ceos:4.27.2F
+sha256:a535f5744590523861d23bc0b92a9ab0006368b0c976ca735aedac80e535d975
+✅  processing done !
 ```
 
 __Note:__ `ARISTA_TOKEN` should be set in your .profile and not set for each command. If not set, you can use `--token` knob.

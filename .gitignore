@@ -338,3 +338,5 @@ cython_debug/
 
 # vscode
 .vscode/*
+
+*.tar.xz
