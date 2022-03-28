@@ -4,7 +4,7 @@ on:
   push:
     # Sequence of patterns matched against refs/tags
     tags:
-    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    - 'v[0-9]+.[0-9]+.[0-9]+' # Push events to matching v*, i.e. v1.0, v20.15.10
 jobs:
   release:
     name: Create Github Release
@@ -53,3 +53,35 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
+
+    docker:
+      name: Docker Image Build
+      runs-on: ubuntu-latest
+      needs: [pypi]
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Docker meta for TAG
+          id: meta
+          uses: docker/metadata-action@v3
+          with:
+            images: ${{ secrets.DOCKER_IMAGE }}
+            tags: |
+              type=semver,pattern={{version}}
+              type=edge,enable=true,priority=700
+
+        - name: Login to DockerHub
+          uses: docker/login-action@v1
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
+
+        - name: Build and push
+          uses: docker/build-push-action@v2
+          with:
+            context: .
+            file: ${{ matrix.python_version }}/Dockerfile
+            push: true
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
