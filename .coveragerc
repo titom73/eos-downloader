@@ -1,2 +1,8 @@
 [html]
 directory = tests/htmlcov
+
+[tool:pytest]
+addopts = --cov=eos_downloader --cov-report html
+
+[run]
+omit = tests/*

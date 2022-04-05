@@ -14,111 +14,14 @@ import pytest
 import eos_downloader
 from eos_downloader.eos import EOSDownloader
 from eos_downloader.data import DATA_MAPPING
-
-
-# Get Auth token
-eos_token = os.getenv('ARISTA_TOKEN', 'unset_token')
-eos_token_invalid = 'invalid_token'
-
-# --------------------------------------------------------------- #
-# MOOCK data to use for testing
-# --------------------------------------------------------------- #
-
-eos_dataset_valid = [
-    {
-        'image': 'EOS',
-        'version': '4.26.3M',
-        'software': 'EOS',
-        'filename': 'EOS-4.26.3M.swi',
-        'expected_hash': 'sha512sum',
-        'remote_path': '/support/download/EOS-USA/Active Releases/4.26/EOS-4.26.3M/EOS-4.26.3M.swi',
-        'compute_checksum': True
-    },
-    {
-        'image': 'EOS',
-        'version': '4.25.6M',
-        'software': 'EOS',
-        'filename': 'EOS-4.25.6M.swi',
-        'expected_hash': 'md5sum',
-        'remote_path': '/support/download/EOS-USA/Active Releases/4.25/EOS-4.25.6M/EOS-4.25.6M.swi',
-        'compute_checksum': True
-    },
-    {
-        'image': 'vEOS-lab',
-        'version': '4.25.6M',
-        'software': 'EOS',
-        'filename': 'vEOS-lab-4.25.6M.vmdk',
-        'expected_hash': 'md5sum',
-        'remote_path': '/support/download/EOS-USA/Active Releases/4.25/EOS-4.25.6M/vEOS-lab/vEOS-lab-4.25.6M.vmdk',
-        'compute_checksum': False
-    }
-]
-
-eos_dataset_invalid = [
-    {
-        'image': 'EOS',
-        'version': '4.26.3M',
-        'software': 'EOS',
-        'filename': 'EOS-4.26.3M.swi',
-        'expected_hash': 'sha512sum',
-        'remote_path': '/support/download/EOS-USA/Active Releases/4.26/EOS-4.26.3M/EOS-4.26.3M.swi',
-        'compute_checksum': True
-    }
-]
-
-# --------------------------------------------------------------- #
-# HELPERS
-# --------------------------------------------------------------- #
-
-
-def default_filename(version: str, info):
-    """
-    default_filename Helper to build default filename
-
-    Parameters
-    ----------
-    version : str
-        EOS version
-    info : dict
-        TEST Inputs
-
-    Returns
-    -------
-    str
-        Filename
-    """
-    if version is None or info is None:
-        return None
-    return DATA_MAPPING[info['software']]['default']['prepend'] + '-' + version + '.swi'
-
-
-# --------------------------------------------------------------- #
-# FIXTURES
-# --------------------------------------------------------------- #
-
-
-@pytest.fixture
-@pytest.mark.parametrize("DOWNLOAD_INFO", eos_dataset_valid)
-def create_download_instance(request, DOWNLOAD_INFO):
-    # logger.info("Execute fixture to create class elements")
-    request.cls.eos_downloader = eos_downloader.eos.EOSDownloader(
-            image=DOWNLOAD_INFO['image'],
-            software=DOWNLOAD_INFO['software'],
-            version=DOWNLOAD_INFO['version'],
-            token=eos_token,
-            hash_method='sha512sum')
-    yield
-    # logger.info('Cleanup test environment')
-    os.system('rm -f {}*'.format(DOWNLOAD_INFO['filename']))
-
-
-# --------------------------------------------------------------- #
-# TEST CASES
-# --------------------------------------------------------------- #
+from tests.lib.dataset import eos_dataset_valid, eos_dataset_invalid, eos_token, eos_token_invalid
+from tests.lib.fixtures import create_download_instance
+from tests.lib.helpers import default_filename
 
 
 @pytest.mark.usefixtures("create_download_instance")
 @pytest.mark.parametrize("DOWNLOAD_INFO", eos_dataset_valid, ids=['EOS-sha512', 'EOS-md5' ,'vEOS-lab-no-hash'])
+@pytest.mark.eos_download
 class TestEosDownload_valid():
     def test_data(self, DOWNLOAD_INFO):
         print(str(DOWNLOAD_INFO))
@@ -135,13 +38,14 @@ class TestEosDownload_valid():
 
     def test_eos_download_repr_string(self, DOWNLOAD_INFO):
         expected = '{} - {} - {}'.format(DOWNLOAD_INFO['software'], DOWNLOAD_INFO['image'], DOWNLOAD_INFO['version'])
+        print(self.eos_downloader)
         assert str(self.eos_downloader) == expected
 
     def test_eos_download_build_filename(self, DOWNLOAD_INFO):
         assert self.eos_downloader._build_filename() == DOWNLOAD_INFO['filename']
 
     @pytest.mark.dependency(name='authentication')
-    @pytest.mark.skipif(eos_token == 'unset_token', reason="Token is not set correctly")
+    @pytest.mark.skipif(eos_token == eos_token_invalid, reason="Token is not set correctly")
     @pytest.mark.skipif(platform.system() != 'Darwin', reason="Incorrect Hardware")
     # @pytest.mark.xfail(reason="Deliberate - CI not set for testing AUTH")
     @pytest.mark.webtest
@@ -159,12 +63,6 @@ class TestEosDownload_valid():
         url = self.eos_downloader._get_url(remote_file_path = DOWNLOAD_INFO['remote_path'])
         print(str(url))
         assert 'https://downloads.arista.com/EOS-USA/Active%20Releases/' in url
-
-    @pytest.mark.dependency(depends=["authentication"], scope='class')
-    @pytest.mark.slow
-    def test_eos_download_dl_local(self, DOWNLOAD_INFO):
-        assert self.eos_downloader.download_local(file_path='.', checksum=DOWNLOAD_INFO['compute_checksum']) is DOWNLOAD_INFO['compute_checksum']
-
 
 @pytest.mark.usefixtures("create_download_instance")
 @pytest.mark.parametrize("DOWNLOAD_INFO", eos_dataset_invalid, ids=['EOS-FAKE'])
