@@ -33,7 +33,7 @@ class TestEosDownload_valid():
 
     @pytest.mark.dependency(name='authentication')
     @pytest.mark.skipif(eos_token == eos_token_invalid, reason="Token is not set correctly")
-    # @pytest.mark.skipif(platform.system() != 'Darwin', reason="Incorrect Hardware")
+    @pytest.mark.skipif(platform.system() != 'Darwin', reason="Incorrect Hardware")
     # @pytest.mark.xfail(reason="Deliberate - CI not set for testing AUTH")
     @pytest.mark.webtest
     def test_eos_download_authenticate(self):
