@@ -27,13 +27,20 @@ jobs:
           pip install pytest pytest-cov pytest-html pytest-dependency pytest-metadata
           pip install -r requirements.txt
       - name: Run Pytest
+        env:
+          ARISTA_TOKEN: ${{ secrets.ARISTA_TOKEN }}
         run: |
           echo "PY_COLORS=1" >> $GITHUB_ENV
           echo "ANSIBLE_FORCE_COLOR=1" >> $GITHUB_ENV
           python setup.py develop
           make test
-        env: # Or as an environment variable
-          ARISTA_TOKEN: ${{ secrets.ARISTA_TOKEN }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: pytest-reporting
+          path: |
+            report.html
+            tests/htmlcov/**
+
 
   docker:
     name: Docker Image Build
