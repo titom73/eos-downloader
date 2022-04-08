@@ -54,13 +54,6 @@ class ObjectDownloader():
         self.filename = self._build_filename()
         self.hash_method = hash_method
 
-    def __rpr__(self):
-        return {
-            'software': self.software,
-            'image': self.image,
-            'version': self.version,
-        }
-
     def __str__(self):
         return self.software + ' - ' + self.image + ' - ' + self.version
 
