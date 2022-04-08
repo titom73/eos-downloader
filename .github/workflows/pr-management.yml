@@ -33,8 +33,6 @@ jobs:
           echo "ANSIBLE_FORCE_COLOR=1" >> $GITHUB_ENV
           python setup.py develop
           make test
-        env: # Or as an environment variable
-          ARISTA_TOKEN: ${{ secrets.ARISTA_TOKEN }}
 
   docker_build:
     name: Docker Image Build (no push)
