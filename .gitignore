@@ -340,3 +340,5 @@ cython_debug/
 .vscode/*
 
 *.tar.xz
+
+report.html

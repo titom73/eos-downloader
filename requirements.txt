@@ -6,3 +6,4 @@ scp
 tqdm
 loguru
 rich==12.0.1
+cvprac>=1.0.7
