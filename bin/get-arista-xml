@@ -1,0 +1,34 @@
+#!/usr/bin/python
+
+import sys
+import os
+import argparse
+import eos_downloader.eos
+from loguru import logger
+from rich.console import Console
+
+ARISTA_TOKEN = os.getenv('ARISTA_TOKEN', '')
+
+def read_cli():
+    parser = argparse.ArgumentParser(description='EOS downloader script.')
+    parser.add_argument('--token', required=False,
+                        default=ARISTA_TOKEN,
+                        help='arista.com user API key - can use ENV:ARISTA_TOKEN')
+
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    cli_options = read_cli()
+    console = Console()
+    console.print("Download XML file from arista.com")
+
+    my_download = eos_downloader.eos.EOSDownloader(
+        image=None,
+        software=None,
+        version=None,
+        token=cli_options.token,
+        hash_method=None)
+
+    my_download.authenticate()
+    my_download.save_xml_folder(path_output='arista-software.xml')
