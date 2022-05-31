@@ -461,9 +461,31 @@ class ObjectDownloader():
         if noztp:
             self._disable_ztp(file_path=file_path)
 
-
     def docker_import(self, version: str, image_name: str = "arista/ceos"):
         docker_image = f'{image_name}:{self.version}'
         logger.info(f'Importing image {self.filename} to {docker_image}')
         console.print(f'🚀 Importing image {self.filename} to {docker_image}')
         os.system(f'$(which docker) import {self.filename} {docker_image}')
+
+    def save_xml_folder(self, path_output: str = '.'):
+        """
+        save_xml_folder Download XML tree from Arista server
+
+        Parameters
+        ----------
+        path_output : str
+            Path to save XML data.
+
+        Returns
+        -------
+        ET.ElementTree
+            XML document
+        """
+        if self.session_id is None:
+            self.authenticate()
+        jsonpost = {'sessionCode': self.session_id}
+        result = requests.post(ARISTA_SOFTWARE_FOLDER_TREE, data=json.dumps(jsonpost))
+        folder_tree = (result.json()["data"]["xml"])
+        with open(path_output, 'w') as f:
+            f.writelines(folder_tree)
+        # return ET.ElementTree(ET.fromstring(folder_tree))

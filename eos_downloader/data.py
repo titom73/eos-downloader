@@ -3,6 +3,22 @@
 
 # [platform][image][version]
 DATA_MAPPING = {
+    "extensions": {
+        "Streaming Telemetry Agent": {
+            "extension": "-1.swix",
+            "prepend": "TerminAttr",
+            "folder_level": 0,
+            "alias": "TerminAttr",
+            "filename": 'TerminAttr-'
+        },
+         "Splunk": {
+            "extension": ".swix",
+            "prepend": "Splunk",
+            "folder_level": 0,
+            "alias": "Splunk",
+            "filename": "AristaAppForSplunk-"
+        },
+    },
     "EOS": {
         "64": {
             "extension": ".swi",
