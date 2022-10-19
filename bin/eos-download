@@ -48,6 +48,9 @@ if __name__ == '__main__':
     cli_options = read_cli()
 
     console = Console()
+    if cli_options.token is None or cli_options.token == '':
+        console.print('\n❗ Token is unset ! Please configure ARISTA_TOKEN or use --token option', style="bold red")
+        sys.exit(1)
 
     logger.remove()
     if cli_options.log:
