@@ -4,6 +4,7 @@
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # from builtins import *
+import sys
 import os
 import base64
 import time
@@ -17,7 +18,7 @@ from urllib.request import urlopen
 from rich import console
 from eos_downloader.download import DownloadProgressBar
 from eos_downloader.data import DATA_MAPPING
-from eos_downloader import ARISTA_GET_SESSION, ARISTA_SOFTWARE_FOLDER_TREE, ARISTA_DOWNLOAD_URL, MSG_TOKEN_EXPIRED
+from eos_downloader import ARISTA_GET_SESSION, ARISTA_SOFTWARE_FOLDER_TREE, ARISTA_DOWNLOAD_URL, MSG_TOKEN_EXPIRED, MSG_INVALID_DATA
 from tqdm import tqdm
 
 console = rich.get_console()
@@ -217,8 +218,13 @@ class ObjectDownloader():
             self.authenticate()
         jsonpost = {'sessionCode': self.session_id}
         result = requests.post(ARISTA_SOFTWARE_FOLDER_TREE, data=json.dumps(jsonpost))
-        folder_tree = (result.json()["data"]["xml"])
-        return ET.ElementTree(ET.fromstring(folder_tree))
+        try:
+            folder_tree = (result.json()["data"]["xml"])
+            return ET.ElementTree(ET.fromstring(folder_tree))
+        except KeyError as error:
+            logger.error(MSG_INVALID_DATA)
+            console.print(f'❌  {MSG_INVALID_DATA}', style="bold red")
+            sys.exit(1)
 
     def _get_remote_filepath(self):
         """
@@ -354,21 +360,24 @@ class ObjectDownloader():
         result = requests.post(session_code_url, data=json.dumps(jsonpost))
 
         if result.json()["status"]["message"] == 'Access token expired':
-            console.print('❌  ', MSG_TOKEN_EXPIRED, style="bold green")
+            console.print(f'❌  {MSG_TOKEN_EXPIRED}', style="bold red")
             logger.error(MSG_TOKEN_EXPIRED)
             return False
         elif result.json()["status"]["message"] == 'Invalid access token':
             logger.error(MSG_TOKEN_EXPIRED)
-            console.print('❌  ', MSG_TOKEN_EXPIRED, style="bold green")
+            console.print(f'❌  {MSG_TOKEN_EXPIRED}', style="bold red")
             return False
 
-        if 'data' in result.json():
-            self.session_id = (result.json()["data"]["session_code"])
-            logger.info('Authenticated on arista.com')
-            console.print('✅ Authenticated on arista.com')
-            return True
-        logger.debug('{}'.format(result.json()))
-        return False
+        try:
+            if 'data' in result.json():
+                self.session_id = (result.json()["data"]["session_code"])
+                logger.info('Authenticated on arista.com')
+                console.print('✅ Authenticated on arista.com')
+                return True
+            logger.debug('{}'.format(result.json()))
+            return False
+        except KeyError as error_arista:
+            sys.exit(1)
 
     def download_local(self, file_path: str, checksum: bool = False):
         """
