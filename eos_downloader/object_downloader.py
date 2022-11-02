@@ -18,7 +18,7 @@ from urllib.request import urlopen
 from rich import console
 from eos_downloader.download import DownloadProgressBar
 from eos_downloader.data import DATA_MAPPING
-from eos_downloader import ARISTA_GET_SESSION, ARISTA_SOFTWARE_FOLDER_TREE, ARISTA_DOWNLOAD_URL, MSG_TOKEN_EXPIRED, MSG_INVALID_DATA
+from eos_downloader import ARISTA_GET_SESSION, ARISTA_SOFTWARE_FOLDER_TREE, ARISTA_DOWNLOAD_URL, MSG_TOKEN_EXPIRED, MSG_INVALID_DATA, EVE_QEMU_FOLDER_PATH
 from tqdm import tqdm
 
 console = rich.get_console()
