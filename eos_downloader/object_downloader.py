@@ -7,7 +7,7 @@ from __future__ import (absolute_import, division,
 import sys
 import os
 import base64
-import time
+import glob
 import hashlib
 import requests
 import rich
@@ -476,3 +476,8 @@ class ObjectDownloader():
         logger.info(f'Importing image {self.filename} to {docker_image}')
         console.print(f'🚀 Importing image {self.filename} to {docker_image}')
         os.system(f'$(which docker) import {self.filename} {docker_image}')
+        for filename in glob.glob(f'{self.filename}*'):
+            try:
+                os.remove(filename)
+            except FileNotFoundError:
+                console.print(f'File not found: {filename}')
