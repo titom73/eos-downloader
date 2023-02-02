@@ -13,6 +13,8 @@ import requests
 import rich
 import json
 import xml.etree.ElementTree as ET
+from xml.etree import ElementTree
+from xml.dom import minidom
 from loguru import logger
 from urllib.request import urlopen
 from rich import console
@@ -220,6 +222,7 @@ class ObjectDownloader():
         result = requests.post(ARISTA_SOFTWARE_FOLDER_TREE, data=json.dumps(jsonpost))
         try:
             folder_tree = (result.json()["data"]["xml"])
+            logger.debug(f'XML content is: {folder_tree}')
             return ET.ElementTree(ET.fromstring(folder_tree))
         except KeyError as error:
             logger.error(MSG_INVALID_DATA)
