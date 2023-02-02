@@ -30,9 +30,9 @@ EOS_image_type = ['64', 'INT', '2GB-INT', 'cEOS', 'cEOS64', 'vEOS', 'vEOS-lab', 
 # Debugging
 @click.option('--log-level', '--log', help='Logging level of the command', default=None, type=click.Choice(['debug', 'info', 'warning', 'error', 'critical'], case_sensitive=False))
 # Boolean triggers
-@click.option('--eve-ng', help='Run EVE-NG vEOS provisioning (only if CLI runs on an EVE-NG server)', default=False)
-@click.option('--disable-ztp', help='Disable ZTP process in vEOS image (only available with --eve-ng)', default=False)
-@click.option('--import-docker', help='Import docker image (only available with --image_type cEOSlab)', default=False)
+@click.option('--eve-ng/--no-eve-ng', help='Run EVE-NG vEOS provisioning (only if CLI runs on an EVE-NG server)', default=False)
+@click.option('--disable-ztp/--no-disable-ztp', help='Disable ZTP process in vEOS image (only available with --eve-ng)', default=False)
+@click.option('--import-docker/--no-import-docker', help='Import docker image (only available with --image_type cEOSlab)', default=False)
 def eos(ctx: click.Context, image_type: str, version: str, output: str, log_level: str, eve_ng: bool, disable_ztp: bool, import_docker: bool, docker_name: str):
     """Download EOS image from Arista website"""
     console = Console()
