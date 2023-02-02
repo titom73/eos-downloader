@@ -20,7 +20,10 @@ setup(
     packages=['eos_downloader'],
     scripts=["bin/eos-download", "bin/cvp-upload"],
     entry_points={
-        'console_scripts': ['arista=eos_downloader.cli.cli:cli']
+        'console_scripts': [
+            'ardl=eos_downloader.cli.cli:cli',
+            'lard=eos_downloader.cli.cli:cli',
+        ]
     },
     install_requires=required,
     include_package_data=True,

@@ -16,13 +16,13 @@ from eos_downloader.cli.get import commands as get_commands
 @click.group()
 @click.pass_context
 @click.option('--token', show_envvar=True, default=None, help='Arista Token from your customer account')
-def arista(ctx: click.Context, token: str) -> None:
+def ardl(ctx: click.Context, token: str) -> None:
     """Arista Network Download CLI"""
     ctx.ensure_object(dict)
     ctx.obj['token'] = token
 
 
-@arista.group(no_args_is_help=True)
+@ardl.group(no_args_is_help=True)
 @click.pass_context
 def get(ctx: click.Context) -> None:
     # pylint: disable=redefined-builtin
@@ -37,7 +37,7 @@ def cli() -> None:
     # Load group commands
     get.add_command(get_commands.eos)
     # Load CLI
-    arista(
+    ardl(
         obj={},
         auto_envvar_prefix='arista'
     )
