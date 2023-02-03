@@ -3,6 +3,28 @@
 
 # [platform][image][version]
 DATA_MAPPING = {
+    "CloudVision": {
+        "ova": {
+            "extension": ".ova",
+            "prepend": "cvp",
+            "folder_level": 0
+        },
+        "rpm": {
+            "extension": "",
+            "prepend": "cvp-rpm-installer",
+            "folder_level": 0
+        },
+        "kvm": {
+            "extension": "-kvm.tgz",
+            "prepend": "cvp",
+            "folder_level": 0
+        },
+        "upgrade": {
+            "extension": ".tgz",
+            "prepend": "cvp-upgrade",
+            "folder_level": 0
+        },
+    },
     "EOS": {
         "64": {
             "extension": ".swi",

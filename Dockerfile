@@ -1,4 +1,4 @@
-ARG PYTHON_VER=3.8
+ARG PYTHON_VER=3.10
 
 FROM python:${PYTHON_VER}-slim
 
@@ -12,6 +12,7 @@ LABEL com.example.version="edge"
 LABEL com.example.release-date="2022-04-05"
 LABEL com.example.version.is-production="False"
 
-RUN pip install .
+ENV PYTHONPATH=/local
+RUN pip --no-cache-dir install .
 
-CMD [ "/usr/local/bin/eos-download" ]
+ENTRYPOINT [ "/usr/local/bin/ardl" ]

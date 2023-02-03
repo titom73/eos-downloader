@@ -13,6 +13,8 @@ import requests
 import rich
 import json
 import xml.etree.ElementTree as ET
+from xml.etree import ElementTree
+from xml.dom import minidom
 from loguru import logger
 from urllib.request import urlopen
 from rich import console
@@ -54,6 +56,9 @@ class ObjectDownloader():
         self.session_id = None
         self.filename = self._build_filename()
         self.hash_method = hash_method
+        # Logging
+        logger.debug(f'Filename built by _build_filename is {self.filename}')
+
 
     def __str__(self):
         return self.software + ' - ' + self.image + ' - ' + self.version
@@ -82,9 +87,9 @@ class ObjectDownloader():
         """
         if self.software in DATA_MAPPING:
             if self.image in DATA_MAPPING[self.software]:
-                return DATA_MAPPING[self.software][self.image]['prepend'] + "-" + self.version + DATA_MAPPING[self.software][self.image]['extension']
+                return f"{DATA_MAPPING[self.software][self.image]['prepend']}-{self.version}{DATA_MAPPING[self.software][self.image]['extension']}"
             else:
-                return DATA_MAPPING[self.software]['default']['prepend'] + "-" + self.version + DATA_MAPPING[self.software]['default']['extension']
+                return f"{DATA_MAPPING[self.software]['default']['prepend']}-{self.version}{DATA_MAPPING[self.software]['default']['extension']}"
         return None
 
     def _parse_xml(self, root_xml: ET.ElementTree, xpath: str, search_file: str):
