@@ -52,6 +52,7 @@ def cli() -> None:
     """Load ANTA CLI"""
     # Load group commands
     get.add_command(get_commands.eos)
+    get.add_command(get_commands.cvp)
     debug.add_command(debug_commands.xml)
     ardl.add_command(version)
     # Load CLI

@@ -342,3 +342,5 @@ cython_debug/
 *.tar.xz
 
 report.html
+
+arista.xml
