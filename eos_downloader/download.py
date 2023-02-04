@@ -1,32 +1,32 @@
+# flake8: noqa: F811
+# pylint: disable=unused-argument
+# pylint: disable=too-few-public-methods
+
+"""download module"""
+
 import os.path
-import sys
-import requests
 import signal
-from functools import partial
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
 from typing import Iterable
-from urllib.request import urlopen
+
+import requests
 import rich
 from rich import console
-from rich.progress import (
-    BarColumn,
-    DownloadColumn,
-    Progress,
-    TaskID,
-    TextColumn,
-    TransferSpeedColumn,
-    TimeElapsedColumn
-)
+from rich.progress import (BarColumn, DownloadColumn, Progress, TaskID,
+                           TextColumn, TimeElapsedColumn, TransferSpeedColumn)
 
 console = rich.get_console()
 done_event = Event()
 
 
 def handle_sigint(signum, frame):
+    """Progress bar handler"""
     done_event.set()
 
+
 signal.signal(signal.SIGINT, handle_sigint)
+
 
 class DownloadProgressBar():
     """
@@ -53,7 +53,7 @@ class DownloadProgressBar():
 
     def _copy_url(self, task_id: TaskID, url: str, path: str, block_size=1024) -> None:
         """Copy data from a url to a local file."""
-        response = requests.get(url, stream=True)
+        response = requests.get(url, stream=True, timeout=5)
         # This will break if the response doesn't contain content length
         self.progress.update(task_id, total=int(response.headers['Content-Length']))
         with open(path, "wb") as dest_file:
@@ -64,7 +64,6 @@ class DownloadProgressBar():
                 if done_event.is_set():
                     return
         # console.print(f"Downloaded {path}")
-
 
     def download(self, urls: Iterable[str], dest_dir: str):
         """Download multuple files to the given directory."""
