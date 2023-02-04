@@ -1,29 +1,39 @@
 #!/usr/bin/python
 # coding: utf-8 -*-
+# flake8: noqa: F811
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-arguments
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# from builtins import *
-import sys
-import os
+"""
+eos_downloader class definition
+"""
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import base64
 import glob
 import hashlib
+import json
+import os
+# from builtins import *
+import sys
+import xml.etree.ElementTree as ET
+
 import requests
 import rich
-import json
-import xml.etree.ElementTree as ET
-from xml.etree import ElementTree
-from xml.dom import minidom
 from loguru import logger
-from urllib.request import urlopen
 from rich import console
-from eos_downloader.download import DownloadProgressBar
-from eos_downloader.data import DATA_MAPPING
-from eos_downloader import ARISTA_GET_SESSION, ARISTA_SOFTWARE_FOLDER_TREE, ARISTA_DOWNLOAD_URL, MSG_TOKEN_EXPIRED, MSG_INVALID_DATA, EVE_QEMU_FOLDER_PATH
 from tqdm import tqdm
 
+from eos_downloader import (ARISTA_DOWNLOAD_URL, ARISTA_GET_SESSION,
+                            ARISTA_SOFTWARE_FOLDER_TREE, EVE_QEMU_FOLDER_PATH,
+                            MSG_INVALID_DATA, MSG_TOKEN_EXPIRED)
+from eos_downloader.data import DATA_MAPPING
+from eos_downloader.download import DownloadProgressBar
+
 console = rich.get_console()
+
 
 class ObjectDownloader():
     """
@@ -56,19 +66,21 @@ class ObjectDownloader():
         self.session_id = None
         self.filename = self._build_filename()
         self.hash_method = hash_method
+        self.timeout = 5
         # Logging
         logger.debug(f'Filename built by _build_filename is {self.filename}')
-
 
     def __str__(self):
         return self.software + ' - ' + self.image + ' - ' + self.version
 
     @property
     def version(self):
+        """Get version."""
         return self._version
 
     @version.setter
     def version(self, value: str):
+        """Set version."""
         self._version = value
         self.filename = self._build_filename()
 
@@ -88,8 +100,7 @@ class ObjectDownloader():
         if self.software in DATA_MAPPING:
             if self.image in DATA_MAPPING[self.software]:
                 return f"{DATA_MAPPING[self.software][self.image]['prepend']}-{self.version}{DATA_MAPPING[self.software][self.image]['extension']}"
-            else:
-                return f"{DATA_MAPPING[self.software]['default']['prepend']}-{self.version}{DATA_MAPPING[self.software]['default']['extension']}"
+            return f"{DATA_MAPPING[self.software]['default']['prepend']}-{self.version}{DATA_MAPPING[self.software]['default']['extension']}"
         return None
 
     def _parse_xml(self, root_xml: ET.ElementTree, xpath: str, search_file: str):
@@ -119,7 +130,7 @@ class ObjectDownloader():
             # logger.debug('Found {}', node.text)
             if node.text.lower() == search_file.lower():
                 path = node.get('path')
-                console.print(f'    -> Found file at {path}' )
+                console.print(f'    -> Found file at {path}')
                 logger.info('Found {} at {}', node.text, node.get('path'))
                 return node.get('path')
         logger.error('Requested file ({}) not found !', self.filename)
@@ -143,10 +154,10 @@ class ObjectDownloader():
         hash_url = self._get_url(remote_file_path=remote_hash_file)
         # hash_downloaded = self._download_file_raw(url=hash_url, file_path=file_path + "/" + os.path.basename(remote_hash_file))
         dl_rich_progress_bar = DownloadProgressBar()
-        hash_downloaded = dl_rich_progress_bar.download(urls=[hash_url], dest_dir=file_path)
-        hash_downloaded = file_path + "/" + os.path.basename(remote_hash_file)
+        dl_rich_progress_bar.download(urls=[hash_url], dest_dir=file_path)
+        hash_downloaded = f"{file_path}/{os.path.basename(remote_hash_file)}"
         hash_content = 'unset'
-        with open(hash_downloaded, 'r') as f:
+        with open(hash_downloaded, 'r', encoding='utf-8') as f:
             hash_content = f.read()
         return hash_content.split(' ')[0]
 
@@ -222,12 +233,13 @@ class ObjectDownloader():
         if self.session_id is None:
             self.authenticate()
         jsonpost = {'sessionCode': self.session_id}
-        result = requests.post(ARISTA_SOFTWARE_FOLDER_TREE, data=json.dumps(jsonpost))
+        result = requests.post(ARISTA_SOFTWARE_FOLDER_TREE, data=json.dumps(jsonpost), timeout=self.timeout)
         try:
-            folder_tree = (result.json()["data"]["xml"])
+            folder_tree = result.json()["data"]["xml"]
             return ET.ElementTree(ET.fromstring(folder_tree))
         except KeyError as error:
             logger.error(MSG_INVALID_DATA)
+            logger.error(f'Server returned: {error}')
             console.print(f'❌  {MSG_INVALID_DATA}', style="bold red")
             sys.exit(1)
 
@@ -282,7 +294,7 @@ class ObjectDownloader():
         if self.session_id is None:
             self.authenticate()
         jsonpost = {'sessionCode': self.session_id, 'filePath': remote_file_path}
-        result = requests.post(ARISTA_DOWNLOAD_URL, data=json.dumps(jsonpost))
+        result = requests.post(ARISTA_DOWNLOAD_URL, data=json.dumps(jsonpost), timeout=self.timeout)
         if 'data' in result.json() and 'url' in result.json()['data']:
             # logger.debug('URL to download file is: {}', result.json())
             return result.json()["data"]["url"]
@@ -309,7 +321,7 @@ class ObjectDownloader():
             File path
         """
         chunkSize = 1024
-        r = requests.get(url, stream=True)
+        r = requests.get(url, stream=True, timeout=5)
         with open(file_path, 'wb') as f:
             pbar = tqdm(unit="B", total=int(r.headers['Content-Length']), unit_scale=True, unit_divisor=1024)
             for chunk in r.iter_content(chunk_size=chunkSize):
@@ -362,26 +374,23 @@ class ObjectDownloader():
         session_code_url = ARISTA_GET_SESSION
         jsonpost = {'accessToken': credentials}
 
-        result = requests.post(session_code_url, data=json.dumps(jsonpost))
+        result = requests.post(session_code_url, data=json.dumps(jsonpost), timeout=self.timeout)
 
-        if result.json()["status"]["message"] == 'Access token expired':
+        if result.json()["status"]["message"] in[ 'Access token expired',  'Invalid access token']:
             console.print(f'❌  {MSG_TOKEN_EXPIRED}', style="bold red")
             logger.error(MSG_TOKEN_EXPIRED)
-            return False
-        elif result.json()["status"]["message"] == 'Invalid access token':
-            logger.error(MSG_TOKEN_EXPIRED)
-            console.print(f'❌  {MSG_TOKEN_EXPIRED}', style="bold red")
             return False
 
         try:
             if 'data' in result.json():
-                self.session_id = (result.json()["data"]["session_code"])
+                self.session_id = result.json()["data"]["session_code"]
                 logger.info('Authenticated on arista.com')
                 console.print('✅ Authenticated on arista.com')
                 return True
-            logger.debug('{}'.format(result.json()))
+            logger.debug(f'{result.json()}')
             return False
         except KeyError as error_arista:
+            logger.error(f'Error: {error_arista}')
             sys.exit(1)
 
     def download_local(self, file_path: str, checksum: bool = False):
@@ -428,6 +437,7 @@ class ObjectDownloader():
         return True
 
     def provision_eve(self, noztp: bool = False, checksum: bool = True):
+        # pylint: disable=unused-argument
         """
         provision_eve Entrypoint for EVE-NG download and provisioning
 
@@ -475,8 +485,16 @@ class ObjectDownloader():
         if noztp:
             self._disable_ztp(file_path=file_path)
 
+    def docker_import(self, image_name: str = "arista/ceos"):
+        """
+        Import docker container to your docker server.
 
-    def docker_import(self, version: str, image_name: str = "arista/ceos"):
+        Import downloaded container to your local docker engine.
+
+        Args:
+            version (str):
+            image_name (str, optional): Image name to use. Defaults to "arista/ceos".
+        """
         docker_image = f'{image_name}:{self.version}'
         logger.info(f'Importing image {self.filename} to {docker_image}')
         console.print(f'🚀 Importing image {self.filename} to {docker_image}')
