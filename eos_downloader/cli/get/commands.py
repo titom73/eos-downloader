@@ -34,7 +34,7 @@ CVP_IMAGE_TYPE = ['ova', 'rpm', 'kvm', 'upgrade']
 @click.option('--eve-ng/--no-eve-ng', help='Run EVE-NG vEOS provisioning (only if CLI runs on an EVE-NG server)', default=False)
 @click.option('--disable-ztp/--no-disable-ztp', help='Disable ZTP process in vEOS image (only available with --eve-ng)', default=False)
 @click.option('--import-docker/--no-import-docker', help='Import docker image (only available with --image_type cEOSlab)', default=False)
-def eos(ctx: click.Context, image_type: str, version: str, output: str, log_level: str, eve_ng: bool, disable_ztp: bool, import_docker: bool, docker_name: str):
+def eos(ctx: click.Context, image_type: str, version: str, output: str, log_level: str, eve_ng: bool, disable_ztp: bool, import_docker: bool, docker_name: str) -> int:
     """Download EOS image from Arista website"""
     console = Console()
     # Get from Context
@@ -80,7 +80,7 @@ def eos(ctx: click.Context, image_type: str, version: str, output: str, log_leve
 @click.option('--version', default=None, help='CVP version', type=str, required=True)
 @click.option('--output', default=str(os.path.relpath(os.getcwd(), start=os.curdir)), help='Path to save image', type=click.Path(),show_default=True)
 @click.option('--log-level', '--log', help='Logging level of the command', default=None, type=click.Choice(['debug', 'info', 'warning', 'error', 'critical'], case_sensitive=False))
-def cvp(ctx: click.Context, version: str, format: str, output: str, log_level: str):
+def cvp(ctx: click.Context, version: str, format: str, output: str, log_level: str) -> int:
     """Download CVP image from Arista website"""
     console = Console()
     # Get from Context

@@ -8,7 +8,7 @@ import os.path
 import signal
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
-from typing import Iterable
+from typing import Iterable, Any
 
 import requests
 import rich
@@ -20,7 +20,7 @@ console = rich.get_console()
 done_event = Event()
 
 
-def handle_sigint(signum, frame):
+def handle_sigint(signum: Any, frame: Any) -> None:
     """Progress bar handler"""
     done_event.set()
 
@@ -33,7 +33,7 @@ class DownloadProgressBar():
     Object to manage Download process with Progress Bar from Rich
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Class Constructor
         """
@@ -51,7 +51,7 @@ class DownloadProgressBar():
             console=console
         )
 
-    def _copy_url(self, task_id: TaskID, url: str, path: str, block_size=1024) -> None:
+    def _copy_url(self, task_id: TaskID, url: str, path: str, block_size: int = 1024) -> bool:
         """Copy data from a url to a local file."""
         response = requests.get(url, stream=True, timeout=5)
         # This will break if the response doesn't contain content length
@@ -62,10 +62,11 @@ class DownloadProgressBar():
                 dest_file.write(data)
                 self.progress.update(task_id, advance=len(data))
                 if done_event.is_set():
-                    return
+                    return True
         # console.print(f"Downloaded {path}")
+        return False
 
-    def download(self, urls: Iterable[str], dest_dir: str):
+    def download(self, urls: Iterable[str], dest_dir: str) -> None:
         """Download multuple files to the given directory."""
         with self.progress:
             with ThreadPoolExecutor(max_workers=4) as pool:

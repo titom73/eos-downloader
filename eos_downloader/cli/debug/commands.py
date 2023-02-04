@@ -23,7 +23,7 @@ import eos_downloader.eos
 @click.pass_context
 @click.option('--output', default=str('arista.xml'), help='Path to save XML file', type=click.Path(), show_default=True)
 @click.option('--log-level', '--log', help='Logging level of the command', default=None, type=click.Choice(['debug', 'info', 'warning', 'error', 'critical'], case_sensitive=False))
-def xml(ctx: click.Context, output: str, log_level: str):
+def xml(ctx: click.Context, output: str, log_level: str) -> None:
     # sourcery skip: remove-unnecessary-cast
     """Extract XML directory structure"""
     console = Console()

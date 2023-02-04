@@ -30,7 +30,7 @@ class EOSDownloader(ObjectDownloader):
     """
 
     @staticmethod
-    def _disable_ztp(file_path: str):
+    def _disable_ztp(file_path: str) -> None:
         """
         _disable_ztp Method to disable ZTP in EOS image
 

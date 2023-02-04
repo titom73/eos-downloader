@@ -6,7 +6,7 @@ CVP Uploader content
 """
 
 import os
-from typing import List
+from typing import List, Optional, Dict, Any, Union
 from dataclasses import dataclass
 from loguru import logger
 from cvprac.cvp_client import CvpClient
@@ -20,7 +20,7 @@ class CvpAuthenticationItem:
     """
     server: str
     port: int = 443
-    token: str = None
+    token: Optional[str] = None
     timeout: int = 1200
     validate_cert: bool = False
 
@@ -30,7 +30,7 @@ class Filer():
     """
     Filer Helper for file management
     """
-    def __init__(self, path: str):
+    def __init__(self, path: str) -> None:
         self.file_exist = False
         self.filename = ''
         self.absolute_path = ''
@@ -40,7 +40,7 @@ class Filer():
             self.filename = os.path.basename(path)
             self.absolute_path = os.path.realpath(path)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.absolute_path if self.file_exist else ''
 
 
@@ -48,7 +48,7 @@ class CvFeatureManager():
     """
     CvFeatureManager Object to interect with Cloudvision
     """
-    def __init__(self, authentication: CvpAuthenticationItem):
+    def __init__(self, authentication: CvpAuthenticationItem) -> None:
         """
         __init__ Class Creator
 
@@ -63,7 +63,7 @@ class CvFeatureManager():
         self._cv_images = self.__get_images()
         # self._cv_bundles = self.__get_bundles()
 
-    def _connect(self, authentication: CvpAuthenticationItem):
+    def _connect(self, authentication: CvpAuthenticationItem) -> CvpClient:
         """
         _connect Connection management
 
@@ -97,7 +97,7 @@ class CvFeatureManager():
         logger.debug(f'Connection info: {authentication}')
         return client
 
-    def __get_images(self):
+    def __get_images(self) -> List[Any]:
         """
         __get_images Collect information about images on Cloudvision
 
@@ -109,7 +109,7 @@ class CvFeatureManager():
         images = []
         logger.debug('  -> Collecting images')
         images = self._cv_instance.api.get_images()['data']
-        return images if self.__check_api_result(images) else None
+        return images if self.__check_api_result(images) else []
 
     # def __get_bundles(self):
     #     """
@@ -126,7 +126,7 @@ class CvFeatureManager():
     #     # bundles = self._cv_instance.post(url='/cvpservice/image/getImageBundles.do?queryparam=&startIndex=0&endIndex=0')['data']
     #     return bundles if self.__check_api_result(bundles) else None
 
-    def __check_api_result(self, arg0):
+    def __check_api_result(self, arg0: Any) -> bool:
         """
         __check_api_result Check API calls return content
 
@@ -143,7 +143,7 @@ class CvFeatureManager():
         logger.debug(arg0)
         return len(arg0) > 0
 
-    def _does_image_exist(self, image_name):
+    def _does_image_exist(self, image_name: str) -> bool:
         """
         _does_image_exist Check if an image is referenced in Cloudvision facts
 
@@ -157,9 +157,9 @@ class CvFeatureManager():
         bool
             True if present
         """
-        return any(image_name == image['name'] for image in self._cv_images)
+        return any(image_name == image['name'] for image in self._cv_images) if type(self._cv_images) == list else False
 
-    def _does_bundle_exist(self, bundle_name):
+    def _does_bundle_exist(self, bundle_name: str) -> bool:
         # pylint: disable=unused-argument
         """
         _does_bundle_exist Check if an image is referenced in Cloudvision facts
@@ -172,7 +172,7 @@ class CvFeatureManager():
         # return any(bundle_name == bundle['name'] for bundle in self._cv_bundles)
         return False
 
-    def upload_image(self, image_path: str):
+    def upload_image(self, image_path: str) -> bool:
         """
         upload_image Upload an image to Cloudvision server
 
@@ -203,7 +203,7 @@ class CvFeatureManager():
         logger.debug(f'Upload Result is : {upload_result}')
         return True
 
-    def build_image_list(self, image_list):
+    def build_image_list(self, image_list: List[str]) -> List[Any]:
         """
         Builds a list of the image data structures, for a given list of image names.
         Parameters
@@ -230,9 +230,9 @@ class CvFeatureManager():
             else:
                 success = False
 
-        return internal_image_list if success else None
+        return internal_image_list if success else []
 
-    def create_bundle(self, name: str, images_name: List[str]):
+    def create_bundle(self, name: str, images_name: List[str]) -> bool:
         """
         create_bundle Create a bundle with a list of images.
 

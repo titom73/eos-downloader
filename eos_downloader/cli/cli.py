@@ -27,7 +27,7 @@ def ardl(ctx: click.Context, token: str) -> None:
 
 
 @click.command()
-def version():
+def version() -> None:
     """Display version of ardl"""
     console = Console()
     console.print(f'ardl is running version {eos_downloader.__version__}')
