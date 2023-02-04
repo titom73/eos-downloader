@@ -9,13 +9,14 @@
 Commands for ARDL CLI to get data.
 """
 
-import click
-import eos_downloader.eos
-from loguru import logger
-from rich.console import Console
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
+import click
+from loguru import logger
+from rich.console import Console
+
+import eos_downloader.eos
 
 
 @click.command()
@@ -41,11 +42,11 @@ def xml(ctx: click.Context, output: str, log_level: str):
         hash_method='sha512sum')
 
     my_download.authenticate()
-    xml_object: ET.ElementTree = my_download._get_folder_tree()
+    xml_object: ET.ElementTree = my_download._get_folder_tree()  # pylint: disable=protected-access
     xml_content = xml_object.getroot()
 
     xmlstr = minidom.parseString(ET.tostring(xml_content)).toprettyxml(indent="    ", newl='')
-    with open(output, "w") as f:
+    with open(output, "w", encoding='utf-8') as f:
         f.write(str(xmlstr))
 
     console.print(f'XML file saved in: { output }')

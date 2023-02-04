@@ -3,6 +3,7 @@
 # pylint: disable=no-value-for-parameter
 # pylint: disable=too-many-arguments
 # pylint: disable=line-too-long
+# pylint: disable=redefined-builtin
 # flake8: noqa E501
 
 """
@@ -11,12 +12,12 @@ Commands for ARDL CLI to get data.
 
 import os
 import sys
-import logging
+
 import click
-import eos_downloader.eos
 from loguru import logger
 from rich.console import Console
 
+import eos_downloader.eos
 
 EOS_IMAGE_TYPE = ['64', 'INT', '2GB-INT', 'cEOS', 'cEOS64', 'vEOS', 'vEOS-lab', 'EOS-2GB', 'default']
 CVP_IMAGE_TYPE = ['ova', 'rpm', 'kvm', 'upgrade']
@@ -66,7 +67,6 @@ def eos(ctx: click.Context, image_type: str, version: str, output: str, log_leve
 
     if import_docker:
         my_download.docker_import(
-            version=version,
             image_name=docker_name
         )
     console.print('✅  processing done !')
