@@ -102,10 +102,10 @@ def cvp(ctx: click.Context, version: str, format: str, output: str, log_level: s
         software='CloudVision',
         version=version,
         token=token,
-        hash_method='sha512sum')
+        hash_method='md5sum')
 
     my_download.authenticate()
 
-    my_download.download_local(file_path=output, checksum=True)
+    my_download.download_local(file_path=output, checksum=False)
     console.print('✅  processing done !')
     sys.exit(0)
