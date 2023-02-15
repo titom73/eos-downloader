@@ -96,6 +96,14 @@ scp
 tqdm
 ```
 
+On EVE-NG, you may have to install/upgrade __pyOpenSSL__ in version `23.0.0`:
+
+```
+# Error when running ardl: AttributeError: module 'lib' has no attribute 'X509_V_FLAG_CB_ISSUER_CHECK'
+
+$ pip install pyopenssl --upgrade
+```
+
 ## Docker
 
 Please refer to [docker documentation](docs/docker.md)
