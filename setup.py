@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # coding: utf-8 -*-
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from pathlib import Path
 import eos_downloader
 
@@ -17,7 +17,7 @@ setup(
     name="eos_downloader",
     version="{}".format(eos_downloader.__version__),
     python_requires=">=3.8",
-    packages=['eos_downloader', 'eos_downloader.cli'],
+    packages=find_packages(),
     scripts=["bin/eos-download", "bin/cvp-upload"],
     entry_points={
         'console_scripts': [
