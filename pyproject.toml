@@ -118,12 +118,26 @@ legacy_tox_ini = """
 min_version = 4.0
 envlist = 
   clean,
+  lint,
+  type
+
+
+[tox-full]
+min_version = 4.0
+envlist = 
+  clean,
   py{38,39,310},
   lint,
   type,
   report
 
 [gh-actions]
+python =
+  3.8: lint, type
+  3.9: lint, type
+  3.10: lint, type
+
+[gh-actions-full]
 python =
   3.8: py38
   3.9: py39
