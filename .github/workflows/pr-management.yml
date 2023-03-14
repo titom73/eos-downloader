@@ -1,6 +1,9 @@
 ---
 name: code-testing
 on:
+  push:
+    branches:
+      - main
   pull_request_target:
     types: [assigned, opened, synchronize, reopened]
 
