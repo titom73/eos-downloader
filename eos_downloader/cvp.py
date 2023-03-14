@@ -6,7 +6,7 @@ CVP Uploader content
 """
 
 import os
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Any
 from dataclasses import dataclass
 from loguru import logger
 from cvprac.cvp_client import CvpClient
@@ -157,7 +157,7 @@ class CvFeatureManager():
         bool
             True if present
         """
-        return any(image_name == image['name'] for image in self._cv_images) if type(self._cv_images) == list else False
+        return any(image_name == image['name'] for image in self._cv_images) if isinstance(self._cv_images, list) else False
 
     def _does_bundle_exist(self, bundle_name: str) -> bool:
         # pylint: disable=unused-argument

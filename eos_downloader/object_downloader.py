@@ -19,7 +19,7 @@ import os
 # from builtins import *
 import sys
 import xml.etree.ElementTree as ET
-from typing import Optional, Union
+from typing import Union
 
 import requests
 import rich
