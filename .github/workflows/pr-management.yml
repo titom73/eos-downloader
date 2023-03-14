@@ -1,7 +1,6 @@
 ---
 name: code-testing
-on:
-	push: 
+on: 
 	pull_request:
 		types:
 			- opened
