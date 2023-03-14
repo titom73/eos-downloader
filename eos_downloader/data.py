@@ -1,6 +1,14 @@
 #!/usr/bin/python
 # coding: utf-8 -*-
 
+"""
+EOS Downloader Information to use in
+eos_downloader.object_downloader.ObjectDownloader._build_filename.
+
+Data are built from content of Arista XML file
+"""
+
+
 # [platform][image][version]
 DATA_MAPPING = {
     "CloudVision": {

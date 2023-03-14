@@ -1,11 +1,18 @@
 #!/usr/bin/python
 # coding: utf-8 -*-
+# flake8: noqa: F811
+
+"""
+Specific EOS inheritance from object_download
+"""
 
 import os
+
 import rich
 from loguru import logger
-from eos_downloader.object_downloader import ObjectDownloader
 from rich import console
+
+from eos_downloader.object_downloader import ObjectDownloader
 
 console = rich.get_console()
 
@@ -23,7 +30,7 @@ class EOSDownloader(ObjectDownloader):
     """
 
     @staticmethod
-    def _disable_ztp(file_path: str):
+    def _disable_ztp(file_path: str) -> None:
         """
         _disable_ztp Method to disable ZTP in EOS image
 
@@ -45,6 +52,6 @@ class EOSDownloader(ObjectDownloader):
         with open(ztp_file, 'w', encoding='ascii') as zfile:
             zfile.write('DISABLE=True')
         logger.info('Unmounting volume in {}', file_path)
-        os.system("guestunmount {}".format(os.path.join(file_path, 'raw')))
-        os.system('rm -rf {}'.format(os.path.join(file_path, 'raw')))
-        logger.info("Volume has been successfully unmounted at {}", file_path)
+        os.system(f"guestunmount {os.path.join(file_path, 'raw')}")
+        os.system(f"rm -rf {os.path.join(file_path, 'raw')}")
+        logger.info(f"Volume has been successfully unmounted at {file_path}")

@@ -1,0 +1,188 @@
+# content of pyproject.toml
+
+[build-system]
+requires = ["setuptools>=64.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eos_downloader"
+version = "v0.7.1"
+readme = "README.md"
+authors = [{ name = "Thomas Grimonet", email = "thomas.grimonet@gmail.com" }]
+maintainers = [
+  { name = "Thomas Grimonet", email = "thomas.grimonet@gmail.com" },
+]
+description = "Arista EOS/CVP downloader script"
+license = { file = "LICENSE" }
+dependencies = [
+"cryptography",
+"paramiko",
+"requests>=2.20.0",
+"requests-toolbelt",
+"scp",
+"tqdm",
+"loguru",
+"rich==12.0.1",
+"cvprac>=1.0.7",
+"click==8.1.3",
+"click-help-colors==0.9.1",
+]
+keywords = ["eos_downloader", "Arista", "eos", "cvp", "network", "automation", "networking", "devops", "netdevops"]
+classifiers = [
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'Intended Audience :: Information Technology',
+        'Topic :: System :: Software Distribution',
+        'Topic :: Terminals',
+        'Topic :: Utilities',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: Implementation :: PyPy',
+]
+requires-python = ">=3.8"
+
+[project.optional-dependencies]
+dev = [
+"isort==5.12.0",
+"mypy==0.991",
+"mypy-extensions>=0.4.3",
+"pre-commit>=2.20.0",
+"pylint",
+"pytest>=7.1.2",
+"pytest-cov>=2.11.1",
+"pytest-dependency",
+"pytest-html>=3.1.1",
+"pytest-metadata>=1.11.0",
+"pylint-pydantic>=0.1.4",
+"tox==4.0.11",
+"types-PyYAML",
+"types-paramiko",
+"types-requests",
+"typing-extensions",
+"yamllint",
+"flake8==4.0.1",
+"pyflakes==2.4.0"
+]
+
+[project.urls]
+Homepage = "https://www.github.com/titom73/eos-downloader"
+"Bug Tracker" = "https://www.github.com/titom73/eos-downloader/issues"
+Contributing = "https://www.github.com/titom73/eos-downloader"
+
+[project.scripts]
+ardl = "eos_downloader.cli.cli:cli"
+lard = "eos_downloader.cli.cli:cli"
+
+[tool.setuptools.packages.find]
+include = ["eos_downloader*"]
+namespaces = false
+
+# mypy as per https://pydantic-docs.helpmanual.io/mypy_plugin/#enabling-the-plugin
+[tool.mypy]
+plugins = [
+  "pydantic.mypy",
+  ]
+follow_imports = "skip"
+ignore_missing_imports = true
+warn_redundant_casts = true
+# Note: tox find some unused type ignore which are required for pre-commit.. to
+# investigate
+# warn_unused_ignores = true
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_reexport = true
+strict_optional = true
+
+# for strict mypy: (this is the tricky one :-))
+disallow_untyped_defs = true
+
+mypy_path = "eos_downloader"
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+warn_untyped_fields = true
+
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+min_version = 4.0
+envlist = 
+  clean,
+  lint,
+  type
+
+
+[tox-full]
+min_version = 4.0
+envlist = 
+  clean,
+  py{38,39,310},
+  lint,
+  type,
+  report
+
+[gh-actions]
+python =
+  3.8: lint, type
+  3.9: lint, type
+  3.10: lint, type
+
+[gh-actions-full]
+python =
+  3.8: py38
+  3.9: py39
+  3.10: py310, lint, type, coverage
+
+[testenv]
+description = run the test driver with {basepython}
+extras = dev
+commands =
+   pytest  {tty:--color=yes}
+
+[testenv:lint]
+description = check the code style
+commands =
+  flake8 --max-line-length=165 --config=/dev/null eos_downloader
+  pylint eos_downloader
+
+[testenv:type]
+description = check typing
+commands =
+  type: mypy --config-file=pyproject.toml eos_downloader
+
+[testenv:clean]
+deps = coverage[toml]
+skip_install = true
+commands = coverage erase
+
+[testenv:report]
+deps = coverage[toml]
+commands = coverage report
+# add the following to make the report fail under some percentage
+# commands = coverage report --fail-under=80
+depends = py310
+
+"""
+
+[tool.pytest.ini_options]
+addopts = "-ra -q -s -vv --capture=tee-sys --ignore=tests/scripts --cov --cov-append"
+log_level = "INFO"
+log_cli = "True"
+
+[tool.coverage.run]
+source = ['eos_downloader']
+# omit = []
+
+[tool.isort]
+profile = "black"
+line_length = 165

@@ -1,9 +1,14 @@
 #!/usr/bin/python
 # coding: utf-8 -*-
 
+"""
+EOS Downloader module.
+"""
+
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import dataclasses
+from typing import Any
 import json
 
 __author__ = '@titom73'
@@ -11,7 +16,7 @@ __email__ = 'tom@inetsix.net'
 __date__ = '2022-03-16'
 __version__ = '0.7.1'
 
-__all__ = ["CvpAuthenticationItem", "CvFeatureManager", "EOSDownloader", "ObjectDownloader", "reverse"]
+# __all__ = ["CvpAuthenticationItem", "CvFeatureManager", "EOSDownloader", "ObjectDownloader", "reverse"]
 
 ARISTA_GET_SESSION = "https://www.arista.com/custom_data/api/cvp/getSessionCode/"
 
@@ -34,7 +39,8 @@ EVE_QEMU_FOLDER_PATH = '/opt/unetlab/addons/qemu/'
 
 
 class EnhancedJSONEncoder(json.JSONEncoder):
-    def default(self, o):
+    """Custom JSon encoder."""
+    def default(self, o: Any) -> Any:
         if dataclasses.is_dataclass(o):
             return dataclasses.asdict(o)
         return super().default(o)

@@ -343,4 +343,5 @@ cython_debug/
 
 report.html
 
+*.swp
 arista.xml

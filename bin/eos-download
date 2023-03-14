@@ -80,7 +80,6 @@ if __name__ == '__main__':
 
     if cli_options.import_docker:
         my_download.docker_import(
-            version=cli_options.version,
             image_name=cli_options.docker_name
         )
     console.print('✅  processing done !')
