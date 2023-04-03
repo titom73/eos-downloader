@@ -1,0 +1,90 @@
+---
+name: "Build a docker image on-demand"
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to use during the build (default: dev)"
+        required: true
+        default: 'dev'
+
+jobs:
+  docker:
+    name: Docker Image Build
+    runs-on: ubuntu-latest
+    needs: [pypi]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Docker meta for TAG
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images:
+            ${{ secrets.DOCKER_IMAGE }}
+            ghcr.io/${{ secrets.DOCKER_IMAGE }}
+          tags: |
+            type=raw,value=${{ inputs.tag }}
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  docker_in_docker:
+    name: Docker Image Build with Docker support
+    runs-on: ubuntu-latest
+    needs: [pypi]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Docker meta for TAG
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images:
+            ${{ secrets.DOCKER_IMAGE }}
+            ghcr.io/${{ secrets.DOCKER_IMAGE }}
+          tags: |
+            type=raw,value=${{ inputs.tag }}-dind
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile.docker
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
