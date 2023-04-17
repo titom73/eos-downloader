@@ -2,10 +2,14 @@
 # coding: utf-8 -*-
 
 import re
-import logging
 from typing import Any, Dict, Iterator, List, Optional, Type, Union
 from pydantic import BaseModel, validator
+from loguru import logger
+from rich import console
 
+
+BASE_VERSION_STR = '4.0.0F'
+BASE_BRANCH_STR = '4.0'
 
 # Regular Expression to capture multiple EOS version format
 # 4.24
@@ -13,7 +17,8 @@ from pydantic import BaseModel, validator
 # 4.21.1M
 # 4.28.10.F
 # 4.28.6.1M
-eos_version_reg = re.compile(r"^.*(?P<major>4)\.*(?P<minor>\d{2})*\.*(?P<patch>\d{1,2})\.*(\d{1,2}){0,1}\.*\d*(?P<rtype>[M,F])*$")
+eos_version_reg = re.compile(r"^.*(?P<major>4)\.(?P<minor>\d{1,2})\.(?P<patch>\d{1,2})(\.\d)*(?P<rtype>[M,F])*$")
+eos_branch_reg = re.compile(r"^.*(?P<major>4)\.(?P<minor>\d{1,2})(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$")
 
 
 class EosVersion(BaseModel):
@@ -66,12 +71,15 @@ class EosVersion(BaseModel):
         Returns:
             EosVersion object
         """
-        logging.debug(f'receiving version: {eos_version}')
+        logger.debug(f'receiving version: {eos_version}')
         if eos_version_reg.match(eos_version):
             matches = eos_version_reg.match(eos_version)
             return cls(**matches.groupdict())
+        elif eos_branch_reg.match(eos_version):
+            matches = eos_branch_reg.match(eos_version)
+            return cls(**matches.groupdict())
         else:
-            logging.error(f'Error occured with {eos_version}')
+            logger.error(f'Error occured with {eos_version}')
 
     def __str__(self) -> str:
         """
@@ -105,7 +113,6 @@ class EosVersion(BaseModel):
         """
         if not isinstance(other, EosVersion):
             raise ValueError(f'could not compare {other} as it is not an EosVersion object')
-        logging.debug(f'comparing {self.dict()} with {other.dict()}')
         comparison_flag: float = 0
         for key,value in self.dict().items():
             if comparison_flag == 0 and self.dict()[key] < other.dict()[key]:
@@ -181,7 +188,7 @@ class EosVersion(BaseModel):
                 "['<', '>', '==', '<=', '>=', '!=']. "
                 "You provided: %r" % match_expr
             )
-        logging.debug(f'work on comparison {prefix} with base release {match_version}')
+        logger.debug(f'work on comparison {prefix} with base release {match_version}')
         possibilities_dict = {
             ">": (1,),
             "<": (-1,),
@@ -207,5 +214,11 @@ class EosVersion(BaseModel):
         Returns:
             bool: True if current version is in provided branch, otherwise False
         """
-        branch = EosVersion.from_str(branch_str)
+        try:
+            branch = EosVersion.from_str(branch_str)
+        except Exception as error:
+            logger.error(error)
         return self.major == branch.major and self.minor == branch.minor
+
+    def branch(self) -> str:
+        return f'{self.major}.{self.minor}'
