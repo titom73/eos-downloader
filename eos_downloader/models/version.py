@@ -221,4 +221,10 @@ class EosVersion(BaseModel):
         return self.major == branch.major and self.minor == branch.minor
 
     def branch(self) -> str:
+        """
+        Extract branch of version
+
+        Returns:
+            str: branch from version
+        """
         return f'{self.major}.{self.minor}'

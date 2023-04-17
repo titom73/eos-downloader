@@ -59,7 +59,19 @@ class EOSDownloader(ObjectDownloader):
         os.system(f"rm -rf {os.path.join(file_path, 'raw')}")
         logger.info(f"Volume has been successfully unmounted at {file_path}")
 
-    def _parse_xml_for_version(self,root_xml: ET.ElementTree, xpath: str = './/dir[@label="Active Releases"]/dir/dir/[@label]') -> List[str]:
+    def _parse_xml_for_version(self,root_xml: ET.ElementTree, xpath: str = './/dir[@label="Active Releases"]/dir/dir/[@label]') -> List[EosVersion]:
+        """
+        Extract list of available EOS versions from Arista.com website
+
+        Create a list of EosVersion object for all versions available on Arista.com
+
+        Args:
+            root_xml (ET.ElementTree): XML file with all versions available
+            xpath (str, optional): XPATH to use to extract EOS version. Defaults to './/dir[@label="Active Releases"]/dir/dir/[@label]'.
+
+        Returns:
+            List[EosVersion]: List of EosVersion representing all available EOS versions
+        """
         # XPATH: .//dir[@label="Active Releases"]/dir/dir/[@label]
         logger.debug(f'Using xpath {xpath}')
         eos_versions = []
@@ -70,12 +82,26 @@ class EOSDownloader(ObjectDownloader):
                 logger.debug(f"Found {node.get('label')} - {eos_version}")
         return eos_versions
 
-    def _get_branches(self):
+    def _get_branches(self) -> List[str]:
+        """
+        Extract all EOS branches available from arista.com
+
+        Call self._parse_xml_for_version and then build list of available branches
+
+        Returns:
+            List[str]: A lsit of string that represent all availables EOS branches
+        """
         root = self._get_folder_tree()
         versions = self._parse_xml_for_version(root_xml=root)
         return list(set(version.branch() for version in versions))
 
-    def latest_branch(self):
+    def latest_branch(self) -> EosVersion:
+        """
+        Get latest branch from semver standpoint
+
+        Returns:
+            EosVersion: Latest Branch object
+        """
         selected_branch = EosVersion.from_str(BASE_BRANCH_STR)
         for branch in self._get_branches():
             branch = EosVersion.from_str(branch)
@@ -83,7 +109,19 @@ class EOSDownloader(ObjectDownloader):
                 selected_branch = branch
         return selected_branch
 
-    def get_eos_versions(self, branch: str = None):
+    def get_eos_versions(self, branch: str = None) -> List[EosVersion]:
+        """
+        Get a list of available EOS version available on arista.com
+
+        If a branch is provided, only version in this branch are listed.
+        Otherwise, all versions are provided.
+
+        Args:
+            branch (str, optional): An EOS branch to filter. Defaults to None.
+
+        Returns:
+            List[EosVersion]: A list of versions available
+        """
         root = self._get_folder_tree()
         result = []
         for version in self._parse_xml_for_version(root_xml=root):
@@ -94,6 +132,20 @@ class EOSDownloader(ObjectDownloader):
         return result
 
     def latest_eos(self, branch: str = None, rtype: str = None):
+        """
+        Get latest version of EOS
+
+        If a branch is provided, only version in this branch are listed.
+        Otherwise, all versions are provided.
+        You can select what type of version to consider: M or F
+
+        Args:
+            branch (str, optional): An EOS branch to filter. Defaults to None.
+            rtype (str, optional): An EOS version type to filter, Can be M or F. Defaults to None.
+
+        Returns:
+            EosVersion: latest version selected
+        """
         selected_version = EosVersion.from_str(BASE_VERSION_STR)
         if branch is None:
             latest_branch = self.latest_branch()
