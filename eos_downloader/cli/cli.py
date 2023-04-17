@@ -15,6 +15,7 @@ from rich.console import Console
 import eos_downloader
 from eos_downloader.cli.get import commands as get_commands
 from eos_downloader.cli.debug import commands as debug_commands
+from eos_downloader.cli.info import commands as info_commands
 
 
 @click.group()
@@ -42,6 +43,12 @@ def get(ctx: click.Context) -> None:
 
 @ardl.group(no_args_is_help=True)
 @click.pass_context
+def info(ctx: click.Context) -> None:
+    # pylint: disable=redefined-builtin
+    """List information from Arista website"""
+
+@ardl.group(no_args_is_help=True)
+@click.pass_context
 def debug(ctx: click.Context) -> None:
     # pylint: disable=redefined-builtin
     """Debug commands to work with ardl"""
@@ -54,7 +61,9 @@ def cli() -> None:
     # Load group commands
     get.add_command(get_commands.eos)
     get.add_command(get_commands.cvp)
+    info.add_command(info_commands.eos_versions)
     debug.add_command(debug_commands.xml)
+    debug.add_command(debug_commands.list_eos_versions)
     ardl.add_command(version)
     # Load CLI
     ardl(

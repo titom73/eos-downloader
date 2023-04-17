@@ -50,3 +50,35 @@ def xml(ctx: click.Context, output: str, log_level: str) -> None:
         f.write(str(xmlstr))
 
     console.print(f'XML file saved in: { output }')
+
+
+@click.command()
+@click.pass_context
+@click.option('--log-level', '--log', help='Logging level of the command', default='debug', type=click.Choice(['debug', 'info', 'warning', 'error', 'critical'], case_sensitive=False))
+def list_eos_versions(ctx: click.Context, log_level: str) -> None:
+    """Extract XML directory structure"""
+    console = Console()
+    # Get from Context
+    token = ctx.obj['token']
+
+    logger.remove()
+    if log_level is not None:
+        logger.add("eos-downloader.log", rotation="10 MB", level=log_level.upper())
+
+    my_download = eos_downloader.eos.EOSDownloader(
+        image='unset',
+        software='EOS',
+        version='unset',
+        token=token,
+        hash_method='sha512sum')
+
+    my_download.authenticate()
+    # my_download.debug_version()
+    branches = my_download.latest_branch()
+    console.print(branches)
+    # console.print(f'--> Branch: {branches[0]}')
+    # console.print(my_download.get_versions(str(branches[0])))
+
+    # console.print(
+    #     my_download.debug_version()
+    # )
