@@ -12,13 +12,12 @@ import rich
 from loguru import logger
 from rich import console
 import xml.etree.ElementTree as ET
-from typing import List
+from typing import List, Any
 
 from eos_downloader.object_downloader import ObjectDownloader
-from eos_downloader.models.version import eos_version_reg, EosVersion, BASE_VERSION_STR, BASE_BRANCH_STR
+from eos_downloader.models.version import REGEX_EOS_VERSION, EosVersion, BASE_VERSION_STR, BASE_BRANCH_STR, RTYPE_FEATURE
 
 console = rich.get_console()
-
 
 class EOSDownloader(ObjectDownloader):
     """
@@ -31,6 +30,8 @@ class EOSDownloader(ObjectDownloader):
     ObjectDownloader : ObjectDownloader
         Base object
     """
+
+    eos_versions: List[EosVersion] = None
 
     @staticmethod
     def _disable_ztp(file_path: str) -> None:
@@ -73,43 +74,54 @@ class EOSDownloader(ObjectDownloader):
             List[EosVersion]: List of EosVersion representing all available EOS versions
         """
         # XPATH: .//dir[@label="Active Releases"]/dir/dir/[@label]
-        logger.debug(f'Using xpath {xpath}')
-        eos_versions = []
-        for node in root_xml.findall(xpath):
-            if 'label' in node.attrib and eos_version_reg.match(node.get('label')):
-                eos_version = EosVersion.from_str(node.get("label"))
-                eos_versions.append(eos_version)
-                logger.debug(f"Found {node.get('label')} - {eos_version}")
-        return eos_versions
+        if self.eos_versions is None:
+            logger.debug(f'Using xpath {xpath}')
+            eos_versions = []
+            for node in root_xml.findall(xpath):
+                if 'label' in node.attrib and REGEX_EOS_VERSION.match(node.get('label')):
+                    eos_version = EosVersion.from_str(node.get("label"))
+                    eos_versions.append(eos_version)
+                    logger.debug(f"Found {node.get('label')} - {eos_version}")
+            logger.debug(f'List of versions found on arista.com is: {eos_versions}')
+            self.eos_versions = eos_versions
+        else:
+            logger.debug('receiving instruction to download versions, but already available')
+        return self.eos_versions
 
-    def _get_branches(self) -> List[str]:
+    def _get_branches(self, with_rtype: str = RTYPE_FEATURE) -> List[str]:
         """
         Extract all EOS branches available from arista.com
 
         Call self._parse_xml_for_version and then build list of available branches
+
+        Args:
+            rtype (str, optional): Release type to find. Can be M or F, default to F
 
         Returns:
             List[str]: A lsit of string that represent all availables EOS branches
         """
         root = self._get_folder_tree()
         versions = self._parse_xml_for_version(root_xml=root)
-        return list(set(version.branch() for version in versions))
+        return list({version.branch for version in versions if version.rtype == with_rtype})
 
-    def latest_branch(self) -> EosVersion:
+    def latest_branch(self, rtype: str = RTYPE_FEATURE) -> EosVersion:
         """
         Get latest branch from semver standpoint
+
+        Args:
+            rtype (str, optional): Release type to find. Can be M or F, default to F
 
         Returns:
             EosVersion: Latest Branch object
         """
         selected_branch = EosVersion.from_str(BASE_BRANCH_STR)
-        for branch in self._get_branches():
+        for branch in self._get_branches(with_rtype=rtype):
             branch = EosVersion.from_str(branch)
             if branch > selected_branch:
                 selected_branch = branch
         return selected_branch
 
-    def get_eos_versions(self, branch: str = None) -> List[EosVersion]:
+    def get_eos_versions(self, branch: str = None, rtype: str = None) -> List[EosVersion]:
         """
         Get a list of available EOS version available on arista.com
 
@@ -118,6 +130,7 @@ class EOSDownloader(ObjectDownloader):
 
         Args:
             branch (str, optional): An EOS branch to filter. Defaults to None.
+            rtype (str, optional): Release type to find. Can be M or F, default to F
 
         Returns:
             List[EosVersion]: A list of versions available
@@ -125,13 +138,13 @@ class EOSDownloader(ObjectDownloader):
         root = self._get_folder_tree()
         result = []
         for version in self._parse_xml_for_version(root_xml=root):
-            if branch is None:
+            if branch is None and (version.rtype == rtype or rtype is None):
                 result.append(version)
-            elif version.is_in_branch(branch):
+            elif branch is not None and version.is_in_branch(branch) and version.rtype == rtype:
                 result.append(version)
         return result
 
-    def latest_eos(self, branch: str = None, rtype: str = None):
+    def latest_eos(self, branch: str = None, rtype: str = RTYPE_FEATURE):
         """
         Get latest version of EOS
 
@@ -148,10 +161,10 @@ class EOSDownloader(ObjectDownloader):
         """
         selected_version = EosVersion.from_str(BASE_VERSION_STR)
         if branch is None:
-            latest_branch = self.latest_branch()
+            latest_branch = self.latest_branch(rtype=rtype)
         else:
             latest_branch = EosVersion.from_str(branch)
-        for version in self.get_eos_versions(branch=str(latest_branch.branch())):
+        for version in self.get_eos_versions(branch=str(latest_branch.branch), rtype=rtype):
             if version > selected_version:
                 if rtype is not None and version.rtype == rtype:
                     selected_version = version

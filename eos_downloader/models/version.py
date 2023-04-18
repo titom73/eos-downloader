@@ -11,14 +11,18 @@ from rich import console
 BASE_VERSION_STR = '4.0.0F'
 BASE_BRANCH_STR = '4.0'
 
+RTYPE_FEATURE = 'F'
+RTYPE_MAINTENANCE = 'M'
+RTYPES = [RTYPE_FEATURE, RTYPE_MAINTENANCE]
+
 # Regular Expression to capture multiple EOS version format
 # 4.24
 # 4.23.0
 # 4.21.1M
 # 4.28.10.F
 # 4.28.6.1M
-eos_version_reg = re.compile(r"^.*(?P<major>4)\.(?P<minor>\d{1,2})\.(?P<patch>\d{1,2})(\.\d)*(?P<rtype>[M,F])*$")
-eos_branch_reg = re.compile(r"^.*(?P<major>4)\.(?P<minor>\d{1,2})(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$")
+REGEX_EOS_VERSION = re.compile(r"^.*(?P<major>4)\.(?P<minor>\d{1,2})\.(?P<patch>\d{1,2})(?P<other>\.\d*)*(?P<rtype>[M,F])*$")
+REGEX_EOS_BRANCH = re.compile(r"^.*(?P<major>4)\.(?P<minor>\d{1,2})(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$")
 
 
 class EosVersion(BaseModel):
@@ -47,10 +51,11 @@ class EosVersion(BaseModel):
     Args:
         BaseModel (Pydantic): Pydantic Base Model
     """
-    major: Optional[int] = 0
+    major: Optional[int] = 4
     minor: Optional[int] = 0
     patch: Optional[int] = 0
     rtype: Optional[str]
+    other: Optional[Any]
 
     @classmethod
     def from_str(cls, eos_version: str):
@@ -72,14 +77,24 @@ class EosVersion(BaseModel):
             EosVersion object
         """
         logger.debug(f'receiving version: {eos_version}')
-        if eos_version_reg.match(eos_version):
-            matches = eos_version_reg.match(eos_version)
+        if REGEX_EOS_VERSION.match(eos_version):
+            matches = REGEX_EOS_VERSION.match(eos_version)
             return cls(**matches.groupdict())
-        elif eos_branch_reg.match(eos_version):
-            matches = eos_branch_reg.match(eos_version)
+        elif REGEX_EOS_BRANCH.match(eos_version):
+            matches = REGEX_EOS_BRANCH.match(eos_version)
             return cls(**matches.groupdict())
         else:
             logger.error(f'Error occured with {eos_version}')
+
+    @property
+    def branch(self) -> str:
+        """
+        Extract branch of version
+
+        Returns:
+            str: branch from version
+        """
+        return f'{self.major}.{self.minor}'
 
     def __str__(self) -> str:
         """
@@ -90,7 +105,10 @@ class EosVersion(BaseModel):
         Returns:
             str: A standard EOS version string representing <MAJOR>.<MINOR>.<PATCH><RTYPE>
         """
-        return f'{self.major}.{self.minor}.{self.patch}{self.rtype}'
+        if self.other is None:
+            return f'{self.major}.{self.minor}.{self.patch}{self.rtype}'
+        else:
+            return f'{self.major}.{self.minor}.{self.patch}{self.other}{self.rtype}'
 
     def _compare(self, other) -> float:
         """
@@ -219,12 +237,3 @@ class EosVersion(BaseModel):
         except Exception as error:
             logger.error(error)
         return self.major == branch.major and self.minor == branch.minor
-
-    def branch(self) -> str:
-        """
-        Extract branch of version
-
-        Returns:
-            str: branch from version
-        """
-        return f'{self.major}.{self.minor}'

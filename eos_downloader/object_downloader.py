@@ -86,7 +86,7 @@ class ObjectDownloader():
         self.filename = self._build_filename()
 
     # ------------------------------------------------------------------------ #
-    # Private METHODS
+    # Internal METHODS
     # ------------------------------------------------------------------------ #
 
     def _build_filename(self) -> str:
@@ -104,7 +104,7 @@ class ObjectDownloader():
             return f"{DATA_MAPPING[self.software]['default']['prepend']}-{self.version}{DATA_MAPPING[self.software]['default']['extension']}"
         return ''
 
-    def _parse_xml(self, root_xml: ET.ElementTree, xpath: str, search_file: str) -> str:
+    def _parse_xml_for_path(self, root_xml: ET.ElementTree, xpath: str, search_file: str) -> str:
         # sourcery skip: remove-unnecessary-cast
         """
         _parse_xml Read and extract data from XML using XPATH
@@ -259,7 +259,7 @@ class ObjectDownloader():
         root = self._get_folder_tree()
         logger.debug("GET XML content from ARISTA.com")
         xpath = f'.//dir[@label="{self.software}"]//file'
-        return self._parse_xml(root_xml=root, xpath=xpath, search_file=self.filename)
+        return self._parse_xml_for_path(root_xml=root, xpath=xpath, search_file=self.filename)
 
     def _get_remote_hashpath(self, hash_method: str = 'md5sum') -> str:
         """
@@ -275,7 +275,7 @@ class ObjectDownloader():
         root = self._get_folder_tree()
         logger.debug("GET XML content from ARISTA.com")
         xpath = f'.//dir[@label="{self.software}"]//file'
-        return self._parse_xml(
+        return self._parse_xml_for_path(
             root_xml=root,
             xpath=xpath,
             search_file=f'{self.filename}.{hash_method}',
@@ -389,7 +389,6 @@ class ObjectDownloader():
             if 'data' in result.json():
                 self.session_id = result.json()["data"]["session_code"]
                 logger.info('Authenticated on arista.com')
-                console.print('✅ Authenticated on arista.com')
                 return True
             logger.debug(f'{result.json()}')
             return False

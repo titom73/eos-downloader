@@ -10,11 +10,12 @@ from __future__ import (absolute_import, division,
 import dataclasses
 from typing import Any
 import json
+import importlib.metadata
 
 __author__ = '@titom73'
 __email__ = 'tom@inetsix.net'
 __date__ = '2022-03-16'
-__version__ = '0.7.1'
+__version__ = importlib.metadata.version("eos-downloader")
 
 # __all__ = ["CvpAuthenticationItem", "CvFeatureManager", "EOSDownloader", "ObjectDownloader", "reverse"]
 

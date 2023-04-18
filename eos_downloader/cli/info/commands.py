@@ -12,19 +12,21 @@ Commands for ARDL CLI to list data.
 
 import os
 import sys
+import json
 
 import click
 from loguru import logger
+from rich.pretty import pprint
 from rich.console import Console
 
 import eos_downloader.eos
-from eos_downloader.models.version import BASE_VERSION_STR, BASE_BRANCH_STR
+from eos_downloader.models.version import BASE_VERSION_STR, RTYPES, RTYPE_FEATURE
 
 
-@click.command()
+@click.command(no_args_is_help=True)
 @click.pass_context
 @click.option('--branch', '-b', type=click.STRING, default=None, help='EOS Branch to list releases')
-@click.option('--release-type', '-r', type=click.Choice(['m', 'f'], case_sensitive=False), default=None, help='EOS release type to search')
+@click.option('--release-type', '-rtype', '-rtype', type=click.Choice(RTYPES, case_sensitive=False), default=RTYPE_FEATURE, help='EOS release type to search')
 @click.option('--latest/--no-latest', '-l', type=click.BOOL, default=False, help='Get latest version in given branch (require --branch)')
 @click.option('--verbose/--no-verbose', '-v', type=click.BOOL, default=False, help='Human readable output. Default is none to use output in script)')
 @click.option('--log-level', '--log', help='Logging level of the command', default='warning', type=click.Choice(['debug', 'info', 'warning', 'error', 'critical'], case_sensitive=False))
@@ -33,6 +35,10 @@ def eos_versions(ctx: click.Context, log_level: str, branch: str = None, release
     List Available EOS version on Arista.com website.
 
     Comes with some filters to get latest release (F or M) as well as branch filtering
+
+      - To get latest M release available (without any branch): ardl info eos-versions --latest -rtype m
+
+      - To get latest F release available: ardl info eos-versions --latest -rtype F
     """
     console = Console()
     # Get from Context
@@ -56,14 +62,14 @@ def eos_versions(ctx: click.Context, log_level: str, branch: str = None, release
     if release_type is not None:
         release_type = release_type.upper()
 
-    if branch is None:
-        branch = str(my_download.latest_branch().branch())
-
     if latest:
-        latest_version = my_download.latest_eos(branch,release_type)
+        if branch is None:
+            branch = str(my_download.latest_branch(rtype=release_type).branch)
+        latest_version = my_download.latest_eos(branch, rtype=release_type)
         if str(latest_version) == BASE_VERSION_STR:
             latest_version = f'version not found in branch {branch}'
         if verbose:
+            console.print(f'Branch {branch} has been selected with release type {release_type}')
             if branch is not None:
                 console.print(f'Latest release for {branch}: {latest_version}')
             else:
@@ -71,10 +77,10 @@ def eos_versions(ctx: click.Context, log_level: str, branch: str = None, release
         else:
             console.print(f'{ latest_version }')
     else:
-        versions = my_download.get_eos_versions(branch=branch)
+        versions = my_download.get_eos_versions(branch=branch, rtype=release_type)
         if verbose:
-            console.print(f'List of available versions for {branch}')
+            console.print(f'List of available versions for {branch if branch is not None else "all branches"}')
             for version in versions:
                 console.print(f'  → {str(version)}')
         else:
-            console.print(f'{[str(version) for version in versions]}')
+            pprint([str(version) for version in versions])

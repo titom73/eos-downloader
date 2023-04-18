@@ -63,7 +63,6 @@ def cli() -> None:
     get.add_command(get_commands.cvp)
     info.add_command(info_commands.eos_versions)
     debug.add_command(debug_commands.xml)
-    debug.add_command(debug_commands.list_eos_versions)
     ardl.add_command(version)
     # Load CLI
     ardl(
