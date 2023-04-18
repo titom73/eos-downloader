@@ -63,6 +63,60 @@ Options:
                                   --image_type cEOSlab)
 ```
 
+You can use `--latest` and `--release-type` option to get latest EOS version matching a specific release type
+
+```bash
+# Get latest M release
+❯ ardl get eos --latest -rtype m
+🪐 eos-downloader is starting...
+    - Image Type: default
+    - Version: None
+🔎  Searching file EOS-4.29.3M.swi
+    -> Found file at /support/download/EOS-USA/Active Releases/4.29/EOS-4.29.3M/EOS-4.29.3M.swi
+...
+✅  Downloaded file is correct.
+✅  processing done !
+```
+
+### List available EOS versions from Arista website
+
+You can easily get list of available version using CLI as shown below:
+
+```bash
+❯ ardl info eos-versions
+Usage: ardl info eos-versions [OPTIONS]
+
+  List Available EOS version on Arista.com website.
+
+  Comes with some filters to get latest release (F or M) as well as branch
+  filtering
+
+    - To get latest M release available (without any branch): ardl info eos-
+    versions --latest -rtype m
+
+    - To get latest F release available: ardl info eos-versions --latest
+    -rtype F
+
+Options:
+  -b, --branch TEXT               EOS Branch to list releases
+  -rtype, -rtype, --release-type [F|M]
+                                  EOS release type to search
+  -l, --latest / --no-latest      Get latest version in given branch (require
+                                  --branch)
+  -v, --verbose / --no-verbose    Human readable output. Default is none to
+                                  use output in script)
+  --log-level, --log [debug|info|warning|error|critical]
+                                  Logging level of the command
+  --help                          Show this message and exit.
+```
+
+__Example__
+
+```bash
+❯ ardl info eos-versions -rtype m --branch 4.28
+['4.28.6.1M', '4.28.6M', '4.28.5.1M', '4.28.5M', '4.28.4M', '4.28.3M']
+```
+
 ### Download CVP package
 
 > Supported packages are: OVA, KVM, RPM, Upgrade
