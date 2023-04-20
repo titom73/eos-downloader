@@ -27,18 +27,17 @@ CVP_IMAGE_TYPE = ['ova', 'rpm', 'kvm', 'upgrade']
 @click.pass_context
 @click.option('--image-type', default='default', help='EOS Image type', type=click.Choice(EOS_IMAGE_TYPE), required=True)
 @click.option('--version', default=None, help='EOS version', type=str, required=False)
-@click.option('--latest/--no-latest', '-l', type=click.BOOL, default=False, help='Get latest version in given branch (require --branch)')
-@click.option('--release-type', '-rtype', '-rtype', type=click.Choice(RTYPES, case_sensitive=False), default=RTYPE_FEATURE, help='EOS release type to search')
+@click.option('--latest', '-l', is_flag=True, type=click.BOOL, default=False, help='Get latest version in given branch. If --branch is not use, get the latest branch with specific release type')
+@click.option('--release-type', '-rtype', type=click.Choice(RTYPES, case_sensitive=False), default=RTYPE_FEATURE, help='EOS release type to search')
 @click.option('--branch', '-b', type=click.STRING, default=None, help='EOS Branch to list releases')
-
 @click.option('--docker-name', default='arista/ceos', help='Docker image name (default: arista/ceos)', type=str, show_default=True)
 @click.option('--output', default=str(os.path.relpath(os.getcwd(), start=os.curdir)), help='Path to save image', type=click.Path(),show_default=True)
 # Debugging
 @click.option('--log-level', '--log', help='Logging level of the command', default=None, type=click.Choice(['debug', 'info', 'warning', 'error', 'critical'], case_sensitive=False))
 # Boolean triggers
-@click.option('--eve-ng/--no-eve-ng', help='Run EVE-NG vEOS provisioning (only if CLI runs on an EVE-NG server)', default=False)
-@click.option('--disable-ztp/--no-disable-ztp', help='Disable ZTP process in vEOS image (only available with --eve-ng)', default=False)
-@click.option('--import-docker/--no-import-docker', help='Import docker image (only available with --image_type cEOSlab)', default=False)
+@click.option('--eve-ng', is_flag=True, help='Run EVE-NG vEOS provisioning (only if CLI runs on an EVE-NG server)', default=False)
+@click.option('--disable-ztp', is_flag=True, help='Disable ZTP process in vEOS image (only available with --eve-ng)', default=False)
+@click.option('--import-docker', is_flag=True, help='Import docker image (only available with --image_type cEOSlab)', default=False)
 def eos(
     ctx: click.Context, image_type: str, output: str, log_level: str, eve_ng: bool, disable_ztp: bool,
     import_docker: bool, docker_name: str, version: str = None, release_type: str = None,
@@ -85,8 +84,6 @@ def eos(
             console.print(f'[red]Error[/red], cannot find any version in {branch} for {release_type} release type')
             sys.exit(1)
         my_download.version = str(latest_version)
-
-
 
     if eve_ng:
         my_download.provision_eve(noztp=disable_ztp, checksum=True)

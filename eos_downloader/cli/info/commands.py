@@ -25,10 +25,10 @@ from eos_downloader.models.version import BASE_VERSION_STR, RTYPES, RTYPE_FEATUR
 
 @click.command(no_args_is_help=True)
 @click.pass_context
+@click.option('--latest', '-l', is_flag=True, type=click.BOOL, default=False, help='Get latest version in given branch. If --branch is not use, get the latest branch with specific release type')
+@click.option('--release-type', '-rtype', type=click.Choice(RTYPES, case_sensitive=False), default=RTYPE_FEATURE, help='EOS release type to search')
 @click.option('--branch', '-b', type=click.STRING, default=None, help='EOS Branch to list releases')
-@click.option('--release-type', '-rtype', '-rtype', type=click.Choice(RTYPES, case_sensitive=False), default=RTYPE_FEATURE, help='EOS release type to search')
-@click.option('--latest/--no-latest', '-l', type=click.BOOL, default=False, help='Get latest version in given branch (require --branch)')
-@click.option('--verbose/--no-verbose', '-v', type=click.BOOL, default=False, help='Human readable output. Default is none to use output in script)')
+@click.option('--verbose', '-v', is_flag=True, type=click.BOOL, default=False, help='Human readable output. Default is none to use output in script)')
 @click.option('--log-level', '--log', help='Logging level of the command', default='warning', type=click.Choice(['debug', 'info', 'warning', 'error', 'critical'], case_sensitive=False))
 def eos_versions(ctx: click.Context, log_level: str, branch: str = None, release_type: str = None, latest: bool = False, verbose: bool = False) -> None:
     """
@@ -67,7 +67,8 @@ def eos_versions(ctx: click.Context, log_level: str, branch: str = None, release
             branch = str(my_download.latest_branch(rtype=release_type).branch)
         latest_version = my_download.latest_eos(branch, rtype=release_type)
         if str(latest_version) == BASE_VERSION_STR:
-            latest_version = f'version not found in branch {branch}'
+            console.print(f'[red]Error[/red], cannot find any version in {branch} for {release_type} release type')
+            sys.exit(1)
         if verbose:
             console.print(f'Branch {branch} has been selected with release type {release_type}')
             if branch is not None:
