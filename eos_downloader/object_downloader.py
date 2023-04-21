@@ -9,7 +9,7 @@ eos_downloader class definition
 """
 
 from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+                        unicode_literals, annotations)
 
 import base64
 import glob
@@ -17,6 +17,7 @@ import hashlib
 import json
 import os
 # from builtins import *
+import logging
 import sys
 import xml.etree.ElementTree as ET
 from typing import Union
@@ -32,6 +33,8 @@ from eos_downloader import (ARISTA_DOWNLOAD_URL, ARISTA_GET_SESSION,
                             MSG_INVALID_DATA, MSG_TOKEN_EXPIRED)
 from eos_downloader.data import DATA_MAPPING
 from eos_downloader.download import DownloadProgressBar
+
+logger = logging.getLogger(__name__)
 
 console = rich.get_console()
 

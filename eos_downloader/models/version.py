@@ -7,10 +7,15 @@ from __future__ import annotations
 
 import re
 import typing
-from typing import Any
+import logging
+from typing import Any, Optional
 
 from loguru import logger
 from pydantic import BaseModel
+
+from eos_downloader.tools import exc_to_str
+
+logger = logging.getLogger(__name__)
 
 BASE_VERSION_STR = '4.0.0F'
 BASE_BRANCH_STR = '4.0'
@@ -58,7 +63,7 @@ class EosVersion(BaseModel):
     major: int = 4
     minor: int = 0
     patch: int = 0
-    rtype: str = 'F'
+    rtype: Optional[str] = 'F'
     other: Any
 
     @classmethod
@@ -83,11 +88,11 @@ class EosVersion(BaseModel):
         logger.debug(f'receiving version: {eos_version}')
         if REGEX_EOS_VERSION.match(eos_version):
             matches = REGEX_EOS_VERSION.match(eos_version)
-            assert matches is not None
+            # assert matches is not None
             return cls(**matches.groupdict())
         if REGEX_EOS_BRANCH.match(eos_version):
             matches = REGEX_EOS_BRANCH.match(eos_version)
-            assert matches is not None
+            # assert matches is not None
             return cls(**matches.groupdict())
         logger.error(f'Error occured with {eos_version}')
         return EosVersion()
@@ -249,7 +254,10 @@ class EosVersion(BaseModel):
             bool: True if current version is in provided branch, otherwise False
         """
         try:
+            logger.debug(f'reading branch str:{branch_str}')
             branch = EosVersion.from_str(branch_str)
         except Exception as error:  # pylint: disable = broad-exception-caught
-            logger.error(error)
-        return self.major == branch.major and self.minor == branch.minor
+            logger.error(exc_to_str(error))
+        else:
+            return self.major == branch.major and self.minor == branch.minor
+        return False
