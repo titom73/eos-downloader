@@ -81,7 +81,7 @@ class TestEosDownload_invalid():
     @pytest.mark.dependency(name='authentication')
     @pytest.mark.skipif(eos_token == 'unset_token', reason="Token is not set correctly")
     @pytest.mark.skipif(is_on_github_actions(), reason="Running on Github Runner")
-    # @pytest.mark.xfail(reason="Deliberate - CI not set for testing AUTH")
+    @pytest.mark.xfail(reason="Deliberate - CI not set for testing AUTH")
     @pytest.mark.webtest
     def test_eos_download_authenticate(self):
         assert self.eos_downloader.authenticate() is True
