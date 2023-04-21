@@ -9,6 +9,7 @@ COPY . /local
 
 LABEL maintainer="Thomas Grimonet <tom@inetsix.net>"
 LABEL   "org.opencontainers.image.title"="eos-downloader" \
+        "org.opencontainers.image.description"="eos-downloader container" \
         "org.opencontainers.artifact.description"="A CLI to manage Arista EOS version download" \
         "org.opencontainers.image.source"="https://github.com/titom73/eos-downloader" \
         "org.opencontainers.image.url"="https://github.com/titom73/eos-downloader" \
