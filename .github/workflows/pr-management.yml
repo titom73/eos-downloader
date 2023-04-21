@@ -34,7 +34,7 @@ jobs:
         run: |
           python -m py_compile $(git ls-files '*.py')
 
-  linting-testing:
+  linting:
     name: Run flake8, pylint and mypy for supported Python versions
     runs-on: ubuntu-latest
     needs: [compiling]
@@ -55,4 +55,50 @@ jobs:
         run: pip install tox tox-gh-actions
 
       - name: "Run tox for ${{ matrix.python }}"
-        run: tox
+        run: tox -e lint
+
+  typing:
+    name: Run flake8, pylint and mypy for supported Python versions
+    runs-on: ubuntu-latest
+    needs: [linting]
+
+    strategy:
+      matrix:
+        python: ["3.8", "3.9", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: pip install tox tox-gh-actions
+
+      - name: "Run tox for ${{ matrix.python }}"
+        run: tox -e type
+
+  pytest:
+    name: Run flake8, pylint and mypy for supported Python versions
+    runs-on: ubuntu-latest
+    needs: [typing]
+
+    strategy:
+      matrix:
+        python: ["3.8", "3.9", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: pip install tox tox-gh-actions
+
+      - name: "Run tox for ${{ matrix.python }}"
+        run: tox -e testenv

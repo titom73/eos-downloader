@@ -148,7 +148,7 @@ python =
 description = run the test driver with {basepython}
 extras = dev
 commands =
-   pytest  {tty:--color=yes}
+   pytest -rA -q --cov-report term:skip-covered -v --cov-report term:skip-covered --html=report.html --self-contained-html --cov-report=html --color yes --cov=eos_downloader
 
 [testenv:lint]
 description = check the code style
