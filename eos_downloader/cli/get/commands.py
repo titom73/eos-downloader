@@ -12,13 +12,14 @@ Commands for ARDL CLI to get data.
 
 import os
 import sys
+from typing import Union
 
 import click
 from loguru import logger
 from rich.console import Console
 
 import eos_downloader.eos
-from eos_downloader.models.version import BASE_VERSION_STR, RTYPES, RTYPE_FEATURE
+from eos_downloader.models.version import BASE_VERSION_STR, RTYPE_FEATURE, RTYPES
 
 EOS_IMAGE_TYPE = ['64', 'INT', '2GB-INT', 'cEOS', 'cEOS64', 'vEOS', 'vEOS-lab', 'EOS-2GB', 'default']
 CVP_IMAGE_TYPE = ['ova', 'rpm', 'kvm', 'upgrade']
@@ -40,8 +41,8 @@ CVP_IMAGE_TYPE = ['ova', 'rpm', 'kvm', 'upgrade']
 @click.option('--import-docker', is_flag=True, help='Import docker image (only available with --image_type cEOSlab)', default=False)
 def eos(
     ctx: click.Context, image_type: str, output: str, log_level: str, eve_ng: bool, disable_ztp: bool,
-    import_docker: bool, docker_name: str, version: str = None, release_type: str = None,
-    latest: bool = False, branch: str = None
+    import_docker: bool, docker_name: str, version: Union[str, None] = None, release_type: str = RTYPE_FEATURE,
+    latest: bool = False, branch: Union[str,None] = None
     ) -> int:
     """Download EOS image from Arista website"""
     console = Console()

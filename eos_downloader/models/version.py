@@ -1,12 +1,16 @@
 #!/usr/bin/python
 # coding: utf-8 -*-
 
-import re
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
-from pydantic import BaseModel, validator
-from loguru import logger
-from rich import console
+"""Module for EOS version management"""
 
+from __future__ import annotations
+
+import re
+import typing
+from typing import Any
+
+from loguru import logger
+from pydantic import BaseModel
 
 BASE_VERSION_STR = '4.0.0F'
 BASE_BRANCH_STR = '4.0'
@@ -51,14 +55,14 @@ class EosVersion(BaseModel):
     Args:
         BaseModel (Pydantic): Pydantic Base Model
     """
-    major: Optional[int] = 4
-    minor: Optional[int] = 0
-    patch: Optional[int] = 0
-    rtype: Optional[str]
-    other: Optional[Any]
+    major: int = 4
+    minor: int = 0
+    patch: int = 0
+    rtype: str = 'F'
+    other: Any
 
     @classmethod
-    def from_str(cls, eos_version: str):
+    def from_str(cls, eos_version: str) -> EosVersion:
         """
         Class constructor from a string representing EOS version
 
@@ -79,12 +83,14 @@ class EosVersion(BaseModel):
         logger.debug(f'receiving version: {eos_version}')
         if REGEX_EOS_VERSION.match(eos_version):
             matches = REGEX_EOS_VERSION.match(eos_version)
+            assert matches is not None
             return cls(**matches.groupdict())
-        elif REGEX_EOS_BRANCH.match(eos_version):
+        if REGEX_EOS_BRANCH.match(eos_version):
             matches = REGEX_EOS_BRANCH.match(eos_version)
+            assert matches is not None
             return cls(**matches.groupdict())
-        else:
-            logger.error(f'Error occured with {eos_version}')
+        logger.error(f'Error occured with {eos_version}')
+        return EosVersion()
 
     @property
     def branch(self) -> str:
@@ -107,10 +113,9 @@ class EosVersion(BaseModel):
         """
         if self.other is None:
             return f'{self.major}.{self.minor}.{self.patch}{self.rtype}'
-        else:
-            return f'{self.major}.{self.minor}.{self.patch}{self.other}{self.rtype}'
+        return f'{self.major}.{self.minor}.{self.patch}{self.other}{self.rtype}'
 
-    def _compare(self, other) -> float:
+    def _compare(self, other: EosVersion) -> float:
         """
         An internal comparison function to compare 2 EosVersion objects
 
@@ -132,7 +137,7 @@ class EosVersion(BaseModel):
         if not isinstance(other, EosVersion):
             raise ValueError(f'could not compare {other} as it is not an EosVersion object')
         comparison_flag: float = 0
-        for key,value in self.dict().items():
+        for key, _ in self.dict().items():
             if comparison_flag == 0 and self.dict()[key] < other.dict()[key]:
                 comparison_flag = -1
             if comparison_flag == 0 and self.dict()[key] > other.dict()[key]:
@@ -141,27 +146,38 @@ class EosVersion(BaseModel):
                 return comparison_flag
         return comparison_flag
 
+    @typing.no_type_check
     def __eq__(self, other):
         """ Implement __eq__ function (==) """
         return self._compare(other) == 0
 
+    @typing.no_type_check
     def __ne__(self, other):
+        # type: ignore
         """ Implement __nw__ function (!=) """
         return self._compare(other) != 0
 
+    @typing.no_type_check
     def __lt__(self, other):
+        # type: ignore
         """ Implement __lt__ function (<) """
         return self._compare(other) < 0
 
+    @typing.no_type_check
     def __le__(self, other):
+        # type: ignore
         """ Implement __le__ function (<=) """
         return self._compare(other) <= 0
 
+    @typing.no_type_check
     def __gt__(self, other):
+        # type: ignore
         """ Implement __gt__ function (>) """
         return self._compare(other) > 0
 
+    @typing.no_type_check
     def __ge__(self, other):
+        # type: ignore
         """ Implement __ge__ function (>=) """
         return self._compare(other) >= 0
 
@@ -204,7 +220,7 @@ class EosVersion(BaseModel):
                 "match_expr parameter should be in format <op><ver>, "
                 "where <op> is one of "
                 "['<', '>', '==', '<=', '>=', '!=']. "
-                "You provided: %r" % match_expr
+                f"You provided: {match_expr}"
             )
         logger.debug(f'work on comparison {prefix} with base release {match_version}')
         possibilities_dict = {
@@ -234,6 +250,6 @@ class EosVersion(BaseModel):
         """
         try:
             branch = EosVersion.from_str(branch_str)
-        except Exception as error:
+        except Exception as error:  # pylint: disable = broad-exception-caught
             logger.error(error)
         return self.major == branch.major and self.minor == branch.minor

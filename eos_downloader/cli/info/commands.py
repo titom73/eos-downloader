@@ -10,17 +10,16 @@
 Commands for ARDL CLI to list data.
 """
 
-import os
 import sys
-import json
+from typing import Union
 
 import click
 from loguru import logger
-from rich.pretty import pprint
 from rich.console import Console
+from rich.pretty import pprint
 
 import eos_downloader.eos
-from eos_downloader.models.version import BASE_VERSION_STR, RTYPES, RTYPE_FEATURE
+from eos_downloader.models.version import BASE_VERSION_STR, RTYPE_FEATURE, RTYPES
 
 
 @click.command(no_args_is_help=True)
@@ -30,7 +29,8 @@ from eos_downloader.models.version import BASE_VERSION_STR, RTYPES, RTYPE_FEATUR
 @click.option('--branch', '-b', type=click.STRING, default=None, help='EOS Branch to list releases')
 @click.option('--verbose', '-v', is_flag=True, type=click.BOOL, default=False, help='Human readable output. Default is none to use output in script)')
 @click.option('--log-level', '--log', help='Logging level of the command', default='warning', type=click.Choice(['debug', 'info', 'warning', 'error', 'critical'], case_sensitive=False))
-def eos_versions(ctx: click.Context, log_level: str, branch: str = None, release_type: str = None, latest: bool = False, verbose: bool = False) -> None:
+def eos_versions(ctx: click.Context, log_level: str, branch: Union[str,None] = None, release_type: str = RTYPE_FEATURE, latest: bool = False, verbose: bool = False) -> None:
+    # pylint: disable = too-many-branches
     """
     List Available EOS version on Arista.com website.
 

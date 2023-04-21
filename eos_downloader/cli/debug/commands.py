@@ -3,6 +3,7 @@
 # pylint: disable=no-value-for-parameter
 # pylint: disable=too-many-arguments
 # pylint: disable=line-too-long
+# pylint: disable=duplicate-code
 # flake8: noqa E501
 
 """

@@ -47,6 +47,7 @@ def info(ctx: click.Context) -> None:
     # pylint: disable=redefined-builtin
     """List information from Arista website"""
 
+
 @ardl.group(no_args_is_help=True)
 @click.pass_context
 def debug(ctx: click.Context) -> None:
