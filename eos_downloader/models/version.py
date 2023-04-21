@@ -142,13 +142,21 @@ class EosVersion(BaseModel):
         if not isinstance(other, EosVersion):
             raise ValueError(f'could not compare {other} as it is not an EosVersion object')
         comparison_flag: float = 0
+        logger.warning(f'current version {self.__str__()} - other {str(other)}')
         for key, _ in self.dict().items():
+            if comparison_flag == 0 and self.dict()[key] is None or other.dict()[key] is None:
+                logger.debug(f'{key}: local None - remote None')
+                logger.debug(f'{key}: local {self.dict()} - remote {other.dict()}')
+                return comparison_flag
+            logger.debug(f'{key}: local {self.dict()[key]} - remote {other.dict()[key]}')
             if comparison_flag == 0 and self.dict()[key] < other.dict()[key]:
                 comparison_flag = -1
             if comparison_flag == 0 and self.dict()[key] > other.dict()[key]:
                 comparison_flag = 1
             if comparison_flag != 0:
+                logger.info(f'comparison result is {comparison_flag}')
                 return comparison_flag
+        logger.info(f'comparison result is {comparison_flag}')
         return comparison_flag
 
     @typing.no_type_check

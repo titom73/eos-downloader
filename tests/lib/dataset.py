@@ -17,6 +17,7 @@ from eos_downloader.data import DATA_MAPPING
 # --------------------------------------------------------------- #
 
 # Get Auth token
+# eos_token = os.getenv('ARISTA_TOKEN')
 eos_token = os.getenv('ARISTA_TOKEN', 'unset_token')
 eos_token_invalid = 'invalid_token'
 
@@ -61,4 +62,39 @@ eos_dataset_invalid = [
         'remote_path': '/support/download/EOS-USA/Active Releases/4.26/EOS-4.26.3M/EOS-4.26.3M.swi',
         'compute_checksum': True
     }
+]
+
+eos_version = [
+    {
+        'version': 'EOS-4.23.1F',
+        'is_valid': True,
+        'major': 4,
+        'minor': 23,
+        'patch': 1,
+        'rtype': 'F'
+    },
+    {
+        'version': 'EOS-4.23.1M',
+        'is_valid': True,
+        'major': 4,
+        'minor': 23,
+        'patch': 1,
+        'rtype': 'M'
+    },
+    {
+        'version': 'EOS-4.23.1.F',
+        'is_valid': True,
+        'major': 4,
+        'minor': 23,
+        'patch': 1,
+        'rtype': 'F'
+    },
+    {
+        'version': 'EOS-5.23.1F',
+        'is_valid': False,
+        'major': 4,
+        'minor': 23,
+        'patch': 1,
+        'rtype': 'F'
+    },
 ]
