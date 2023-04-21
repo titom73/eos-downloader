@@ -7,6 +7,7 @@ Specific EOS inheritance from object_download
 """
 
 import os
+import logging
 import xml.etree.ElementTree as ET
 from typing import List, Union
 
@@ -16,6 +17,8 @@ from rich import console
 
 from eos_downloader.models.version import BASE_BRANCH_STR, BASE_VERSION_STR, REGEX_EOS_VERSION, RTYPE_FEATURE, EosVersion
 from eos_downloader.object_downloader import ObjectDownloader
+
+logger = logging.getLogger(__name__)
 
 console = rich.get_console()
 

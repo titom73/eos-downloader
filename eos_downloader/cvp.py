@@ -6,12 +6,16 @@ CVP Uploader content
 """
 
 import os
+import logging
 from typing import List, Optional, Any
 from dataclasses import dataclass
 from loguru import logger
 from cvprac.cvp_client import CvpClient
 from cvprac.cvp_client_errors import CvpLoginError
 
+from eos_downloader.tools import exc_to_str
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class CvpAuthenticationItem:
