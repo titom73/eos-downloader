@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eos_downloader"
-version = "v0.8.0"
+version = "v0.8.1-dev1"
 readme = "README.md"
 authors = [{ name = "Thomas Grimonet", email = "thomas.grimonet@gmail.com" }]
 maintainers = [
@@ -148,7 +148,7 @@ python =
 description = run the test driver with {basepython}
 extras = dev
 commands =
-   pytest  {tty:--color=yes}
+   pytest -rA -q --cov-report term:skip-covered --cov-report term:skip-covered --html=report.html --self-contained-html --cov-report=html --color yes --cov=eos_downloader
 
 [testenv:lint]
 description = check the code style
@@ -176,7 +176,7 @@ depends = py310
 """
 
 [tool.pytest.ini_options]
-addopts = "-ra -q -s -vv --capture=tee-sys --ignore=tests/scripts --cov --cov-append"
+addopts = "-ra -q -s -vv --capture=tee-sys --cov --cov-append"
 log_level = "INFO"
 log_cli = "True"
 

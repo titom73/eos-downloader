@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function)
 import os
 import pytest
 import eos_downloader
+from typing import Dict, Any, List
 from tests.lib.dataset import eos_dataset_valid, eos_dataset_invalid, eos_token, eos_token_invalid
 
 
@@ -27,3 +28,42 @@ def create_download_instance(request, DOWNLOAD_INFO):
     # logger.info('Cleanup test environment')
     os.system('rm -f {}*'.format(DOWNLOAD_INFO['filename']))
 
+
+def generate_test_ids_dict(val: Dict[str, Any], key: str = 'name') -> str:
+    """
+    generate_test_ids Helper to generate test ID for parametrize
+
+    Only related to SYSTEM_CONFIGLETS_TESTS structure
+
+    Parameters
+    ----------
+    val : dict
+        A configlet test structure
+
+    Returns
+    -------
+    str
+        Name of the configlet
+    """
+    if key in val.keys():
+        # note this wouldn't show any hours/minutes/seconds
+        return val[key]
+    return "undefined_test"
+
+def generate_test_ids_list(val: List[Dict[str, Any]], key: str = 'name') -> str:
+    """
+    generate_test_ids Helper to generate test ID for parametrize
+
+    Only related to SYSTEM_CONFIGLETS_TESTS structure
+
+    Parameters
+    ----------
+    val : dict
+        A configlet test structure
+
+    Returns
+    -------
+    str
+        Name of the configlet
+    """
+    return [ entry[key] if key in entry.keys() else 'unset_entry' for entry in val ]

@@ -16,8 +16,6 @@ import glob
 import hashlib
 import json
 import os
-# from builtins import *
-import logging
 import sys
 import xml.etree.ElementTree as ET
 from typing import Union
@@ -34,7 +32,7 @@ from eos_downloader import (ARISTA_DOWNLOAD_URL, ARISTA_GET_SESSION,
 from eos_downloader.data import DATA_MAPPING
 from eos_downloader.download import DownloadProgressBar
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 console = rich.get_console()
 
@@ -77,6 +75,9 @@ class ObjectDownloader():
     def __str__(self) -> str:
         return f'{self.software} - {self.image} - {self.version}'
 
+    # def __repr__(self):
+    #     return str(self.__dict__)
+
     @property
     def version(self) -> str:
         """Get version."""
@@ -101,11 +102,14 @@ class ObjectDownloader():
         str:
             Filename to search for on Arista.com
         """
+        logger.info('start build')
         if self.software in DATA_MAPPING:
+            logger.info(f'software in data mapping: {self.software}')
             if self.image in DATA_MAPPING[self.software]:
+                logger.info(f'image in data mapping: {self.image}')
                 return f"{DATA_MAPPING[self.software][self.image]['prepend']}-{self.version}{DATA_MAPPING[self.software][self.image]['extension']}"
             return f"{DATA_MAPPING[self.software]['default']['prepend']}-{self.version}{DATA_MAPPING[self.software]['default']['extension']}"
-        return ''
+        raise ValueError(f'Incorrect value for software {self.software}')
 
     def _parse_xml_for_path(self, root_xml: ET.ElementTree, xpath: str, search_file: str) -> str:
         # sourcery skip: remove-unnecessary-cast
@@ -136,9 +140,9 @@ class ObjectDownloader():
             if str(node.text).lower() == search_file.lower():
                 path = node.get('path')
                 console.print(f'    -> Found file at {path}')
-                logger.info('Found {} at {}', node.text, node.get('path'))
+                logger.info(f'Found {node.text} at {node.get("path")}')
                 return str(node.get('path')) if node.get('path') is not None else ''
-        logger.error('Requested file ({}) not found !', self.filename)
+        logger.error(f'Requested file ({self.filename}) not found !')
         return ''
 
     def _get_hash(self, file_path: str) -> str:
@@ -189,11 +193,9 @@ class ObjectDownloader():
         with open(file, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk)
-        if str(hash_md5.hexdigest()) == hash_expected:
+        if hash_md5.hexdigest() == hash_expected:
             return True
-        logger.warning('Downloaded file is corrupt: local md5 ({}) is different to md5 from arista ({})',
-                       hash_md5.hexdigest(),
-                       hash_expected)
+        logger.warning(f'Downloaded file is corrupt: local md5 ({hash_md5.hexdigest()}) is different to md5 from arista ({hash_expected})')
         return False
 
     @staticmethod
@@ -219,11 +221,9 @@ class ObjectDownloader():
         with open(file, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_sha512.update(chunk)
-        if str(hash_sha512.hexdigest()) == hash_expected:
+        if hash_sha512.hexdigest() == hash_expected:
             return True
-        logger.warning('Downloaded file is corrupt: local sha512 ({}) is different to sha512 from arista ({})',
-                       hash_sha512.hexdigest(),
-                       hash_expected)
+        logger.warning(f'Downloaded file is corrupt: local sha512 ({hash_sha512.hexdigest()}) is different to sha512 from arista ({hash_expected})')
         return False
 
     def _get_folder_tree(self) -> ET.ElementTree:
@@ -307,7 +307,7 @@ class ObjectDownloader():
         if 'data' in result.json() and 'url' in result.json()['data']:
             # logger.debug('URL to download file is: {}', result.json())
             return result.json()["data"]["url"]
-        logger.critical('Server returns following message: {}', result.json())
+        logger.critical(f'Server returns following message: {result.json()}')
         return ''
 
     @staticmethod
@@ -341,7 +341,7 @@ class ObjectDownloader():
 
     def _download_file(self, file_path: str, filename: str, rich_interface: bool = True) -> Union[None, str]:
         remote_file_path = self._get_remote_filepath()
-        logger.info('File found on arista server: {}', remote_file_path)
+        logger.info(f'File found on arista server: {remote_file_path}')
         file_url = self._get_url(remote_file_path=remote_file_path)
         if file_url is not False:
             if not rich_interface:
@@ -349,7 +349,7 @@ class ObjectDownloader():
             rich_downloader = DownloadProgressBar()
             rich_downloader.download(urls=[file_url], dest_dir=file_path)
             return os.path.join(file_path, filename)
-        logger.error('Cannot download file {}', file_path)
+        logger.error(f'Cannot download file {file_path}')
         return None
 
     @staticmethod
