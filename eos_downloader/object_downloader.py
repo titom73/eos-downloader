@@ -16,8 +16,6 @@ import glob
 import hashlib
 import json
 import os
-# from builtins import *
-import logging
 import sys
 import xml.etree.ElementTree as ET
 from typing import Union
