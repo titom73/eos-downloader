@@ -54,7 +54,7 @@ eos_dataset_valid = [
 
 eos_dataset_invalid = [
     {
-        'image': 'EOS',
+        'image': 'default',
         'version': '4.26.3M',
         'software': 'EOS',
         'filename': 'EOS-4.26.3M.swi',

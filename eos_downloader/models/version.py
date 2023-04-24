@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import re
 import typing
-import logging
 from typing import Any, Optional
 
 from loguru import logger
@@ -15,7 +14,7 @@ from pydantic import BaseModel
 
 from eos_downloader.tools import exc_to_str
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 BASE_VERSION_STR = '4.0.0F'
 BASE_BRANCH_STR = '4.0'
@@ -89,10 +88,12 @@ class EosVersion(BaseModel):
         if REGEX_EOS_VERSION.match(eos_version):
             matches = REGEX_EOS_VERSION.match(eos_version)
             # assert matches is not None
+            assert matches is not None
             return cls(**matches.groupdict())
         if REGEX_EOS_BRANCH.match(eos_version):
             matches = REGEX_EOS_BRANCH.match(eos_version)
             # assert matches is not None
+            assert matches is not None
             return cls(**matches.groupdict())
         logger.error(f'Error occured with {eos_version}')
         return EosVersion()
@@ -142,7 +143,7 @@ class EosVersion(BaseModel):
         if not isinstance(other, EosVersion):
             raise ValueError(f'could not compare {other} as it is not an EosVersion object')
         comparison_flag: float = 0
-        logger.warning(f'current version {self.__str__()} - other {str(other)}')
+        logger.warning(f'current version {self.__str__()} - other {str(other)}')   # pylint: disable = unnecessary-dunder-call
         for key, _ in self.dict().items():
             if comparison_flag == 0 and self.dict()[key] is None or other.dict()[key] is None:
                 logger.debug(f'{key}: local None - remote None')

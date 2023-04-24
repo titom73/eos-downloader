@@ -7,7 +7,6 @@ Specific EOS inheritance from object_download
 """
 
 import os
-import logging
 import xml.etree.ElementTree as ET
 from typing import List, Union
 
@@ -18,7 +17,7 @@ from rich import console
 from eos_downloader.models.version import BASE_BRANCH_STR, BASE_VERSION_STR, REGEX_EOS_VERSION, RTYPE_FEATURE, EosVersion
 from eos_downloader.object_downloader import ObjectDownloader
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 console = rich.get_console()
 
@@ -58,7 +57,7 @@ class EOSDownloader(ObjectDownloader):
         ztp_file = os.path.join(file_path, 'raw/zerotouch-config')
         with open(ztp_file, 'w', encoding='ascii') as zfile:
             zfile.write('DISABLE=True')
-        logger.info('Unmounting volume in {}', file_path)
+        logger.info(f'Unmounting volume in {file_path}')
         os.system(f"guestunmount {os.path.join(file_path, 'raw')}")
         os.system(f"rm -rf {os.path.join(file_path, 'raw')}")
         logger.info(f"Volume has been successfully unmounted at {file_path}")

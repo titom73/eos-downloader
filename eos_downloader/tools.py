@@ -3,6 +3,7 @@
 
 """Module for tools related to ardl"""
 
+
 def exc_to_str(exception: Exception) -> str:
     """
     Helper function to parse Exceptions
