@@ -65,7 +65,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images:
+          images: |
             ${{ secrets.DOCKER_IMAGE }}
             ghcr.io/${{ secrets.DOCKER_IMAGE }}
           tags: |
@@ -106,7 +106,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images:
+          images: |
             ${{ secrets.DOCKER_IMAGE }}
             ghcr.io/${{ secrets.DOCKER_IMAGE }}
           tags: |
@@ -134,3 +134,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
