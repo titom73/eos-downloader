@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  pull_request_target:
+  pull_request:
     types: [assigned, opened, synchronize, reopened]
 
 jobs:
@@ -101,4 +101,5 @@ jobs:
         run: pip install tox tox-gh-actions
 
       - name: "Run tox for ${{ matrix.python }}"
-        run: tox -e testenv
+        # run: tox -e testenv
+        run: tox -e gh-actions

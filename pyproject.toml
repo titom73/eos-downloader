@@ -15,61 +15,61 @@ maintainers = [
 description = "Arista EOS/CVP downloader script"
 license = { file = "LICENSE" }
 dependencies = [
-"cryptography",
-"paramiko",
-"requests>=2.20.0",
-"requests-toolbelt",
-"scp",
-"tqdm",
-"loguru",
-"rich~=13.5.2",
-"cvprac>=1.0.7",
-"click~=8.1.6",
-"click-help-colors~=0.9",
-"pydantic>=1.10.4,<2.4.0",
+  "cryptography",
+  "paramiko",
+  "requests>=2.20.0",
+  "requests-toolbelt",
+  "scp",
+  "tqdm",
+  "loguru",
+  "rich~=13.5.2",
+  "cvprac>=1.0.7",
+  "click~=8.1.6",
+  "click-help-colors~=0.9",
+  "pydantic>=1.10.4,<2.0.0",
 ]
 keywords = ["eos_downloader", "Arista", "eos", "cvp", "network", "automation", "networking", "devops", "netdevops"]
 classifiers = [
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'Intended Audience :: System Administrators',
-        'Intended Audience :: Information Technology',
-        'Topic :: System :: Software Distribution',
-        'Topic :: Terminals',
-        'Topic :: Utilities',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: Implementation :: PyPy',
+  'Development Status :: 4 - Beta',
+  'Intended Audience :: Developers',
+  'Intended Audience :: System Administrators',
+  'Intended Audience :: Information Technology',
+  'Topic :: System :: Software Distribution',
+  'Topic :: Terminals',
+  'Topic :: Utilities',
+  'License :: OSI Approved :: Apache Software License',
+  'Operating System :: OS Independent',
+  'Programming Language :: Python',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3.8',
+  'Programming Language :: Python :: 3.9',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3 :: Only',
+  'Programming Language :: Python :: Implementation :: PyPy',
 ]
 requires-python = ">=3.8"
 
 [project.optional-dependencies]
 dev = [
-"isort==5.12.0",
-"mypy==0.991",
-"mypy-extensions>=0.4.3",
-"pre-commit>=2.20.0",
-"pylint",
-"pytest>=7.1.2",
-"pytest-cov>=2.11.1",
-"pytest-dependency",
-"pytest-html>=3.1.1",
-"pytest-metadata>=1.11.0",
-"pylint-pydantic>=0.1.4",
-"tox==4.0.11",
-"types-PyYAML",
-"types-paramiko",
-"types-requests",
-"typing-extensions",
-"yamllint",
-"flake8==4.0.1",
-"pyflakes==2.4.0"
+  "isort==5.12.0",
+  "mypy==0.991",
+  "mypy-extensions>=0.4.3",
+  "pre-commit>=2.20.0",
+  "pylint",
+  "pytest>=7.1.2",
+  "pytest-cov>=2.11.1",
+  "pytest-dependency",
+  "pytest-html>=3.1.1",
+  "pytest-metadata>=1.11.0",
+  "pylint-pydantic>=0.1.4",
+  "tox==4.0.11",
+  "types-PyYAML",
+  "types-paramiko",
+  "types-requests",
+  "typing-extensions",
+  "yamllint",
+  "flake8==4.0.1",
+  "pyflakes==2.4.0"
 ]
 
 [project.urls]
@@ -120,8 +120,8 @@ min_version = 4.0
 envlist =
   clean,
   lint,
-  type
-
+  type,
+  py{38,39,310}
 
 [tox-full]
 min_version = 4.0
