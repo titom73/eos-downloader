@@ -102,4 +102,4 @@ jobs:
 
       - name: "Run tox for ${{ matrix.python }}"
         # run: tox -e testenv
-        run: tox -e gh-actions
+        run: tox

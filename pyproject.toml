@@ -62,7 +62,7 @@ dev = [
   "pytest-html>=3.1.1",
   "pytest-metadata>=1.11.0",
   "pylint-pydantic>=0.1.4",
-  "tox==4.0.11",
+  "tox==4.10.0",
   "types-PyYAML",
   "types-paramiko",
   "types-requests",
@@ -132,13 +132,13 @@ envlist =
   type,
   report
 
-[gh-actions]
+[gh-actions-base]
 python =
   3.8: lint, type
   3.9: lint, type
   3.10: lint, type
 
-[gh-actions-full]
+[gh-actions]
 python =
   3.8: py38
   3.9: py39
