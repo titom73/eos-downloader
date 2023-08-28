@@ -3,26 +3,33 @@
 # Please see the documentation for all configuration options:
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
+# Basic set up for three package managers
+
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    labels:
-      - dependabot
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "bump"
-      include: "ci"
-    open-pull-requests-limit: 10
+  # Maintain dependencies for Python
+  # Dependabot supports updates to pyproject.toml files
+  # if they follow the PEP 621 standard.
   - package-ecosystem: "pip"
     directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "titom73"
     labels:
+      - 'dependencies'
+    pull-request-branch-name:
+      separator: "/"
+    commit-message:
+      prefix: "bump: "
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "weekly"
+    reviewers:
+      - "titom73"
     labels:
-      - dependabot
+      - 'CI'
     commit-message:
-      prefix: "bump"
-      include: "requirements"
-    open-pull-requests-limit: 10
+      prefix: "ci: "
