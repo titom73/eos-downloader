@@ -16,11 +16,11 @@ from eos_downloader.tools import exc_to_str
 
 # logger = logging.getLogger(__name__)
 
-BASE_VERSION_STR = '4.0.0F'
-BASE_BRANCH_STR = '4.0'
+BASE_VERSION_STR = "4.0.0F"
+BASE_BRANCH_STR = "4.0"
 
-RTYPE_FEATURE = 'F'
-RTYPE_MAINTENANCE = 'M'
+RTYPE_FEATURE = "F"
+RTYPE_MAINTENANCE = "M"
 RTYPES = [RTYPE_FEATURE, RTYPE_MAINTENANCE]
 
 # Regular Expression to capture multiple EOS version format
@@ -29,8 +29,12 @@ RTYPES = [RTYPE_FEATURE, RTYPE_MAINTENANCE]
 # 4.21.1M
 # 4.28.10.F
 # 4.28.6.1M
-REGEX_EOS_VERSION = re.compile(r"^.*(?P<major>4)\.(?P<minor>\d{1,2})\.(?P<patch>\d{1,2})(?P<other>\.\d*)*(?P<rtype>[M,F])*$")
-REGEX_EOS_BRANCH = re.compile(r"^.*(?P<major>4)\.(?P<minor>\d{1,2})(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$")
+REGEX_EOS_VERSION = re.compile(
+    r"^.*(?P<major>4)\.(?P<minor>\d{1,2})\.(?P<patch>\d{1,2})(?P<other>\.\d*)*(?P<rtype>[M,F])*$"
+)
+REGEX_EOS_BRANCH = re.compile(
+    r"^.*(?P<major>4)\.(?P<minor>\d{1,2})(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$"
+)
 
 
 class EosVersion(BaseModel):
@@ -59,10 +63,11 @@ class EosVersion(BaseModel):
     Args:
         BaseModel (Pydantic): Pydantic Base Model
     """
+
     major: int = 4
     minor: int = 0
     patch: int = 0
-    rtype: Optional[str] = 'F'
+    rtype: Optional[str] = "F"
     other: Any = None
 
     @classmethod
@@ -84,7 +89,7 @@ class EosVersion(BaseModel):
         Returns:
             EosVersion object
         """
-        logger.debug(f'receiving version: {eos_version}')
+        logger.debug(f"receiving version: {eos_version}")
         if REGEX_EOS_VERSION.match(eos_version):
             matches = REGEX_EOS_VERSION.match(eos_version)
             # assert matches is not None
@@ -95,7 +100,7 @@ class EosVersion(BaseModel):
             # assert matches is not None
             assert matches is not None
             return cls(**matches.groupdict())
-        logger.error(f'Error occured with {eos_version}')
+        logger.error(f"Error occured with {eos_version}")
         return EosVersion()
 
     @property
@@ -106,7 +111,7 @@ class EosVersion(BaseModel):
         Returns:
             str: branch from version
         """
-        return f'{self.major}.{self.minor}'
+        return f"{self.major}.{self.minor}"
 
     def __str__(self) -> str:
         """
@@ -118,8 +123,8 @@ class EosVersion(BaseModel):
             str: A standard EOS version string representing <MAJOR>.<MINOR>.<PATCH><RTYPE>
         """
         if self.other is None:
-            return f'{self.major}.{self.minor}.{self.patch}{self.rtype}'
-        return f'{self.major}.{self.minor}.{self.patch}{self.other}{self.rtype}'
+            return f"{self.major}.{self.minor}.{self.patch}{self.rtype}"
+        return f"{self.major}.{self.minor}.{self.patch}{self.other}{self.rtype}"
 
     def _compare(self, other: EosVersion) -> float:
         """
@@ -141,58 +146,68 @@ class EosVersion(BaseModel):
             float: -1 if ver1 < ver2, 0 if ver1 == ver2, 1 if ver1 > ver2
         """
         if not isinstance(other, EosVersion):
-            raise ValueError(f'could not compare {other} as it is not an EosVersion object')
+            raise ValueError(
+                f"could not compare {other} as it is not an EosVersion object"
+            )
         comparison_flag: float = 0
-        logger.warning(f'current version {self.__str__()} - other {str(other)}')   # pylint: disable = unnecessary-dunder-call
+        logger.warning(
+            f"current version {self.__str__()} - other {str(other)}"  # pylint: disable = unnecessary-dunder-call
+        )
         for key, _ in self.dict().items():
-            if comparison_flag == 0 and self.dict()[key] is None or other.dict()[key] is None:
-                logger.debug(f'{key}: local None - remote None')
-                logger.debug(f'{key}: local {self.dict()} - remote {other.dict()}')
+            if (
+                comparison_flag == 0
+                and self.dict()[key] is None
+                or other.dict()[key] is None
+            ):
+                logger.debug(f"{key}: local None - remote None")
+                logger.debug(f"{key}: local {self.dict()} - remote {other.dict()}")
                 return comparison_flag
-            logger.debug(f'{key}: local {self.dict()[key]} - remote {other.dict()[key]}')
+            logger.debug(
+                f"{key}: local {self.dict()[key]} - remote {other.dict()[key]}"
+            )
             if comparison_flag == 0 and self.dict()[key] < other.dict()[key]:
                 comparison_flag = -1
             if comparison_flag == 0 and self.dict()[key] > other.dict()[key]:
                 comparison_flag = 1
             if comparison_flag != 0:
-                logger.info(f'comparison result is {comparison_flag}')
+                logger.info(f"comparison result is {comparison_flag}")
                 return comparison_flag
-        logger.info(f'comparison result is {comparison_flag}')
+        logger.info(f"comparison result is {comparison_flag}")
         return comparison_flag
 
     @typing.no_type_check
     def __eq__(self, other):
-        """ Implement __eq__ function (==) """
+        """Implement __eq__ function (==)"""
         return self._compare(other) == 0
 
     @typing.no_type_check
     def __ne__(self, other):
         # type: ignore
-        """ Implement __nw__ function (!=) """
+        """Implement __nw__ function (!=)"""
         return self._compare(other) != 0
 
     @typing.no_type_check
     def __lt__(self, other):
         # type: ignore
-        """ Implement __lt__ function (<) """
+        """Implement __lt__ function (<)"""
         return self._compare(other) < 0
 
     @typing.no_type_check
     def __le__(self, other):
         # type: ignore
-        """ Implement __le__ function (<=) """
+        """Implement __le__ function (<=)"""
         return self._compare(other) <= 0
 
     @typing.no_type_check
     def __gt__(self, other):
         # type: ignore
-        """ Implement __gt__ function (>) """
+        """Implement __gt__ function (>)"""
         return self._compare(other) > 0
 
     @typing.no_type_check
     def __ge__(self, other):
         # type: ignore
-        """ Implement __ge__ function (>=) """
+        """Implement __ge__ function (>=)"""
         return self._compare(other) >= 0
 
     def match(self, match_expr: str) -> bool:
@@ -236,7 +251,7 @@ class EosVersion(BaseModel):
                 "['<', '>', '==', '<=', '>=', '!=']. "
                 f"You provided: {match_expr}"
             )
-        logger.debug(f'work on comparison {prefix} with base release {match_version}')
+        logger.debug(f"work on comparison {prefix} with base release {match_version}")
         possibilities_dict = {
             ">": (1,),
             "<": (-1,),
@@ -263,7 +278,7 @@ class EosVersion(BaseModel):
             bool: True if current version is in provided branch, otherwise False
         """
         try:
-            logger.debug(f'reading branch str:{branch_str}')
+            logger.debug(f"reading branch str:{branch_str}")
             branch = EosVersion.from_str(branch_str)
         except Exception as error:  # pylint: disable = broad-exception-caught
             logger.error(exc_to_str(error))

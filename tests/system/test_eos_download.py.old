@@ -45,4 +45,3 @@ class TestEosDownload_valid():
     @pytest.mark.eos_download
     def test_download_local(self, DOWNLOAD_INFO):
         self.eos_downloader.download_local(file_path='.', checksum=DOWNLOAD_INFO['compute_checksum'])
-

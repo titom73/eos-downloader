@@ -8,13 +8,20 @@ import os.path
 import signal
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
-from typing import Iterable, Any
+from typing import Any, Iterable
 
 import requests
 import rich
 from rich import console
-from rich.progress import (BarColumn, DownloadColumn, Progress, TaskID,
-                           TextColumn, TimeElapsedColumn, TransferSpeedColumn)
+from rich.progress import (
+    BarColumn,
+    DownloadColumn,
+    Progress,
+    TaskID,
+    TextColumn,
+    TimeElapsedColumn,
+    TransferSpeedColumn,
+)
 
 console = rich.get_console()
 done_event = Event()
@@ -28,7 +35,7 @@ def handle_sigint(signum: Any, frame: Any) -> None:
 signal.signal(signal.SIGINT, handle_sigint)
 
 
-class DownloadProgressBar():
+class DownloadProgressBar:
     """
     Object to manage Download process with Progress Bar from Rich
     """
@@ -38,7 +45,9 @@ class DownloadProgressBar():
         Class Constructor
         """
         self.progress = Progress(
-            TextColumn("💾  Downloading [bold blue]{task.fields[filename]}", justify="right"),
+            TextColumn(
+                "💾  Downloading [bold blue]{task.fields[filename]}", justify="right"
+            ),
             BarColumn(bar_width=None),
             "[progress.percentage]{task.percentage:>3.1f}%",
             "•",
@@ -48,14 +57,16 @@ class DownloadProgressBar():
             "•",
             TimeElapsedColumn(),
             "•",
-            console=console
+            console=console,
         )
 
-    def _copy_url(self, task_id: TaskID, url: str, path: str, block_size: int = 1024) -> bool:
+    def _copy_url(
+        self, task_id: TaskID, url: str, path: str, block_size: int = 1024
+    ) -> bool:
         """Copy data from a url to a local file."""
         response = requests.get(url, stream=True, timeout=5)
         # This will break if the response doesn't contain content length
-        self.progress.update(task_id, total=int(response.headers['Content-Length']))
+        self.progress.update(task_id, total=int(response.headers["Content-Length"]))
         with open(path, "wb") as dest_file:
             self.progress.start_task(task_id)
             for data in response.iter_content(chunk_size=block_size):
@@ -71,7 +82,9 @@ class DownloadProgressBar():
         with self.progress:
             with ThreadPoolExecutor(max_workers=4) as pool:
                 for url in urls:
-                    filename = url.split("/")[-1].split('?')[0]
+                    filename = url.split("/")[-1].split("?")[0]
                     dest_path = os.path.join(dest_dir, filename)
-                    task_id = self.progress.add_task("download", filename=filename, start=False)
+                    task_id = self.progress.add_task(
+                        "download", filename=filename, start=False
+                    )
                     pool.submit(self._copy_url, task_id, url, dest_path)

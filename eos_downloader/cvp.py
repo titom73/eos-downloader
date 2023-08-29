@@ -6,11 +6,12 @@ CVP Uploader content
 """
 
 import os
-from typing import List, Optional, Any
 from dataclasses import dataclass
-from loguru import logger
+from typing import Any, List, Optional
+
 from cvprac.cvp_client import CvpClient
 from cvprac.cvp_client_errors import CvpLoginError
+from loguru import logger
 
 # from eos_downloader.tools import exc_to_str
 
@@ -20,8 +21,9 @@ from cvprac.cvp_client_errors import CvpLoginError
 @dataclass
 class CvpAuthenticationItem:
     """
-     Data structure to represent Cloudvision Authentication
+    Data structure to represent Cloudvision Authentication
     """
+
     server: str
     port: int = 443
     token: Optional[str] = None
@@ -29,15 +31,16 @@ class CvpAuthenticationItem:
     validate_cert: bool = False
 
 
-class Filer():
+class Filer:
     # pylint: disable=too-few-public-methods
     """
     Filer Helper for file management
     """
+
     def __init__(self, path: str) -> None:
         self.file_exist = False
-        self.filename = ''
-        self.absolute_path = ''
+        self.filename = ""
+        self.absolute_path = ""
         self.relative_path = path
         if os.path.exists(path):
             self.file_exist = True
@@ -45,13 +48,14 @@ class Filer():
             self.absolute_path = os.path.realpath(path)
 
     def __repr__(self) -> str:
-        return self.absolute_path if self.file_exist else ''
+        return self.absolute_path if self.file_exist else ""
 
 
-class CvFeatureManager():
+class CvFeatureManager:
     """
     CvFeatureManager Object to interect with Cloudvision
     """
+
     def __init__(self, authentication: CvpAuthenticationItem) -> None:
         """
         __init__ Class Creator
@@ -86,19 +90,21 @@ class CvFeatureManager():
             try:
                 client.connect(
                     nodes=[authentication.server],
-                    username='',
-                    password='',
+                    username="",
+                    password="",
                     api_token=authentication.token,
                     is_cvaas=True,
                     port=authentication.port,
                     cert=authentication.validate_cert,
-                    request_timeout=authentication.timeout
+                    request_timeout=authentication.timeout,
                 )
             except CvpLoginError as error_data:
-                logger.error(f'Cannot connect to Cloudvision server {authentication.server}')
-                logger.debug(f'Error message: {error_data}')
-        logger.info('connected to Cloudvision server')
-        logger.debug(f'Connection info: {authentication}')
+                logger.error(
+                    f"Cannot connect to Cloudvision server {authentication.server}"
+                )
+                logger.debug(f"Error message: {error_data}")
+        logger.info("connected to Cloudvision server")
+        logger.debug(f"Connection info: {authentication}")
         return client
 
     def __get_images(self) -> List[Any]:
@@ -111,8 +117,8 @@ class CvFeatureManager():
             Fact returned by Cloudvision
         """
         images = []
-        logger.debug('  -> Collecting images')
-        images = self._cv_instance.api.get_images()['data']
+        logger.debug("  -> Collecting images")
+        images = self._cv_instance.api.get_images()["data"]
         return images if self.__check_api_result(images) else []
 
     # def __get_bundles(self):
@@ -161,7 +167,11 @@ class CvFeatureManager():
         bool
             True if present
         """
-        return any(image_name == image['name'] for image in self._cv_images) if isinstance(self._cv_images, list) else False
+        return (
+            any(image_name == image["name"] for image in self._cv_images)
+            if isinstance(self._cv_images, list)
+            else False
+        )
 
     def _does_bundle_exist(self, bundle_name: str) -> bool:
         # pylint: disable=unused-argument
@@ -192,19 +202,23 @@ class CvFeatureManager():
         """
         image_item = Filer(path=image_path)
         if image_item.file_exist is False:
-            logger.error(f'File not found: {image_item.relative_path}')
+            logger.error(f"File not found: {image_item.relative_path}")
             return False
-        logger.info(f'File path for image: {image_item}')
+        logger.info(f"File path for image: {image_item}")
         if self._does_image_exist(image_name=image_item.filename):
-            logger.error("Image found in Cloudvision , Please delete it before running this script")
+            logger.error(
+                "Image found in Cloudvision , Please delete it before running this script"
+            )
             return False
         try:
-            upload_result = self._cv_instance.api.add_image(filepath=image_item.absolute_path)
+            upload_result = self._cv_instance.api.add_image(
+                filepath=image_item.absolute_path
+            )
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.error('An error occurred during upload, check CV connection')
-            logger.error(f'Exception message is: {e}')
+            logger.error("An error occurred during upload, check CV connection")
+            logger.error(f"Exception message is: {e}")
             return False
-        logger.debug(f'Upload Result is : {upload_result}')
+        logger.debug(f"Upload Result is : {upload_result}")
         return True
 
     def build_image_list(self, image_list: List[str]) -> List[Any]:
@@ -252,25 +266,30 @@ class CvFeatureManager():
         bool
             True if succeeds
         """
-        logger.debug(f'Init creation of an image bundle {name} with following images {images_name}')
+        logger.debug(
+            f"Init creation of an image bundle {name} with following images {images_name}"
+        )
         all_images_present: List[bool] = []
         self._cv_images = self.__get_images()
         all_images_present.extend(
-            self._does_image_exist(image_name=image_name)
-            for image_name in images_name
+            self._does_image_exist(image_name=image_name) for image_name in images_name
         )
         # Bundle Create
         if self._does_bundle_exist(bundle_name=name) is False:
-            logger.debug(f'Creating image bundle {name} with following images {images_name}')
+            logger.debug(
+                f"Creating image bundle {name} with following images {images_name}"
+            )
             images_data = self.build_image_list(image_list=images_name)
             if images_data is not None:
-                logger.debug('Images information: {images_data}')
+                logger.debug("Images information: {images_data}")
                 try:
-                    data = self._cv_instance.api.save_image_bundle(name=name, images=images_data)
+                    data = self._cv_instance.api.save_image_bundle(
+                        name=name, images=images_data
+                    )
                 except Exception as e:  # pylint: disable=broad-exception-caught
-                    logger.critical(f'{e}')
+                    logger.critical(f"{e}")
                 else:
                     logger.debug(data)
                 return True
-            logger.critical('No data found for images')
+            logger.critical("No data found for images")
         return False
