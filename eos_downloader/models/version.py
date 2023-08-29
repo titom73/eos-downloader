@@ -63,7 +63,7 @@ class EosVersion(BaseModel):
     minor: int = 0
     patch: int = 0
     rtype: Optional[str] = 'F'
-    other: Any
+    other: Any = None
 
     @classmethod
     def from_str(cls, eos_version: str) -> EosVersion:
