@@ -17,8 +17,10 @@ from eos_downloader.cli.get import commands as get_commands
 from eos_downloader.cli.debug import commands as debug_commands
 from eos_downloader.cli.info import commands as info_commands
 
+from eos_downloader.cli.utils import AliasedGroup
 
-@click.group()
+
+@click.group(cls=AliasedGroup)
 @click.pass_context
 @click.option('--token', show_envvar=True, default=None, help='Arista Token from your customer account')
 def ardl(ctx: click.Context, token: str) -> None:
@@ -34,23 +36,23 @@ def version() -> None:
     console.print(f'ardl is running version {eos_downloader.__version__}')
 
 
-@ardl.group(no_args_is_help=True)
+@ardl.group(cls=AliasedGroup, no_args_is_help=True)
 @click.pass_context
-def get(ctx: click.Context) -> None:
+def get(ctx: click.Context, cls: click.Group = AliasedGroup) -> None:
     # pylint: disable=redefined-builtin
     """Download Arista from Arista website"""
 
 
-@ardl.group(no_args_is_help=True)
+@ardl.group(cls=AliasedGroup, no_args_is_help=True)
 @click.pass_context
-def info(ctx: click.Context) -> None:
+def info(ctx: click.Context, cls: click.Group = AliasedGroup) -> None:
     # pylint: disable=redefined-builtin
     """List information from Arista website"""
 
 
-@ardl.group(no_args_is_help=True)
+@ardl.group(cls=AliasedGroup, no_args_is_help=True)
 @click.pass_context
-def debug(ctx: click.Context) -> None:
+def debug(ctx: click.Context, cls: click.Group = AliasedGroup) -> None:
     # pylint: disable=redefined-builtin
     """Debug commands to work with ardl"""
 
