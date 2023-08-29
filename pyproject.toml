@@ -69,7 +69,8 @@ dev = [
   "typing-extensions",
   "yamllint",
   "flake8>=4.0.1",
-  "pyflakes>=2.4.0"
+  "pyflakes>=2.4.0",
+  "bumpver>=2023.1126"
 ]
 
 [project.urls]
@@ -81,9 +82,28 @@ Contributing = "https://www.github.com/titom73/eos-downloader"
 ardl = "eos_downloader.cli.cli:cli"
 lard = "eos_downloader.cli.cli:cli"
 
+################################
+# Tools
+################################
+
 [tool.setuptools.packages.find]
 include = ["eos_downloader*"]
 namespaces = false
+
+################################
+# Version
+################################
+[tool.bumpver]
+current_version = "0.8.1"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message  = "bump: Version {old_version} -> {new_version}"
+commit = true
+# No tag
+tag = false
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = ['current_version = "{version}"', 'version = "v{version}"']
 
 # mypy as per https://pydantic-docs.helpmanual.io/mypy_plugin/#enabling-the-plugin
 [tool.mypy]
