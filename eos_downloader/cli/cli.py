@@ -12,26 +12,32 @@ ARDL CLI Baseline.
 
 import click
 from rich.console import Console
+
 import eos_downloader
-from eos_downloader.cli.get import commands as get_commands
 from eos_downloader.cli.debug import commands as debug_commands
+from eos_downloader.cli.get import commands as get_commands
 from eos_downloader.cli.info import commands as info_commands
 
 
 @click.group()
 @click.pass_context
-@click.option('--token', show_envvar=True, default=None, help='Arista Token from your customer account')
+@click.option(
+    "--token",
+    show_envvar=True,
+    default=None,
+    help="Arista Token from your customer account",
+)
 def ardl(ctx: click.Context, token: str) -> None:
     """Arista Network Download CLI"""
     ctx.ensure_object(dict)
-    ctx.obj['token'] = token
+    ctx.obj["token"] = token
 
 
 @click.command()
 def version() -> None:
     """Display version of ardl"""
     console = Console()
-    console.print(f'ardl is running version {eos_downloader.__version__}')
+    console.print(f"ardl is running version {eos_downloader.__version__}")
 
 
 @ardl.group(no_args_is_help=True)
@@ -54,6 +60,7 @@ def debug(ctx: click.Context) -> None:
     # pylint: disable=redefined-builtin
     """Debug commands to work with ardl"""
 
+
 # ANTA CLI Execution
 
 
@@ -66,11 +73,8 @@ def cli() -> None:
     debug.add_command(debug_commands.xml)
     ardl.add_command(version)
     # Load CLI
-    ardl(
-        obj={},
-        auto_envvar_prefix='arista'
-    )
+    ardl(obj={}, auto_envvar_prefix="arista")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

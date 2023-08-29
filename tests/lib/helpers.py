@@ -5,12 +5,11 @@
 # flake8: noqa: W503
 # flake8: noqa: W1202
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 import os
 
 from eos_downloader.data import DATA_MAPPING
-
 
 
 def default_filename(version: str, info):
@@ -31,10 +30,14 @@ def default_filename(version: str, info):
     """
     if version is None or info is None:
         return None
-    return DATA_MAPPING[info['software']]['default']['prepend'] + '-' + version + '.swi'
+    return DATA_MAPPING[info["software"]]["default"]["prepend"] + "-" + version + ".swi"
 
 
 def is_on_github_actions():
     """Check if code is running on a CI runner"""
-    if "CI" not in os.environ or not os.environ["CI"] or "GITHUB_RUN_ID" not in os.environ:
+    if (
+        "CI" not in os.environ
+        or not os.environ["CI"]
+        or "GITHUB_RUN_ID" not in os.environ
+    ):
         return False

@@ -2,7 +2,8 @@
 disable=
     invalid-name,
     logging-fstring-interpolation,
-    fixme
+    fixme,
+    line-too-long
 
 [BASIC]
 good-names=runCmds, i, y, t, c, x, e, fd, ip, v
