@@ -68,8 +68,8 @@ dev = [
   "types-requests",
   "typing-extensions",
   "yamllint",
-  "flake8==6.1.0",
-  "pyflakes==2.4.0"
+  "flake8>=4.0.1",
+  "pyflakes>=2.4.0"
 ]
 
 [project.urls]
