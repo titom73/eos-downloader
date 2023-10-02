@@ -11,9 +11,8 @@ ARDL CLI Baseline.
 """
 
 import click
-from rich.console import Console
 
-import eos_downloader
+from eos_downloader import __version__
 from eos_downloader.cli.debug import commands as debug_commands
 from eos_downloader.cli.get import commands as get_commands
 from eos_downloader.cli.info import commands as info_commands
@@ -22,6 +21,7 @@ from eos_downloader.cli.utils import AliasedGroup
 
 
 @click.group(cls=AliasedGroup)
+@click.version_option(__version__)
 @click.pass_context
 @click.option(
     "--token",
@@ -33,13 +33,6 @@ def ardl(ctx: click.Context, token: str) -> None:
     """Arista Network Download CLI"""
     ctx.ensure_object(dict)
     ctx.obj["token"] = token
-
-
-@click.command()
-def version() -> None:
-    """Display version of ardl"""
-    console = Console()
-    console.print(f"ardl is running version {eos_downloader.__version__}")
 
 
 @ardl.group(cls=AliasedGroup, no_args_is_help=True)
@@ -73,7 +66,6 @@ def cli() -> None:
     get.add_command(get_commands.cvp)
     info.add_command(info_commands.eos_versions)
     debug.add_command(debug_commands.xml)
-    ardl.add_command(version)
     # Load CLI
     ardl(obj={}, auto_envvar_prefix="arista")
 

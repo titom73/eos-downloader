@@ -28,6 +28,7 @@ Usage: ardl [OPTIONS] COMMAND [ARGS]...
   Arista Network Download CLI
 
 Options:
+  --version     Show the version and exit.
   --token TEXT  Arista Token from your customer account  [env var:
                 ARISTA_TOKEN]
   --help        Show this message and exit.
@@ -35,7 +36,6 @@ Options:
 Commands:
   debug    Debug commands to work with ardl
   get      Download Arista from Arista website
-  version  Display version of ardl
 ```
 
 > **Warning**
@@ -185,7 +185,7 @@ tqdm
 
 On EVE-NG, you may have to install/upgrade __pyOpenSSL__ in version `23.0.0`:
 
-```
+```bash
 # Error when running ardl: AttributeError: module 'lib' has no attribute 'X509_V_FLAG_CB_ISSUER_CHECK'
 
 $ pip install pyopenssl --upgrade
