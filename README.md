@@ -44,10 +44,22 @@ Commands:
 
 ### Download EOS Package
 
-
+> **info**
 > Supported packages are: EOS, cEOS, vEOS-lab, cEOS64
 
-You can download EOS packages with following commands:
+CLI gives an option to get latest version available. By default it takes latest `R` release
+
+```bash
+ardl get eos --image-type cEOS --latest
+```
+
+If you want to get latest M release, you can use `--release-type`:
+
+```bash
+ardl get eos --image-type cEOS --release-type M --latest
+```
+
+You can download a specific EOS packages with following commands:
 
 ```bash
 # Example for a cEOS package
