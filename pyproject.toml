@@ -22,7 +22,7 @@ dependencies = [
   "scp",
   "tqdm",
   "loguru",
-  "rich~=13.5.2",
+  "rich>=13.5.2,<13.7.0",
   "cvprac>=1.0.7",
   "click~=8.1.6",
   "click-help-colors~=0.9",
