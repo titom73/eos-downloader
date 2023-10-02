@@ -47,7 +47,7 @@ Commands:
 > **Note**
 > Supported packages are: EOS, cEOS, vEOS-lab, cEOS64
 
-CLI gives an option to get latest version available. By default it takes latest `R` release
+CLI gives an option to get latest version available. By default it takes latest `F` release
 
 ```bash
 ardl get eos --image-type cEOS --latest
