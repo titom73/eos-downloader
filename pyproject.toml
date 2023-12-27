@@ -51,8 +51,8 @@ requires-python = ">=3.8"
 
 [project.optional-dependencies]
 dev = [
+  "mypy==1.8.0",
   "isort==5.13.2",
-  "mypy==1.7.1",
   "mypy-extensions>=0.4.3",
   "pre-commit>=2.20.0",
   "pylint",
