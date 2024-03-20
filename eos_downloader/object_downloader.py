@@ -547,7 +547,9 @@ class ObjectDownloader:
         if noztp:
             self._disable_ztp(file_path=file_path)
 
-    def docker_import(self, image_name: str = "arista/ceos") -> None:
+    def docker_import(
+        self, image_name: str = "arista/ceos", is_latest: bool = False
+    ) -> None:
         """
         Import docker container to your docker server.
 
@@ -561,6 +563,9 @@ class ObjectDownloader:
         logger.info(f"Importing image {self.filename} to {docker_image}")
         console.print(f"🚀 Importing image {self.filename} to {docker_image}")
         os.system(f"$(which docker) import {self.filename} {docker_image}")
+        if is_latest:
+            console.print(f"🚀 Configuring {docker_image}:{self.version} to be latest")
+            os.system(f"$(which docker) tag {docker_image} {image_name}:latest")
         for filename in glob.glob(f"{self.filename}*"):
             try:
                 os.remove(filename)

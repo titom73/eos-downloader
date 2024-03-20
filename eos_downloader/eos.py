@@ -137,8 +137,7 @@ class EOSDownloader(ObjectDownloader):
         selected_branch = EosVersion.from_str(BASE_BRANCH_STR)
         for branch in self._get_branches(with_rtype=rtype):
             branch = EosVersion.from_str(branch)
-            if branch > selected_branch:
-                selected_branch = branch
+            selected_branch = max(selected_branch, branch)
         return selected_branch
 
     def get_eos_versions(

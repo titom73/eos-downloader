@@ -128,6 +128,7 @@ def eos(
     console = Console()
     # Get from Context
     token = ctx.obj["token"]
+    is_latest: bool = False
     if token is None or token == "":
         console.print(
             "❗ Token is unset ! Please configure ARISTA_TOKEN or use --token option",
@@ -156,6 +157,7 @@ def eos(
         my_download.authenticate()
 
     elif latest:
+        is_latest = True
         my_download = eos_downloader.eos.EOSDownloader(
             image=image_type,
             software="EOS",
@@ -180,7 +182,7 @@ def eos(
         my_download.download_local(file_path=output, checksum=True)
 
     if import_docker:
-        my_download.docker_import(image_name=docker_name)
+        my_download.docker_import(image_name=docker_name, is_latest=is_latest)
     console.print("✅  processing done !")
     sys.exit(0)
 
