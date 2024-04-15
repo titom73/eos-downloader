@@ -40,7 +40,7 @@ from eos_downloader import (
     MSG_TOKEN_EXPIRED,
 )
 from eos_downloader.data import DATA_MAPPING
-from eos_downloader.download import DownloadProgressBar
+from eos_downloader.download import DownloadProgressBar, REQUEST_HEADERS
 
 # logger = logging.getLogger(__name__)
 
@@ -263,7 +263,10 @@ class ObjectDownloader:
             self.authenticate()
         jsonpost = {"sessionCode": self.session_id}
         result = requests.post(
-            ARISTA_SOFTWARE_FOLDER_TREE, data=json.dumps(jsonpost), timeout=self.timeout
+            ARISTA_SOFTWARE_FOLDER_TREE,
+            data=json.dumps(jsonpost),
+            timeout=self.timeout,
+            headers=REQUEST_HEADERS,
         )
         try:
             folder_tree = result.json()["data"]["xml"]
@@ -332,7 +335,10 @@ class ObjectDownloader:
             self.authenticate()
         jsonpost = {"sessionCode": self.session_id, "filePath": remote_file_path}
         result = requests.post(
-            ARISTA_DOWNLOAD_URL, data=json.dumps(jsonpost), timeout=self.timeout
+            ARISTA_DOWNLOAD_URL,
+            data=json.dumps(jsonpost),
+            timeout=self.timeout,
+            headers=REQUEST_HEADERS,
         )
         if "data" in result.json() and "url" in result.json()["data"]:
             # logger.debug('URL to download file is: {}', result.json())
@@ -421,7 +427,10 @@ class ObjectDownloader:
         jsonpost = {"accessToken": credentials}
 
         result = requests.post(
-            session_code_url, data=json.dumps(jsonpost), timeout=self.timeout
+            session_code_url,
+            data=json.dumps(jsonpost),
+            timeout=self.timeout,
+            headers=REQUEST_HEADERS,
         )
 
         if result.json()["status"]["message"] in [
