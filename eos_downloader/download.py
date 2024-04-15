@@ -26,6 +26,11 @@ from rich.progress import (
 console = rich.get_console()
 done_event = Event()
 
+REQUEST_HEADERS = {
+    "Content-Type": "application/json",
+    "User-Agent": "Chrome/123.0.0.0",
+}
+
 
 def handle_sigint(signum: Any, frame: Any) -> None:
     """Progress bar handler"""
@@ -64,7 +69,7 @@ class DownloadProgressBar:
         self, task_id: TaskID, url: str, path: str, block_size: int = 1024
     ) -> bool:
         """Copy data from a url to a local file."""
-        response = requests.get(url, stream=True, timeout=5)
+        response = requests.get(url, stream=True, timeout=5, headers=REQUEST_HEADERS)
         # This will break if the response doesn't contain content length
         self.progress.update(task_id, total=int(response.headers["Content-Length"]))
         with open(path, "wb") as dest_file:
