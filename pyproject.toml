@@ -22,11 +22,11 @@ dependencies = [
   "scp",
   "tqdm",
   "loguru",
-  "rich>=13.5.2,<13.8.0",
+  "rich>=13.5.2",
   "cvprac>=1.0.7",
-  "click~=8.1.6",
-  "click-help-colors~=0.9",
-  "pydantic>2.0.0,<3.0.0",
+  "click>=8.1.6",
+  "click-help-colors>=0.9",
+  "pydantic>2.0.0",
 ]
 keywords = ["eos_downloader", "Arista", "eos", "cvp", "network", "automation", "networking", "devops", "netdevops"]
 classifiers = [
@@ -62,7 +62,7 @@ dev = [
   "pytest-html>=3.1.1",
   "pytest-metadata>=1.11.0",
   "pylint-pydantic>=0.2.4",
-  "tox~=4.11",
+  "tox>=4.11",
   "types-PyYAML",
   "types-paramiko",
   "types-requests",
