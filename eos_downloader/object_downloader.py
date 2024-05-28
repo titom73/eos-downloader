@@ -494,12 +494,12 @@ class ObjectDownloader:
                 hash_result = self._compute_hash_sh512sum(
                     file=file_downloaded, hash_expected=hash_expected
                 )
-        if not hash_result:
-            logger.error("Downloaded file is corrupted, please check your connection")
-            console.print(
-                "❌  Downloaded file is corrupted, please check your connection"
-            )
-            return False
+            if not hash_result:
+                logger.error("Downloaded file is corrupted, please check your connection")
+                console.print(
+                    "❌  Downloaded file is corrupted, please check your connection"
+                )
+                return False
         logger.info("Downloaded file is correct.")
         console.print("✅  Downloaded file is correct.")
         return True

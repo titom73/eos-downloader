@@ -346,3 +346,4 @@ report.html
 *.swp
 arista.xml
 tester.py
+*.tgz
