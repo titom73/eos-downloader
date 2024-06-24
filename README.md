@@ -13,6 +13,8 @@
 
 Script to download Arista softwares to local folder, Cloudvision or EVE-NG.
 
+> **warning**
+This script should not be deployed on EOS device. If you do that, there is no support to expect from Arista TAC team.
 ```bash
 pip install eos-downloader
 ```
