@@ -124,6 +124,7 @@ def eos(
     latest: bool = False,
     branch: Union[str, None] = None,
 ) -> int:
+# pylint: disable=R0917
     """Download EOS image from Arista website"""
     console = Console()
     # Get from Context
