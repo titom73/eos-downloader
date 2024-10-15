@@ -59,7 +59,7 @@ class ObjectDownloader:
         token: str,
         software: str = "EOS",
         hash_method: str = "md5sum",
-    ):
+    ):  # pylint: disable=R0917
         """
         __init__ Class constructor
 

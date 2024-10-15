@@ -174,7 +174,7 @@ commands =
 description = check the code style
 commands =
   flake8 --max-line-length=165 --config=/dev/null eos_downloader
-  pylint eos_downloader
+  pylint --rcfile=pylintrc  eos_downloader
 
 [testenv:type]
 description = check typing

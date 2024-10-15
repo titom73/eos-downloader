@@ -71,7 +71,7 @@ def eos_versions(
     latest: bool = False,
     verbose: bool = False,
 ) -> None:
-    # pylint: disable = too-many-branches
+    # pylint: disable = too-many-branches, R0917
     """
     List Available EOS version on Arista.com website.
 
