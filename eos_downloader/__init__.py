@@ -18,6 +18,11 @@ import importlib.metadata
 import json
 from typing import Any
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from _typeshed import DataclassInstance  # noqa: F401
+
 __author__ = "@titom73"
 __email__ = "tom@inetsix.net"
 __date__ = "2022-03-16"
@@ -52,5 +57,5 @@ class EnhancedJSONEncoder(json.JSONEncoder):
 
     def default(self, o: Any) -> Any:
         if dataclasses.is_dataclass(o):
-            return dataclasses.asdict(o)
+            return dataclasses.asdict(o)  # type: ignore
         return super().default(o)
