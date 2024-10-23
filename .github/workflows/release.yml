@@ -2,38 +2,17 @@
 name: "Tag & Release management"
 on:
   push:
-    # Sequence of patterns matched against refs/tags
     tags:
     - 'v[0-9]+.[0-9]+.[0-9]+' # Push events to matching v*, i.e. v1.0, v20.15.10
 jobs:
-  # release:
-  #   name: Create Github Release
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-
-  #     - name: Generate Changelog
-  #       run: |
-  #         sudo apt update && sudo apt install zsh
-  #         export TAG_CURRENT=$(git describe --abbrev=0 --tags)
-  #         export TAG_PREVIOUS=$(git describe --abbrev=0 --tags `git rev-list --tags --skip=1  --max-count=1`)
-  #         echo "Previous tag is: ${TAG_PREVIOUS}"
-  #         echo "Current tag is: ${TAG_CURRENT}"
-  #         zsh .github/changelog.sh ${TAG_CURRENT} ${TAG_PREVIOUS} md > CHANGELOG.md
-  #         cat CHANGELOG.md
-
-  #     - name: Release on Github
-  #       uses: softprops/action-gh-release@v1
-  #       with:
-  #         draft: false
-  #         body_path: CHANGELOG.md
-
   pypi:
     name: Publish version to Pypi servers
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/eos-downloader
+    permissions:
+      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -47,7 +26,7 @@ jobs:
         run: |
           python -m build
 
-      - name: Publish package to TestPyPI
+      - name: Publish package to Pypi server
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
