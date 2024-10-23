@@ -27,8 +27,19 @@ dependencies = [
   "click>=8.1.6",
   "click-help-colors>=0.9",
   "pydantic>2.0.0",
+  "urllib3>=2.2.2",
 ]
-keywords = ["eos_downloader", "Arista", "eos", "cvp", "network", "automation", "networking", "devops", "netdevops"]
+keywords = [
+  "eos_downloader",
+  "Arista",
+  "eos",
+  "cvp",
+  "network",
+  "automation",
+  "networking",
+  "devops",
+  "netdevops",
+]
 classifiers = [
   'Development Status :: 4 - Beta',
   'Intended Audience :: Developers',
@@ -70,7 +81,7 @@ dev = [
   "yamllint",
   "flake8>=4.0.1",
   "pyflakes>=2.4.0",
-  "bumpver>=2023.1126"
+  "bumpver>=2023.1126",
 ]
 
 [project.urls]
@@ -96,7 +107,7 @@ namespaces = false
 [tool.bumpver]
 current_version = "0.10.2"
 version_pattern = "MAJOR.MINOR.PATCH"
-commit_message  = "bump: Version {old_version} -> {new_version}"
+commit_message = "bump: Version {old_version} -> {new_version}"
 commit = true
 # No tag
 tag = false
@@ -107,9 +118,7 @@ push = false
 
 # mypy as per https://pydantic-docs.helpmanual.io/mypy_plugin/#enabling-the-plugin
 [tool.mypy]
-plugins = [
-  "pydantic.mypy",
-  ]
+plugins = ["pydantic.mypy"]
 follow_imports = "skip"
 ignore_missing_imports = true
 warn_redundant_casts = true
