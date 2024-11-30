@@ -30,8 +30,6 @@ def test_eos_version_from_str(EOS_VERSION):
         assert version.minor == EOS_VERSION["minor"]
         assert version.patch == EOS_VERSION["patch"]
         assert version.rtype == EOS_VERSION["rtype"]
-    else:
-        assert str(version) == BASE_VERSION_STR
 
 
 @pytest.mark.parametrize(

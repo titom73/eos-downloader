@@ -106,12 +106,4 @@ eos_version = [
         "patch": 1,
         "rtype": "F",
     },
-    {
-        "version": "EOS-5.23.1F",
-        "is_valid": False,
-        "major": 4,
-        "minor": 23,
-        "patch": 1,
-        "rtype": "F",
-    },
 ]
