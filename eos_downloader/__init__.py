@@ -51,6 +51,7 @@ MSG_INVALID_DATA = """Invalid data returned by server
 
 EVE_QEMU_FOLDER_PATH = "/opt/unetlab/addons/qemu/"
 
+REQUEST_HEADERS = '{}'
 
 class EnhancedJSONEncoder(json.JSONEncoder):
     """Custom JSon encoder."""
