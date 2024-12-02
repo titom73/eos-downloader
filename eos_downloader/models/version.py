@@ -1,13 +1,30 @@
 #!/usr/bin/python
 # coding: utf-8 -*-
+"""This module provides classes for handling and manipulating semantic versions (SemVer) and specific versions for EOS and CloudVision Portal (CVP).
 
-"""Module for EOS version management"""
+Classes:
+    SemVer: A class to represent a Semantic Version (SemVer) based on pydantic.
+    EosVersion: A class to handle EOS versioning, extending SemVer.
+    CvpVersion: A class to handle CloudVision Portal versioning, extending SemVer.
+
+Constants:
+    BASE_VERSION_STR (str): Base version string for EOS.
+    BASE_BRANCH_STR (str): Base branch string for EOS.
+    RTYPE_FEATURE (str): Constant for feature release type.
+    RTYPE_MAINTENANCE (str): Constant for maintenance release type.
+    RTYPES (list): List of valid release types.
+    REGEX_EOS_VERSION (Pattern): Regular expression to capture multiple EOS version formats.
+    REGEX_EOS_BRANCH (Pattern): Regular expression to capture EOS branch formats.
+
+Functions:
+    exc_to_str: Function to convert exceptions to string (imported from eos_downloader.tools).
+"""
 
 from __future__ import annotations
 
 import re
 import typing
-from typing import Any, Optional, Pattern, ClassVar
+from typing import Any, Optional, Pattern, ClassVar, Literal
 
 from loguru import logger
 from pydantic import BaseModel
@@ -22,6 +39,7 @@ BASE_BRANCH_STR = "4.0"
 RTYPE_FEATURE = "F"
 RTYPE_MAINTENANCE = "M"
 RTYPES = [RTYPE_FEATURE, RTYPE_MAINTENANCE]
+# RTYPES = Literal[RTYPE_FEATURE, RTYPE_MAINTENANCE]
 
 # Regular Expression to capture multiple EOS version format
 # 4.24
@@ -38,7 +56,7 @@ REGEX_EOS_BRANCH = re.compile(
 
 
 class SemVer(BaseModel):
-    """A class to represent a Semantic Version (SemVer).
+    """A class to represent a Semantic Version (SemVer) based on pydanntic.
 
     This class provides methods to parse, compare, and manipulate semantic versions.
     It supports standard semantic versioning with optional release type and additional version information.
@@ -65,7 +83,7 @@ class SemVer(BaseModel):
         major (int): Major version number.
         minor (int): Minor version number.
         patch (int): Patch version number.
-        rtype (Optional[str]): Release type (e.g., 'M' for major, 'F' for final).
+        rtype (Optional[str]): Release type (e.g., 'M' for maintenance, 'F' for feature).
         other (Any): Additional version information.
         regex_version (ClassVar[Pattern[str]]): Regular expression to extract version information.
         regex_branch (ClassVar[Pattern[str]]): Regular expression to extract branch information.
@@ -107,24 +125,23 @@ class SemVer(BaseModel):
         is_in_branch(self, branch_str: str) -> bool:
             Check if the current version is part of a branch version.
     """
-    major: int = 4
+    major: int = 0
     minor: int = 0
     patch: int = 0
     rtype: Optional[str] = None
     other: Any = None
     # Regular Expression to extract version information.
     regex_version: ClassVar[Pattern[str]] = re.compile(
-        r"^.*(?P<major>4)\.(?P<minor>\d{1,2})\.(?P<patch>\d{1,2})(?P<other>\.\d*)*(?P<rtype>[M,F])*$"
+        r"^.*(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d{1,2})(?P<other>\.\d*)*(?P<rtype>[M,F])*$"
     )
     regex_branch: ClassVar[Pattern[str]] = re.compile(
-        r"^.*(?P<major>4)\.(?P<minor>\d{1,2})(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$"
+        r"^.*(?P<major>\d+)\.(?P<minor>\d+)(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$"
     )
     # A Basic description of this class
     description: str = 'A Generic SemVer implementation'
 
     @classmethod
     def from_str(cls, semver: str) -> SemVer:
-        logger.debug(f"receiving version: {semver}")
         if cls.regex_version.match(semver):
             matches = cls.regex_version.match(semver)
             # assert matches is not None
@@ -183,29 +200,19 @@ class SemVer(BaseModel):
                 f"could not compare {other} as it is not an EosVersion object"
             )
         comparison_flag: float = 0
-        logger.warning(
-            f"current version {self.__str__()} - other {str(other)}"  # pylint: disable = unnecessary-dunder-call
-        )
         for key, _ in self.dict().items():
             if (
                 comparison_flag == 0
                 and self.dict()[key] is None
                 or other.dict()[key] is None
             ):
-                logger.debug(f"{key}: local None - remote None")
-                logger.debug(f"{key}: local {self.dict()} - remote {other.dict()}")
                 return comparison_flag
-            logger.debug(
-                f"{key}: local {self.dict()[key]} - remote {other.dict()[key]}"
-            )
             if comparison_flag == 0 and self.dict()[key] < other.dict()[key]:
                 comparison_flag = -1
             if comparison_flag == 0 and self.dict()[key] > other.dict()[key]:
                 comparison_flag = 1
             if comparison_flag != 0:
-                logger.info(f"comparison result is {comparison_flag}")
                 return comparison_flag
-        logger.info(f"comparison result is {comparison_flag}")
         return comparison_flag
 
     @typing.no_type_check
@@ -284,7 +291,6 @@ class SemVer(BaseModel):
                 "['<', '>', '==', '<=', '>=', '!=']. "
                 f"You provided: {match_expr}"
             )
-        logger.debug(f"work on comparison {prefix} with base release {match_version}")
         possibilities_dict = {
             ">": (1,),
             "<": (-1,),
@@ -358,4 +364,45 @@ class EosVersion(SemVer):
         r"^.*(?P<major>4)\.(?P<minor>\d{1,2})(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$"
     )
     # A Basic description of this class
-    description: str = "A Generic SemVer implementation"
+    description: str = "A SemVer implementation for EOS"
+
+
+class CvpVersion(SemVer):
+    """A CloudVision Portal Version class that inherits from SemVer.
+
+    This class implements version management for CloudVision Portal (CVP) versions
+    following a modified semantic versioning pattern where:
+    - major version represents the year (e.g. 2024)
+    - minor version represents feature releases
+    - patch version represents bug fixes
+
+    Attributes:
+        major (int): The year component of the version (e.g. 2024)
+        minor (int): The minor version number
+        patch (int): The patch version number
+        rtype (Optional[str]): Release type if any
+        other (Any): Additional version information if any
+        regex_version (Pattern[str]): Regular expression to parse version strings
+        regex_branch (Pattern[str]): Regular expression to parse branch version strings
+        description (str): Brief description of the class purpose
+
+    Example:
+        >>> version = CvpVersion(2024, 1, 0)
+        >>> str(version)
+        '2024.1.0'
+    """
+
+    major: int = 2024
+    minor: int = 0
+    patch: int = 0
+    rtype: Optional[str] = None
+    other: Any = None
+    # Regular Expression to extract version information.
+    regex_version: ClassVar[Pattern[str]] = re.compile(
+        r"^.*(?P<major>\d{4})\.(?P<minor>\d{1,2})\.(?P<patch>\d{1,2})(?P<other>\.\d*)*$"
+    )
+    regex_branch: ClassVar[Pattern[str]] = re.compile(
+        r"^.*(?P<major>\d{4})\.(?P<minor>\d{1,2})\.(?P<patch>\d{1,2})(?P<other>\.\d*)*$"
+    )
+    # A Basic description of this class
+    description: str = "A SemVer implementation for CloudVision"
