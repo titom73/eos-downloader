@@ -69,23 +69,21 @@ class SoftManager():
 
     @staticmethod
     def _download_file_raw(url: str, file_path: str) -> str:
+        """Downloads a file from a URL and saves it to a local file.
+
+        Args:
+            url (str): The URL of the file to download.
+            file_path (str): The local path where the file will be saved.
+
+        Returns:
+            str: The path to the downloaded file.
+
+        Notes:
+            - Uses requests library to stream download in chunks of 1024 bytes
+            - Shows download progress using tqdm progress bar
+            - Sets timeout of 5 seconds for initial connection
         """
-        _download_file Helper to download file from Arista.com
 
-        [extended_summary]
-
-        Parameters
-        ----------
-        url : str
-            URL provided by server for remote_file_path
-        file_path : str
-            Location where to save local file
-
-        Returns
-        -------
-        str
-            File path
-        """
         chunkSize = 1024
         r = requests.get(url, stream=True, timeout=5)
         with open(file_path, "wb") as f:
@@ -102,6 +100,25 @@ class SoftManager():
         return file_path
 
     def checksum(self, check_type: Literal['md5sum', 'sha512sum']) -> str:
+        """
+        Verifies the integrity of a downloaded file using a specified checksum algorithm.
+
+        Args:
+            check_type (Literal['md5sum', 'sha512sum']): The type of checksum to perform. Currently supports 'md5sum' or 'sha512sum'.
+
+        Returns:
+            bool: True if the checksum verification passes.
+
+        Raises:
+            ValueError: If the calculated checksum does not match the expected checksum.
+            FileNotFoundError: If either the checksum file or the target file cannot be found.
+
+        Example:
+            ```python
+            client.checksum('sha512sum')  # Returns True if checksum matches
+            ```
+        """
+
         if check_type == 'sha512sum':
             hash_sha512 = hashlib.sha512()
             with open(self.file['sha512sum'], "rb") as f:
@@ -117,6 +134,22 @@ class SoftManager():
     def download_file(
         self, url: str ,file_path: str, filename: str, rich_interface: bool = True
     ) -> Union[None, str]:
+        """
+        Downloads a file from a given URL to a specified location.
+
+        Args:
+            url (str): The URL from which to download the file.
+            file_path (str): The directory path where the file should be saved.
+            filename (str): The name to be given to the downloaded file.
+            rich_interface (bool, optional): Whether to use rich progress bar interface. Defaults to True.
+
+        Returns:
+            Union[None, str]: The full path to the downloaded file if successful, None if download fails.
+
+        Note:
+            If rich_interface is True, uses rich progress bar for download visualization.
+            If rich_interface is False, uses a simple download method without progress indication.
+        """
         if url is not False:
             if not rich_interface:
                 return self._download_file_raw(
@@ -134,6 +167,23 @@ class SoftManager():
         file_path: str,
         rich_interface: bool = True,
     ) -> Union[None, str]:
+        """Downloads files from Arista EOS server.
+
+        Downloads the EOS image and optional md5/sha512 files based on the provided EOS XML object.
+        Each file is downloaded to the specified path with appropriate filenames.
+
+        Args:
+            object_arista (EosXmlObject): Object containing EOS image and hash file URLs
+            file_path (str): Directory path where files should be downloaded
+            rich_interface (bool, optional): Whether to use rich console output. Defaults to True.
+
+        Returns:
+            Union[None, str]: The file path where files were downloaded, or None if download failed
+
+        Example:
+            >>> client.downloads(eos_obj, "/tmp/downloads")
+            '/tmp/downloads'
+        """
         for file_type, url in object_arista.urls.items():
             if file_type == "image":
                 filename = object_arista.filename
