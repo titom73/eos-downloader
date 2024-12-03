@@ -35,6 +35,7 @@ from __future__ import annotations
 from loguru import logger
 from abc import ABC, abstractmethod
 from typing import ClassVar, Union, List, Dict
+from eos_downloader.models.types import AristaPackage, AristaVersions
 
 import xml.etree.ElementTree as ET
 
@@ -48,12 +49,15 @@ class AristaXmlBase():
 
     supported_role_types: List[str] = ["image", "md5sum", "sha512sum"]
 
-    def __init__(self, token: str) -> None:
+    def __init__(self, token: str, xml_path: Union[str, None] = None ) -> None:
         self.server = eos_downloader.logics.server.AristaServer(token=token)
-        if self.server.authenticate():
-            self.xml_data =  self._get_xml_root()
+        if xml_path is not None:
+            self.xml_data = ET.parse(xml_path).getroot()
         else:
-            raise ValueError("Unable to authenticate to Arista server")
+            if self.server.authenticate():
+                self.xml_data =  self._get_xml_root()
+            else:
+                raise ValueError("Unable to authenticate to Arista server")
         pass
 
     def _get_xml_root(self):
@@ -66,48 +70,72 @@ class AristaXmlBase():
 class AristaXmlQuerier(AristaXmlBase):
     """Class to query Arista XML data for Software versions."""
 
-    def available_public_eos_version(
+    def available_public_versions(
         self,
         branch: Union[str, None] = None,
         rtype: Union[str, None] = None,
-    ) -> List[eos_downloader.models.version.EosVersion]:
-        """
-        Extract list of available EOS versions from Arista.com website
+        package: AristaPackage = "eos",
+    ) -> List[AristaVersions]:
+        """Get list of available public EOS versions from Arista website.
 
-        Create a list of EosVersion object for all versions available on Arista.com
+        This method parses XML data to extract available EOS or CVP versions based on specified criteria.
 
         Args:
-            root_xml (ET.ElementTree): XML file with all versions available
-            xpath (str, optional): XPATH to use to extract EOS version. Defaults to './/dir[@label="Active Releases"]/dir/dir/[@label]'.
-
+            branch (Union[str, None], optional): Branch number to filter versions (e.g. "4.29").
+                Defaults to None.
+            rtype (Union[str, None], optional): Release type to filter versions.
+                Must be one of the valid release types defined in RTYPES. Defaults to None.
+            package (AristaPackage, optional): Type of package to look for - either 'eos' or 'cvp'.
+                Defaults to 'eos'.
         Returns:
-            List[EosVersion]: List of EosVersion representing all available EOS versions
-        """
-        xpath = './/dir[@label="Active Releases"]/dir/dir[@label]'
-        eos_versions = []
-        # Check function parameters.
-        if rtype is not None and rtype not in eos_downloader.models.version.RTYPES:
-            raise ValueError(
-                f"Invalid release type: {rtype}. Expected {eos_downloader.models.version.RTYPES}"
-            )
+            List[eos_downloader.models.types.AristaVersions]: List of version objects (EosVersion or CvpVersion) matching the criteria.
+            List[AristaVersions]: List of version objects (EosVersion or CvpVersion) matching the criteria.
 
-        for node in self.xml_data.findall(xpath):
+        Raises:
+            ValueError: If provided rtype is not in the list of valid release types.
+
+        Example:
+            >>> server.available_public_eos_version(branch="4.29", rtype="INT", package="eos")
+            [EosVersion('4.29.0F-INT'), EosVersion('4.29.1F-INT'), ...]
+        """
+        xpath_query = './/dir[@label="Active Releases"]//dir[@label]'
+        regexp = eos_downloader.models.version.EosVersion.regex_version
+
+        if package == 'cvp':
+            xpath_query = './/dir[@label="Active Releases"]//dir[@label]'
+            regexp = eos_downloader.models.version.CvpVersion.regex_version
+
+        package_versions = []
+
+        if rtype is not None and rtype not in eos_downloader.models.data.RTYPES:
+            raise ValueError(
+                f"Invalid release type: {rtype}. Expected one of {eos_downloader.models.data.RTYPES}"
+            )
+        nodes = self.xml_data.findall(xpath_query)
+        for node in nodes:
             if "label" in node.attrib and node.get("label") is not None:
                 label = node.get("label")
-                if label is not None and eos_downloader.models.version.EosVersion.regex_version.match(label):
-                    eos_version = eos_downloader.models.version.EosVersion.from_str(label)
-                    eos_versions.append(eos_version)
-        if rtype is not None:
-            eos_versions = [
-                version for version in eos_versions if version.rtype == rtype
+                if label is not None and regexp.match(label):
+                    package_version = None
+                    if package == 'eos':
+                        package_version = eos_downloader.models.version.EosVersion.from_str(label)
+                    elif package == 'cvp':
+                        package_version = eos_downloader.models.version.CvpVersion.from_str(label)
+                    package_versions.append(package_version)
+        if rtype is not None or branch is not None:
+            package_versions = [
+                version for version in package_versions
+                if (rtype is None or version.rtype == rtype) and (branch is None or str(version.branch) == branch)
             ]
-        if branch is not None:
-            eos_versions = [
-                version for version in eos_versions if str(version.branch) == branch
-            ]
-        return eos_versions
 
-    def latest(self, branch: Union[str, None] = None, rtype: str = eos_downloader.models.version.RTYPE_FEATURE) -> eos_downloader.models.version.EosVersion:
+        return package_versions
+
+    def latest(
+        self,
+        package: eos_downloader.models.types.AristaPackage = "eos",
+        branch: Union[str, None] = None,
+        rtype: Union[eos_downloader.models.types.ReleaseType, None] = None,
+    ) -> eos_downloader.models.version.EosVersion:
         """
         Get latest branch from semver standpoint
 
@@ -118,16 +146,18 @@ class AristaXmlQuerier(AristaXmlBase):
         Returns:
             eos_downloader.models.version.EosVersion: Latest version found
         """
-        if rtype is not None and rtype not in eos_downloader.models.version.RTYPES:
+        if rtype is not None and rtype not in eos_downloader.models.data.RTYPES:
             raise ValueError(
-                f"Invalid release type: {rtype}. Expected {eos_downloader.models.version.RTYPES}"
+                f"Invalid release type: {rtype}. Expected {eos_downloader.models.data.RTYPES}"
             )
 
-        versions = self.available_public_eos_version(branch=branch, rtype=rtype)
+        versions = self.available_public_versions(
+            package=package, branch=branch, rtype=rtype
+        )
 
         return max(versions)
 
-    def branches(self, latest: bool = False) -> List[str]:
+    def branches(self, package: eos_downloader.models.types.AristaPackage = 'eos',  latest: bool = False) -> List[str]:
         """Returns a list of valid EOS version branches.
 
         The branches are determined based on the available public EOS versions.
@@ -143,13 +173,22 @@ class AristaXmlQuerier(AristaXmlBase):
                       otherwise all available versions sorted descendingly.
         """
         if latest:
-            latest_branch = max(self._get_branches(self.available_public_eos_version()))
+            latest_branch = max(
+                self._get_branches(self.available_public_eos_version(package=package))
+            )
             return [str(latest_branch)]
         return sorted(
-            self._get_branches(self.available_public_eos_version()), reverse=True
+            self._get_branches(self.available_public_eos_version(package=package)),
+            reverse=True,
         )
 
-    def _get_branches(self, versions: Union[List[eos_downloader.models.version.EosVersion],List[eos_downloader.models.version.CvpVersion]]) -> Union[List[eos_downloader.models.version.EosVersion],List[eos_downloader.models.version.CvpVersion]]:
+    def _get_branches(
+        self,
+        versions: Union[
+            List[eos_downloader.models.version.EosVersion],
+            List[eos_downloader.models.version.CvpVersion],
+        ],
+    ) -> eos_downloader.models.types.AristaVersions:
         """
         Extracts unique branch names from a list of version objects.
         Args:
@@ -272,6 +311,16 @@ class EosXmlObject(AristaXmlObject):
     """Class to query Arista XML data for EOS versions."""
 
     software: ClassVar[str] = "EOS"
+    base_xpath_active_version: ClassVar[str] = (
+        './/dir[@label="Active Releases"]/dir/dir/[@label]'
+    )
+    base_xpath_filepath: ClassVar[str] = './/file[.="{}"]'
+
+
+class CvpXmlObject(AristaXmlObject):
+    """Class to query Arista XML data for CVP versions."""
+
+    software: ClassVar[str] = "CVP"
     base_xpath_active_version: ClassVar[str] = (
         './/dir[@label="Active Releases"]/dir/dir/[@label]'
     )
