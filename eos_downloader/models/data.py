@@ -1,7 +1,14 @@
 """Module to manage data mapping for image types."""
 
+import re
 from pydantic import BaseModel
-from typing import Dict
+from typing import Dict, Literal
+from eos_downloader.models.types import AristaVersions
+
+
+RTYPE_FEATURE: str = "F"
+RTYPE_MAINTENANCE: str = "M"
+RTYPES: AristaVersions = [RTYPE_FEATURE, RTYPE_MAINTENANCE]
 
 
 class ImageInfo(BaseModel):
@@ -16,7 +23,7 @@ class DataMapping(BaseModel):
     CloudVision: Dict[str, ImageInfo]
     EOS: Dict[str, ImageInfo]
 
-    def filename(self, software: str, image_type: str, version: str) -> str:
+    def filename(self, software: Literal['EOS', 'CloudVision'], image_type: str, version: str) -> str:
         """Generates a filename based on the provided software, image type, and version.
 
         Args:
@@ -31,6 +38,11 @@ class DataMapping(BaseModel):
             ValueError: If the software does not have a corresponding mapping.
             ValueError: If no configuration is found for the given image type and no default configuration is available.
         """
+        if software == "CloudVision":
+            mapping = self.CloudVision
+        else:
+            mapping = self.EOS
+
         if hasattr(self, software):
             software_mapping = getattr(self, software)
             image_config = software_mapping.get(image_type, None)

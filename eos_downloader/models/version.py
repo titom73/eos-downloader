@@ -33,27 +33,6 @@ from eos_downloader.tools import exc_to_str
 
 # logger = logging.getLogger(__name__)
 
-BASE_VERSION_STR = "4.0.0F"
-BASE_BRANCH_STR = "4.0"
-
-RTYPE_FEATURE = "F"
-RTYPE_MAINTENANCE = "M"
-RTYPES = [RTYPE_FEATURE, RTYPE_MAINTENANCE]
-# RTYPES = Literal[RTYPE_FEATURE, RTYPE_MAINTENANCE]
-
-# Regular Expression to capture multiple EOS version format
-# 4.24
-# 4.23.0
-# 4.21.1M
-# 4.28.10.F
-# 4.28.6.1M
-REGEX_EOS_VERSION = re.compile(
-    r"^.*(?P<major>4)\.(?P<minor>\d{1,2})\.(?P<patch>\d{1,2})(?P<other>\.\d*)*(?P<rtype>[M,F])*$"
-)
-REGEX_EOS_BRANCH = re.compile(
-    r"^.*(?P<major>4)\.(?P<minor>\d{1,2})(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$"
-)
-
 
 class SemVer(BaseModel):
     """A class to represent a Semantic Version (SemVer) based on pydanntic.
