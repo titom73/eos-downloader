@@ -296,7 +296,6 @@ class SemVer(BaseModel):
             bool: True if current version is in provided branch, otherwise False
         """
         try:
-            logger.debug(f"reading branch str:{branch_str}")
             branch = SemVer.from_str(branch_str)
         except Exception as error:  # pylint: disable = broad-exception-caught
             logger.error(exc_to_str(error))
