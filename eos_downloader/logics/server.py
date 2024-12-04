@@ -64,7 +64,8 @@ class AristaServer:
         xml_url: str = eos_downloader.defaults.DEFAULT_SOFTWARE_FOLDER_TREE,
         download_server: str = eos_downloader.defaults.DEFAULT_DOWNLOAD_URL,
     ) -> None:
-        # pylint: disable=dangerous-default-value, too-many-positional-arguments
+        # pylint: disable=dangerous-default-value,
+        # pylint: disable=too-many-positional-arguments
         """Initialize the Server class with optional parameters.
 
         Args:
