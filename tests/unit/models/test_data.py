@@ -8,10 +8,10 @@ from eos_downloader.models.data import DataMapping, ImageInfo
 @pytest.fixture
 def data_mapping():
     return DataMapping(
-        CloudVision={"ova": ImageInfo(extension=".ova", prepend="cvp", folder_level=0)},
+        CloudVision={"ova": ImageInfo(extension=".ova", prepend="cvp" )},
         EOS={
-            "64": ImageInfo(extension=".swi", prepend="EOS64", folder_level=0),
-            "default": ImageInfo(extension=".swi", prepend="EOS", folder_level=0),
+            "64": ImageInfo(extension=".swi", prepend="EOS64"),
+            "default": ImageInfo(extension=".swi", prepend="EOS" ),
         },
     )
 

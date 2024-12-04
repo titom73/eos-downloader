@@ -1,8 +1,9 @@
 """Module to manage data mapping for image types."""
 
-import re
-from pydantic import BaseModel
 from typing import Dict, Literal
+
+from pydantic import BaseModel
+
 from eos_downloader.models.types import AristaVersions
 
 
@@ -13,17 +14,20 @@ RTYPES: AristaVersions = [RTYPE_FEATURE, RTYPE_MAINTENANCE]
 
 class ImageInfo(BaseModel):
     """Image information for a specific image type."""
+
     extension: str
     prepend: str
-    folder_level: int
 
 
 class DataMapping(BaseModel):
     """Data mapping for image types of CloudVision and EOS on Arista.com."""
+
     CloudVision: Dict[str, ImageInfo]
     EOS: Dict[str, ImageInfo]
 
-    def filename(self, software: Literal['EOS', 'CloudVision'], image_type: str, version: str) -> str:
+    def filename(
+        self, software: Literal["EOS", "CloudVision"], image_type: str, version: str
+    ) -> str:
         """Generates a filename based on the provided software, image type, and version.
 
         Args:
@@ -38,16 +42,12 @@ class DataMapping(BaseModel):
             ValueError: If the software does not have a corresponding mapping.
             ValueError: If no configuration is found for the given image type and no default configuration is available.
         """
-        if software == "CloudVision":
-            mapping = self.CloudVision
-        else:
-            mapping = self.EOS
 
         if hasattr(self, software):
-            software_mapping = getattr(self, software)
-            image_config = software_mapping.get(image_type, None)
+            soft_mapping = getattr(self, software)
+            image_config = soft_mapping.get(image_type, None)
             if image_config is None:
-                image_config = getattr(software_mapping, "default", None)
+                image_config = getattr(soft_mapping, "default", None)
                 if image_config is None:
                     raise ValueError(
                         f"No default configuration found for image type {image_type}"
@@ -61,22 +61,22 @@ class DataMapping(BaseModel):
 # Data mapping for image types of CloudVision and EOS on Arista.com.
 software_mapping = DataMapping(
     CloudVision={
-        "ova": {"extension": ".ova", "prepend": "cvp", "folder_level": 0},
-        "rpm": {"extension": "", "prepend": "cvp-rpm-installer", "folder_level": 0},
-        "kvm": {"extension": "-kvm.tgz", "prepend": "cvp", "folder_level": 0},
-        "upgrade": {"extension": ".tgz", "prepend": "cvp-upgrade", "folder_level": 0},
+        "ova": {"extension": ".ova", "prepend": "cvp"},
+        "rpm": {"extension": "", "prepend": "cvp-rpm-installer"},
+        "kvm": {"extension": "-kvm.tgz", "prepend": "cvp"},
+        "upgrade": {"extension": ".tgz", "prepend": "cvp-upgrade"},
     },
     EOS={
-        "64": {"extension": ".swi", "prepend": "EOS64", "folder_level": 0},
-        "INT": {"extension": "-INT.swi", "prepend": "EOS", "folder_level": 1},
-        "2GB-INT": {"extension": "-INT.swi", "prepend": "EOS-2GB", "folder_level": 1},
-        "cEOS": {"extension": ".tar.xz", "prepend": "cEOS-lab", "folder_level": 0},
-        "cEOS64": {"extension": ".tar.xz", "prepend": "cEOS64-lab", "folder_level": 0},
-        "vEOS": {"extension": ".vmdk", "prepend": "vEOS", "folder_level": 0},
-        "vEOS-lab": {"extension": ".vmdk", "prepend": "vEOS-lab", "folder_level": 0},
-        "EOS-2GB": {"extension": ".swi", "prepend": "EOS-2GB", "folder_level": 0},
-        "RN": {"extension": "-", "prepend": "RN", "folder_level": 0},
-        "SOURCE": {"extension": "-source.tar", "prepend": "EOS", "folder_level": 0},
-        "default": {"extension": ".swi", "prepend": "EOS", "folder_level": 0},
+        "64": {"extension": ".swi", "prepend": "EOS64"},
+        "INT": {"extension": "-INT.swi", "prepend": "EOS"},
+        "2GB-INT": {"extension": "-INT.swi", "prepend": "EOS-2GB"},
+        "cEOS": {"extension": ".tar.xz", "prepend": "cEOS-lab"},
+        "cEOS64": {"extension": ".tar.xz", "prepend": "cEOS64-lab"},
+        "vEOS": {"extension": ".vmdk", "prepend": "vEOS"},
+        "vEOS-lab": {"extension": ".vmdk", "prepend": "vEOS-lab"},
+        "EOS-2GB": {"extension": ".swi", "prepend": "EOS-2GB"},
+        "RN": {"extension": "-", "prepend": "RN"},
+        "SOURCE": {"extension": "-source.tar", "prepend": "EOS"},
+        "default": {"extension": ".swi", "prepend": "EOS"},
     },
 )
