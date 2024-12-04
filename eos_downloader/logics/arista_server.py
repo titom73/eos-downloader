@@ -49,10 +49,13 @@ class AristaXmlBase():
 
     supported_role_types: List[str] = ["image", "md5sum", "sha512sum"]
 
-    def __init__(self, token: str, xml_path: Union[str, None] = None ) -> None:
+    def __init__(self, token: Union[str, None] = None, xml_path: Union[str, None] = None ) -> None:
         self.server = eos_downloader.logics.server.AristaServer(token=token)
         if xml_path is not None:
-            self.xml_data = ET.parse(xml_path).getroot()
+            try:
+                self.xml_data = ET.parse(xml_path)
+            except Exception as error:
+                logger.error(f'Error while parsing XML data: {error}')
         else:
             if self.server.authenticate():
                 self.xml_data =  self._get_xml_root()
@@ -174,11 +177,11 @@ class AristaXmlQuerier(AristaXmlBase):
         """
         if latest:
             latest_branch = max(
-                self._get_branches(self.available_public_eos_version(package=package))
+                self._get_branches(self.available_public_versions(package=package))
             )
             return [str(latest_branch)]
         return sorted(
-            self._get_branches(self.available_public_eos_version(package=package)),
+            self._get_branches(self.available_public_versions(package=package)),
             reverse=True,
         )
 
