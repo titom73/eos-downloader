@@ -12,14 +12,13 @@ from eos_downloader.models.version import EosVersion, CvpVersion
 from eos_downloader.logics.arista_server import AristaXmlBase
 import xml.etree.ElementTree as ET
 
-logger.remove()
-logger.add(sys.stderr, level="DEBUG")
 
 # Fixtures
 @pytest.fixture
 def xml_path() -> str:
     """Fixture to provide path to test XML file"""
-    return os.path.join(os.path.dirname(os.path.dirname(__file__)), '../data.xml')
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), "../data.xml")
+
 
 @pytest.fixture
 def xml_data():
@@ -27,6 +26,10 @@ def xml_data():
     tree = ET.parse(xml_file)
     root = tree.getroot()
     return root
+
+
+logger.remove()
+logger.add(sys.stderr, level="DEBUG")
 
 # ------------------- #
 # Tests AristaXmlBase
