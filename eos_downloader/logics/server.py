@@ -1,6 +1,38 @@
 #!/usr/bin/python
 # coding: utf-8 -*-
-"""AristaServer class to handle authentication and interactions with Arista software download portal."""
+
+"""Server module for handling interactions with Arista software download portal.
+
+This module provides the AristaServer class which manages authentication and
+file retrieval operations with the Arista software download portal. It handles
+session management, XML data retrieval, and download URL generation.
+
+Classes
+-------
+AristaServer
+    Main class for interacting with the Arista software portal.
+
+Dependencies
+-----------
+- base64: For encoding authentication tokens
+- json: For handling JSON data in requests
+- xml.etree.ElementTree: For parsing XML responses
+- loguru: For logging
+- requests: For making HTTP requests
+
+Example
+-------
+    >>> from eos_downloader.logics.server import AristaServer
+    >>> server = AristaServer(token='my_auth_token')
+    >>> server.authenticate()
+    >>> xml_data = server.get_xml_data()
+    >>> download_url = server.get_url('/path/to/file')
+
+Notes
+-----
+The module requires valid authentication credentials to interact with the Arista portal.
+All server interactions are performed over HTTPS and follow Arista's API specifications.
+"""
 
 from __future__ import annotations
 

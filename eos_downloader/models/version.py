@@ -1,23 +1,38 @@
 #!/usr/bin/python
 # coding: utf-8 -*-
-"""This module provides classes for handling and manipulating semantic versions (SemVer) and specific versions for EOS and CloudVision Portal (CVP).
+"""The module implements version management following semantic versioning principles with custom adaptations for
+Arista EOS and CloudVision Portal (CVP) software versioning schemes.
 
-Classes:
-    SemVer: A class to represent a Semantic Version (SemVer) based on pydantic.
-    EosVersion: A class to handle EOS versioning, extending SemVer.
-    CvpVersion: A class to handle CloudVision Portal versioning, extending SemVer.
+    SemVer: Base class implementing semantic versioning with comparison and matching capabilities.
+    EosVersion: Specialized version handling for Arista EOS software releases.
+    CvpVersion: Specialized version handling for CloudVision Portal releases.
 
-Constants:
-    BASE_VERSION_STR (str): Base version string for EOS.
-    BASE_BRANCH_STR (str): Base branch string for EOS.
-    RTYPE_FEATURE (str): Constant for feature release type.
-    RTYPE_MAINTENANCE (str): Constant for maintenance release type.
-    RTYPES (list): List of valid release types.
-    REGEX_EOS_VERSION (Pattern): Regular expression to capture multiple EOS version formats.
-    REGEX_EOS_BRANCH (Pattern): Regular expression to capture EOS branch formats.
+Each class provides methods to:
+- Parse version strings into structured objects
+- Compare versions
+- Extract branch information
+- Match version patterns
+- Convert versions to string representations
 
-Functions:
-    exc_to_str: Function to convert exceptions to string (imported from eos_downloader.tools).
+    Basic SemVer usage:
+    >>> version = SemVer(major=4, minor=23, patch=3)
+    '4.23.3'
+
+    EOS version handling:
+    >>> eos = EosVersion.from_str('4.23.3M')
+    >>> eos.branch
+    '4.23'
+
+    CVP version handling:
+    >>> cvp = CvpVersion.from_str('2024.1.0')
+    >>> str(cvp)
+
+The module enforces version format validation through regular expressions and provides
+comprehensive comparison operations (==, !=, <, <=, >, >=) between versions.
+
+Note:
+    - EOS versions follow the format: <major>.<minor>.<patch>[M|F]
+    - CVP versions follow the format: <year>.<minor>.<patch>
 """
 
 from __future__ import annotations

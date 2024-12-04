@@ -1,5 +1,13 @@
 # coding: utf-8 -*-
-"""Custom types for the eos_downloader package."""
+"""
+This module defines various type aliases using the `Literal` and `Union` types from the `typing` module.
+
+Type Aliases:
+    - AristaPackage: A literal type that can be either "eos" or "cvp".
+    - AristaMapping: A literal type that can be either "CloudVision" or "EOS".
+    - AristaVersions: A union type that can be either `EosVersion` or `CvpVersion` from the `eos_downloader.models.version` module.
+    - ReleaseType: A literal type that can be either "M" or "F".
+"""
 
 from typing import Literal, Union
 

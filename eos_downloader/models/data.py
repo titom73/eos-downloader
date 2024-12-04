@@ -1,4 +1,22 @@
-"""Module to manage data mapping for image types."""
+# coding: utf-8 -*-
+"""This module defines data models and mappings for image types of CloudVision and EOS on Arista.com.
+
+Classes:
+    ImageInfo: A Pydantic model representing image information for a specific image type.
+    DataMapping: A Pydantic model representing data mapping for image types of CloudVision and EOS on Arista.com.
+
+Constants:
+    RTYPE_FEATURE (ReleaseType): Represents a feature release type.
+    RTYPE_MAINTENANCE (ReleaseType): Represents a maintenance release type.
+    RTYPES (List[ReleaseType]): A list containing the feature and maintenance release types.
+
+Variables:
+    software_mapping (DataMapping): An instance of DataMapping containing the mappings for CloudVision and EOS image types.
+
+Methods:
+    DataMapping.filename(software: AristaMapping, image_type: str, version: str) -> str:
+        Generates a filename based on the provided software, image type, and version.
+"""
 
 from typing import Dict, List
 
