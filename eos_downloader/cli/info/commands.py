@@ -1,135 +1,152 @@
-#!/usr/bin/env python
-# coding: utf-8 -*-
-# pylint: disable=no-value-for-parameter
-# pylint: disable=too-many-arguments
-# pylint: disable=line-too-long
-# pylint: disable=redefined-builtin
-# flake8: noqa E501
+# #!/usr/bin/env python
+# # coding: utf-8 -*-
+# # pylint: disable=no-value-for-parameter
+# # pylint: disable=too-many-arguments
+# # pylint: disable=line-too-long
+# # pylint: disable=redefined-builtin
+# # flake8: noqa E501
 
-"""
-Commands for ARDL CLI to list data.
+"""CLI commands for listing Arista package information.
+
+This module provides CLI commands to query and display version information for Arista packages (EOS and CVP).
+It includes commands to:
+- List all available versions with filtering options
+- Get the latest version for a given package/branch
+
+The commands use Click for CLI argument parsing and support both text and JSON output formats.
+Authentication is handled via a token passed through Click context.
+
+Commands:
+    versions: Lists all available versions with optional filtering
+    latest: Shows the latest version matching the filter criteria
+
+Dependencies:
+    click: CLI framework
+    rich: For pretty JSON output
+    eos_downloader.logics.arista_server: Core logic for querying Arista servers
 """
 
-import sys
-from typing import Union
+import json
 
 import click
-from loguru import logger
-from rich.console import Console
-from rich.pretty import pprint
+from rich import print_json
 
-import eos_downloader.eos
-from eos_downloader.models.version import BASE_VERSION_STR, RTYPE_FEATURE, RTYPES
+import eos_downloader.logics.arista_server
+
+# """
+# Commands for ARDL CLI to list data.
+# """
 
 
-@click.command(no_args_is_help=True)
+@click.command()
+@click.option(
+    "--format",
+    type=click.Choice(["json", "text"]),
+    default="text",
+    help="Output format",
+)
+@click.option(
+    "--package", type=click.Choice(["eos", "cvp"]), default="eos", required=False
+)
+@click.option("--branch", "-b", type=str, required=False)
+@click.option("--release-type", type=str, required=False)
 @click.pass_context
+def versions(
+    ctx: click.Context,
+    package: str,
+    branch: str,
+    release_type: str,
+    format: str,
+) -> None:
+    """List available package versions from Arista server.
+
+    Args:
+        ctx (click.Context): Click context object containing authentication token.
+        package (str): Name of the package to query versions for.
+        branch (str): Branch name to filter versions.
+        release_type (str): Type of release to filter (e.g. 'release', 'engineering').
+        format (str): Output format - either 'text' or 'json'.
+        log_level (str): Logging level for the command.
+
+    Returns:
+        None. Prints version information to stdout in specified format:
+        - text: Simple list of versions
+        - json: List of dicts with version and branch information
+
+    Example:
+        $ eos-dl info versions --package=EOS --branch=4.28 --release-type=release
+        Listing versions:
+          - version: 4.28.1F
+          - version: 4.28.2F
+    """
+    token = ctx.obj["token"]
+    querier = eos_downloader.logics.arista_server.AristaXmlQuerier(token=token)
+    received_versions = querier.available_public_versions(
+        package=package, branch=branch, rtype=release_type
+    )
+    if format == "text":
+        click.echo("Listing available versions")
+        for version in received_versions:
+            click.echo(f"  - version: {version}")
+    elif format == "json":
+        response = []
+        for version in received_versions:
+            out = {}
+            out["version"] = str(version)
+            out["branch"] = str(version.branch)
+            response.append(out)
+        response = json.dumps(response)  # type: ignore
+        print_json(response)
+
+
+@click.command()
 @click.option(
-    "--latest",
-    "-l",
-    is_flag=True,
-    type=click.BOOL,
-    default=False,
-    help="Get latest version in given branch. If --branch is not use, get the latest branch with specific release type",
+    "--format",
+    type=click.Choice(["json", "text"]),
+    default="text",
+    help="Output format",
 )
 @click.option(
-    "--release-type",
-    "-rtype",
-    type=click.Choice(RTYPES, case_sensitive=False),
-    default=RTYPE_FEATURE,
-    help="EOS release type to search",
+    "--package", type=click.Choice(["eos", "cvp"]), default="eos", required=False
 )
-@click.option(
-    "--branch",
-    "-b",
-    type=click.STRING,
-    default=None,
-    help="EOS Branch to list releases",
-)
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    type=click.BOOL,
-    default=False,
-    help="Human readable output. Default is none to use output in script)",
-)
+@click.option("--branch", "-b", type=str, required=False)
+@click.option("--release-type", type=str, required=False)
 @click.option(
     "--log-level",
     "--log",
     help="Logging level of the command",
-    default="warning",
+    default="info",
     type=click.Choice(
         ["debug", "info", "warning", "error", "critical"], case_sensitive=False
     ),
 )
-def eos_versions(
+@click.pass_context
+def latest(
     ctx: click.Context,
-    log_level: str,
-    branch: Union[str, None] = None,
-    release_type: str = RTYPE_FEATURE,
-    latest: bool = False,
-    verbose: bool = False,
+    package: str,
+    branch: str,
+    release_type: str,
+    format: str,
 ) -> None:
-    # pylint: disable = too-many-branches, R0917
-    """
-    List Available EOS version on Arista.com website.
-
-    Comes with some filters to get latest release (F or M) as well as branch filtering
-
-      - To get latest M release available (without any branch): ardl info eos-versions --latest -rtype m
-
-      - To get latest F release available: ardl info eos-versions --latest -rtype F
-    """
-    console = Console()
-    # Get from Context
+    """List available versions of Arista packages (eos or CVP) packages"""
     token = ctx.obj["token"]
-
-    logger.remove()
-    if log_level is not None:
-        logger.add("eos-downloader.log", rotation="10 MB", level=log_level.upper())
-
-    my_download = eos_downloader.eos.EOSDownloader(
-        image="unset",
-        software="EOS",
-        version="unset",
-        token=token,
-        hash_method="sha512sum",
+    querier = eos_downloader.logics.arista_server.AristaXmlQuerier(token=token)
+    received_versions = querier.latest(
+        package=package, branch=branch, rtype=release_type
     )
-
-    auth = my_download.authenticate()
-    if verbose and auth:
-        console.print("✅ Authenticated on arista.com")
-
-    if release_type is not None:
-        release_type = release_type.upper()
-
-    if latest:
-        if branch is None:
-            branch = str(my_download.latest_branch(rtype=release_type).branch)
-        latest_version = my_download.latest_eos(branch, rtype=release_type)
-        if str(latest_version) == BASE_VERSION_STR:
-            console.print(
-                f"[red]Error[/red], cannot find any version in {branch} for {release_type} release type"
+    if format == "text":
+        if branch is not None:
+            click.echo(
+                f"Latest version for {package}: "
+                + click.style(f"{received_versions}", fg="blue")
+                + f" for branch {branch}"
             )
-            sys.exit(1)
-        if verbose:
-            console.print(
-                f"Branch {branch} has been selected with release type {release_type}"
-            )
-            if branch is not None:
-                console.print(f"Latest release for {branch}: {latest_version}")
-            else:
-                console.print(f"Latest EOS release: {latest_version}")
         else:
-            console.print(f"{ latest_version }")
-    else:
-        versions = my_download.get_eos_versions(branch=branch, rtype=release_type)
-        if verbose:
-            console.print(
-                f'List of available versions for {branch if branch is not None else "all branches"}'
+            click.echo(
+                f"Latest version for {package}: "
+                + click.style(f"{received_versions}", fg="blue")
             )
-            for version in versions:
-                console.print(f"  → {str(version)}")
-        else:
-            pprint([str(version) for version in versions])
+    elif format == "json":
+        response = {}
+        response["version"] = str(received_versions)
+        print_json(json.dumps(response))

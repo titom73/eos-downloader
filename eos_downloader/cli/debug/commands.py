@@ -10,14 +10,17 @@
 Commands for ARDL CLI to get data.
 """
 
+# Standard library imports
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
+# Third party imports
 import click
-from loguru import logger
-from rich.console import Console
 
-import eos_downloader.eos
+# Local imports
+import eos_downloader.defaults
+import eos_downloader.logics.server
+from eos_downloader.cli.utils import cli_logging
 
 
 @click.command()
@@ -33,33 +36,43 @@ import eos_downloader.eos
     "--log-level",
     "--log",
     help="Logging level of the command",
-    default=None,
+    default="INFO",
     type=click.Choice(
         ["debug", "info", "warning", "error", "critical"], case_sensitive=False
     ),
 )
 def xml(ctx: click.Context, output: str, log_level: str) -> None:
-    # sourcery skip: remove-unnecessary-cast
-    """Extract XML directory structure"""
-    console = Console()
-    # Get from Context
+    """Downloads and saves XML data from Arista EOS server.
+
+    This function authenticates with an Arista server, retrieves XML data,
+    and saves it to a file in a prettified format.
+
+    Args:
+        ctx (click.Context): Click context object containing authentication token
+        output (str): File path where the XML output should be saved
+        log_level (str): Logging level to use for output messages
+
+    Raises:
+        Exception: If authentication with the server fails
+
+    Example:
+        >>> xml(ctx, "output.xml", "INFO")
+        INFO: connected to server aaa.bbb.ccc
+        INFO: XML file saved under output.xml
+    """
+
+    log = cli_logging(log_level)
     token = ctx.obj["token"]
-
-    logger.remove()
-    if log_level is not None:
-        logger.add("eos-downloader.log", rotation="10 MB", level=log_level.upper())
-
-    my_download = eos_downloader.eos.EOSDownloader(
-        image="unset",
-        software="EOS",
-        version="unset",
-        token=token,
-        hash_method="sha512sum",
+    server = eos_downloader.logics.server.AristaServer(
+        token=token, session_server=eos_downloader.defaults.DEFAULT_SERVER_SESSION
     )
-
-    my_download.authenticate()
+    try:
+        server.authenticate()
+    except Exception as error:  # pylint: disable=W0703
+        log.error(f"Cant connect to server: {error}")
+    log.info(f"connected to server {eos_downloader.defaults.DEFAULT_SERVER_SESSION}")
     xml_object: ET.ElementTree = (
-        my_download.get_folder_tree()
+        server.get_xml_data()
     )  # pylint: disable=protected-access
     xml_content = xml_object.getroot()
 
@@ -68,5 +81,4 @@ def xml(ctx: click.Context, output: str, log_level: str) -> None:
     )
     with open(output, "w", encoding="utf-8") as f:
         f.write(str(xmlstr))
-
-    console.print(f"XML file saved in: { output }")
+    log.info(f"XML file saved under {output}")

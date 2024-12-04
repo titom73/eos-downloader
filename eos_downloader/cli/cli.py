@@ -14,7 +14,6 @@ import click
 
 from eos_downloader import __version__
 from eos_downloader.cli.debug import commands as debug_commands
-from eos_downloader.cli.get import commands as get_commands
 from eos_downloader.cli.info import commands as info_commands
 
 from eos_downloader.cli.utils import AliasedGroup
@@ -62,10 +61,12 @@ def debug(ctx: click.Context, cls: click.Group = AliasedGroup) -> None:
 def cli() -> None:
     """Load ANTA CLI"""
     # Load group commands
-    get.add_command(get_commands.eos)
-    get.add_command(get_commands.cvp)
-    info.add_command(info_commands.eos_versions)
+    # get.add_command(get_commands.eos)
+    # get.add_command(get_commands.cvp)
+    # info.add_command(info_commands.eos_versions)
     debug.add_command(debug_commands.xml)
+    info.add_command(info_commands.versions)
+    info.add_command(info_commands.latest)
     # Load CLI
     ardl(obj={}, auto_envvar_prefix="arista")
 
