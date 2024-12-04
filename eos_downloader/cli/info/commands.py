@@ -31,6 +31,7 @@ import json
 import click
 from rich import print_json
 
+from eos_downloader.models.data import software_mapping
 import eos_downloader.logics.arista_server
 
 # """
@@ -150,3 +151,35 @@ def latest(
         response = {}
         response["version"] = str(received_versions)
         print_json(json.dumps(response))
+
+
+@click.command()
+@click.option(
+    "--package", type=click.Choice(["eos", "cvp"]), default="eos", required=False
+)
+@click.option(
+    "--format",
+    type=click.Choice(["json", "text"]),
+    default="text",
+    help="Output format",
+)
+@click.option(
+    "--details",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Show details for each flavor",
+)
+def mapping(package: str, details: bool, format: str) -> None:
+    """List available flavors of Arista packages (eos or CVP) packages"""
+    if package.upper() in software_mapping.model_fields:
+        mapping_entries = software_mapping.getattr(package.upper())
+        if format == "text":
+            click.echo(f"Following flavors for {package} have been found:")
+            for mapping_entry in mapping_entries:
+                click.echo(f"   * Flavor: {mapping_entry}")
+                if details:
+                    click.echo(f"     - Information: {mapping_entries[mapping_entry]}")
+        elif format == "json":
+            mapping_json = software_mapping.model_dump()[package.upper()]
+            print_json(json.dumps(mapping_json))

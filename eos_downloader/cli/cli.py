@@ -67,6 +67,7 @@ def cli() -> None:
     debug.add_command(debug_commands.xml)
     info.add_command(info_commands.versions)
     info.add_command(info_commands.latest)
+    info.add_command(info_commands.mapping)
     # Load CLI
     ardl(obj={}, auto_envvar_prefix="arista")
 
