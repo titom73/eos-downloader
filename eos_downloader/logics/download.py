@@ -199,5 +199,9 @@ class SoftManager:
             else:
                 filename = object_arista.hashfile(file_type)
                 self.file[file_type] = filename
+            if url is None:
+                raise ValueError(f"URL not found for {file_type}")
+            if filename is None:
+                raise ValueError(f"Filename not found for {file_type}")
             self.download_file(url, file_path, filename, rich_interface)
         return file_path

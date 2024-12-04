@@ -44,7 +44,7 @@ from loguru import logger
 import eos_downloader.logics.server
 import eos_downloader.models.version
 import eos_downloader.models.data
-from eos_downloader.models.types import AristaPackage, AristaVersions
+from eos_downloader.models.types import AristaPackage, AristaVersions, AristaMapping
 
 
 class AristaXmlBase:
@@ -211,7 +211,7 @@ class AristaXmlQuerier(AristaXmlBase):
             List[eos_downloader.models.version.EosVersion],
             List[eos_downloader.models.version.CvpVersion],
         ],
-    ) -> eos_downloader.models.types.AristaVersions:
+    ) -> List[str]:
         """
         Extracts unique branch names from a list of version objects.
         Args:
@@ -227,7 +227,7 @@ class AristaXmlQuerier(AristaXmlBase):
 class AristaXmlObject(AristaXmlBase):
     """Base class for Arista XML data management."""
 
-    software: ClassVar[str]
+    software: ClassVar[AristaMapping]
     base_xpath_active_version: ClassVar[str]
     base_xpath_filepath: ClassVar[str]
 
@@ -298,7 +298,7 @@ class AristaXmlObject(AristaXmlBase):
         # Return the path if found, otherwise return None
         return path_element.get("path") if path_element is not None else None
 
-    def _url(self, xml_path: str) -> str:
+    def _url(self, xml_path: str) -> Union[str, None]:
         """Get URL to download a file from Arista server.
 
         Args:
@@ -310,7 +310,7 @@ class AristaXmlObject(AristaXmlBase):
         return self.server.get_url(xml_path)
 
     @property
-    def urls(self) -> Dict[str, str]:
+    def urls(self) -> Dict[str, Union[str, None]]:
         """Get URLs to download files from Arista server for given software and version.
 
         This method will return a dictionary with file type as key and URL as value.
@@ -340,7 +340,7 @@ class AristaXmlObject(AristaXmlBase):
 class EosXmlObject(AristaXmlObject):
     """Class to query Arista XML data for EOS versions."""
 
-    software: ClassVar[str] = "EOS"
+    software: ClassVar[AristaMapping] = "EOS"
     base_xpath_active_version: ClassVar[
         str
     ] = './/dir[@label="Active Releases"]/dir/dir/[@label]'
@@ -350,7 +350,7 @@ class EosXmlObject(AristaXmlObject):
 class CvpXmlObject(AristaXmlObject):
     """Class to query Arista XML data for CVP versions."""
 
-    software: ClassVar[str] = "CVP"
+    software: ClassVar[AristaMapping] = "CloudVision"
     base_xpath_active_version: ClassVar[
         str
     ] = './/dir[@label="Active Releases"]/dir/dir/[@label]'

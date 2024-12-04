@@ -7,6 +7,7 @@ import eos_downloader.models.version
 
 # Define the product type using Literal
 AristaPackage = Literal["eos", "cvp"]
+AristaMapping = Literal["CloudVision", "EOS"]
 
 # Define list of support SemVer object type
 AristaVersions = Union[

@@ -1,15 +1,15 @@
 """Module to manage data mapping for image types."""
 
-from typing import Dict, Literal
+from typing import Dict, List
 
 from pydantic import BaseModel
 
-from eos_downloader.models.types import AristaVersions
+from eos_downloader.models.types import AristaMapping, ReleaseType
 
 
-RTYPE_FEATURE: str = "F"
-RTYPE_MAINTENANCE: str = "M"
-RTYPES: AristaVersions = [RTYPE_FEATURE, RTYPE_MAINTENANCE]
+RTYPE_FEATURE: ReleaseType = "F"
+RTYPE_MAINTENANCE: ReleaseType = "M"
+RTYPES: List[ReleaseType] = [RTYPE_FEATURE, RTYPE_MAINTENANCE]
 
 
 class ImageInfo(BaseModel):
@@ -25,9 +25,7 @@ class DataMapping(BaseModel):
     CloudVision: Dict[str, ImageInfo]
     EOS: Dict[str, ImageInfo]
 
-    def filename(
-        self, software: Literal["EOS", "CloudVision"], image_type: str, version: str
-    ) -> str:
+    def filename(self, software: AristaMapping, image_type: str, version: str) -> str:
         """Generates a filename based on the provided software, image type, and version.
 
         Args:

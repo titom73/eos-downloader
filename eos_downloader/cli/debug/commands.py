@@ -71,9 +71,11 @@ def xml(ctx: click.Context, output: str, log_level: str) -> None:
     except Exception as error:  # pylint: disable=W0703
         log.error(f"Cant connect to server: {error}")
     log.info(f"connected to server {eos_downloader.defaults.DEFAULT_SERVER_SESSION}")
-    xml_object: ET.ElementTree = (
-        server.get_xml_data()
-    )  # pylint: disable=protected-access
+    xml_data = server.get_xml_data()
+    if xml_data is None:
+        log.error("No XML data received")
+        return
+    xml_object: ET.ElementTree = xml_data  # pylint: disable=protected-access
     xml_content = xml_object.getroot()
 
     xmlstr = minidom.parseString(ET.tostring(xml_content)).toprettyxml(

@@ -32,6 +32,7 @@ import click
 from rich import print_json
 
 from eos_downloader.models.data import software_mapping
+from eos_downloader.models.types import AristaPackage, ReleaseType
 import eos_downloader.logics.arista_server
 
 # """
@@ -54,9 +55,9 @@ import eos_downloader.logics.arista_server
 @click.pass_context
 def versions(
     ctx: click.Context,
-    package: str,
+    package: AristaPackage,
     branch: str,
-    release_type: str,
+    release_type: ReleaseType,
     format: str,
 ) -> None:
     """List available package versions from Arista server.
@@ -124,9 +125,9 @@ def versions(
 @click.pass_context
 def latest(
     ctx: click.Context,
-    package: str,
+    package: AristaPackage,
     branch: str,
-    release_type: str,
+    release_type: ReleaseType,
     format: str,
 ) -> None:
     """List available versions of Arista packages (eos or CVP) packages"""
@@ -170,7 +171,7 @@ def latest(
     default=False,
     help="Show details for each flavor",
 )
-def mapping(package: str, details: bool, format: str) -> None:
+def mapping(package: AristaPackage, details: bool, format: str) -> None:
     """List available flavors of Arista packages (eos or CVP) packages"""
     if package.upper() in software_mapping.model_fields:
         mapping_entries = software_mapping.getattr(package.upper())
