@@ -6,17 +6,17 @@ from __future__ import annotations
 
 import base64
 import json
-from typing import Dict, Union
-import requests
+from typing import Dict, Union, Any
 
-from loguru import logger
 import xml.etree.ElementTree as ET
+from loguru import logger
+import requests
 
 import eos_downloader.exceptions
 import eos_downloader.defaults
 
 
-class AristaServer():
+class AristaServer:
     """AristaServer class to handle authentication and interactions with Arista software download portal.
 
     This class provides methods to authenticate with the Arista software portal,
@@ -60,10 +60,11 @@ class AristaServer():
         token: Union[str, None] = None,
         timeout: int = 5,
         session_server: str = eos_downloader.defaults.DEFAULT_SERVER_SESSION,
-        headers: Dict[str, any] = eos_downloader.defaults.DEFAULT_REQUEST_HEADERS,
+        headers: Dict[str, Any] = eos_downloader.defaults.DEFAULT_REQUEST_HEADERS,
         xml_url: str = eos_downloader.defaults.DEFAULT_SOFTWARE_FOLDER_TREE,
         download_server: str = eos_downloader.defaults.DEFAULT_DOWNLOAD_URL,
     ) -> None:
+        # pylint: disable=dangerous-default-value, too-many-positional-arguments
         """Initialize the Server class with optional parameters.
 
         Args:
@@ -79,7 +80,7 @@ class AristaServer():
         ------
             None
         """
-        self.token = token
+        self.token: Union[str, None] = token
         self._session_server = session_server
         self._headers = headers
         self._timeout = timeout
@@ -87,7 +88,7 @@ class AristaServer():
         self._download_server = download_server
         self._session_id = None
 
-    def authenticate(self, token: Union[bool, None] = None) -> bool:
+    def authenticate(self, token: Union[str, None] = None) -> bool:
         """Authenticate to the API server using access token.
 
         The token is encoded in base64 and sent to the server for authentication.
@@ -101,7 +102,7 @@ class AristaServer():
 
         Args:
         ------
-            token (Union[bool, None], optional): Access token for authentication.
+            token (Union[str, None], optional): Access token for authentication.
                 If None, uses existing token stored in instance. Defaults to None.
 
         Returns:
@@ -115,6 +116,9 @@ class AristaServer():
 
         if token is not None:
             self.token = token
+        if self.token is None:
+            logger.error("No token provided for authentication")
+            return False
         credentials = (base64.b64encode(self.token.encode())).decode("utf-8")
         jsonpost = {"accessToken": credentials}
         result = requests.post(
@@ -132,12 +136,15 @@ class AristaServer():
         try:
             if "data" in result.json():
                 self._session_id = result.json()["data"]["session_code"]
+                return True
         except KeyError as error:
-            logger.error(f'Key Error in parsing server response: {error}')
+            logger.error(
+                f"Key Error in parsing server response ({result.json()}): {error}"
+            )
             return False
-        return True
+        return False
 
-    def get_xml_data(self) -> ET.ElementTree:
+    def get_xml_data(self) -> Union[ET.ElementTree, None]:
         """Retrieves XML data from the server.
 
         This method fetches XML data by making a POST request to the server's XML endpoint.
@@ -158,7 +165,7 @@ class AristaServer():
         """
 
         if self._session_id is None:
-            logger.debug('Not authenticated to server, start authentication process')
+            logger.debug("Not authenticated to server, start authentication process")
             self.authenticate()
         jsonpost = {"sessionCode": self._session_id}
         result = requests.post(
@@ -171,7 +178,8 @@ class AristaServer():
             folder_tree = result.json()["data"]["xml"]
             return ET.ElementTree(ET.fromstring(folder_tree))
         except KeyError as error:
-            logger.error(f'Unkown key in server response: {error}')
+            logger.error(f"Unkown key in server response: {error}")
+            return None
 
     def get_url(self, remote_file_path: str) -> Union[str, None]:
         """Get download URL for a remote file from server.
@@ -206,5 +214,4 @@ class AristaServer():
         if "data" in result.json() and "url" in result.json()["data"]:
             # logger.debug('URL to download file is: {}', result.json())
             return result.json()["data"]["url"]
-        logger.critical(f"Server returns following message: {result.json()}")
         return None

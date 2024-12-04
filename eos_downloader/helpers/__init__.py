@@ -26,6 +26,7 @@ from typing import Any, Iterable
 
 import requests
 from rich.console import Console
+
 # from eos_downloader.console.client import DownloadProgressBar
 from rich.progress import (
     BarColumn,
@@ -82,6 +83,7 @@ class DownloadProgressBar:
         downloader.download(urls, '/path/to/destination')
         ```
     """
+
     def __init__(self) -> None:
         self.progress = Progress(
             TextColumn(

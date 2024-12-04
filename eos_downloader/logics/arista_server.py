@@ -1,3 +1,5 @@
+# coding: utf-8 -*-
+
 """This module provides classes for managing and querying Arista XML data.
 
 Classes:
@@ -12,10 +14,13 @@ Classes and Methods:
         - _get_xml_root(self): Retrieves the XML root from the Arista server.
 
     AristaXmlQuerier(AristaXmlBase):
-        - available_public_eos_version(self, branch: Union[str, None] = None, rtype: Union[str, None] = None) -> List[eos_downloader.models.version.EosVersion]: Extracts a list of available EOS versions from Arista.com.
-        - latest(self, branch: Union[str, None] = None, rtype: str = eos_downloader.models.version.RTYPE_FEATURE) -> eos_downloader.models.version.EosVersion: Gets the latest branch from a semver standpoint.
+        - available_public_eos_version(self, branch: Union[str, None] = None, rtype: Union[str, None] = None)
+                -> List[eos_downloader.models.version.EosVersion]: Extracts a list of available EOS versions from Arista.com.
+        - latest(self, branch: Union[str, None] = None, rtype: str = eos_downloader.models.version.RTYPE_FEATURE)
+                -> eos_downloader.models.version.EosVersion: Gets the latest branch from a semver standpoint.
         - branches(self, latest: bool = False) -> List[str]: Returns a list of valid EOS version branches.
-        - _get_branches(self, versions: Union[List[eos_downloader.models.version.EosVersion], List[eos_downloader.models.version.CvpVersion]]) -> Union[List[eos_downloader.models.version.EosVersion], List[eos_downloader.models.version.CvpVersion]]: Extracts unique branch names from a list of version objects.
+        - _get_branches(self, versions: Union[List[eos_downloader.models.version.EosVersion], List[eos_downloader.models.version.CvpVersion]])
+                -> Union[List[eos_downloader.models.version.EosVersion], List[eos_downloader.models.version.CvpVersion]]: Extracts unique branch names from a list of version objects.
 
     AristaXmlObject(AristaXmlBase):
         - __init__(self, searched_version: str, image_type: str, token: str) -> None: Initializes the AristaXmlObject class with a searched version, image type, and token.
@@ -28,46 +33,50 @@ Classes and Methods:
 
     EosXmlObject(AristaXmlObject):
         - Class to query Arista XML data for EOS versions.
-"""
+"""  # noqa: E501
 
 from __future__ import annotations
+import xml.etree.ElementTree as ET
+from typing import ClassVar, Union, List, Dict
 
 from loguru import logger
-from abc import ABC, abstractmethod
-from typing import ClassVar, Union, List, Dict
-from eos_downloader.models.types import AristaPackage, AristaVersions
-
-import xml.etree.ElementTree as ET
 
 import eos_downloader.logics.server
 import eos_downloader.models.version
 import eos_downloader.models.data
+from eos_downloader.models.types import AristaPackage, AristaVersions
 
 
-class AristaXmlBase():
+class AristaXmlBase:
+    # pylint: disable=too-few-public-methods
     """Base class for Arista XML data management."""
 
     supported_role_types: List[str] = ["image", "md5sum", "sha512sum"]
 
-    def __init__(self, token: Union[str, None] = None, xml_path: Union[str, None] = None ) -> None:
+    def __init__(
+        self, token: Union[str, None] = None, xml_path: Union[str, None] = None
+    ) -> None:
         self.server = eos_downloader.logics.server.AristaServer(token=token)
         if xml_path is not None:
             try:
                 self.xml_data = ET.parse(xml_path)
-            except Exception as error:
-                logger.error(f'Error while parsing XML data: {error}')
+            except ET.ParseError as error:
+                logger.error(f"Error while parsing XML data: {error}")
         else:
             if self.server.authenticate():
-                self.xml_data =  self._get_xml_root()
+                data = self._get_xml_root()
+                if data is None:
+                    raise ValueError("Unable to get XML data from Arista server")
+                self.xml_data = data
             else:
                 raise ValueError("Unable to authenticate to Arista server")
-        pass
 
-    def _get_xml_root(self):
+    def _get_xml_root(self) -> Union[ET.ElementTree, None]:
         try:
             return self.server.get_xml_data()
-        except Exception as error:
-            logger.error(f'Error while getting XML data from Arista server: {error}')
+        except Exception as error:  # pylint: disable=broad-except
+            logger.error(f"Error while getting XML data from Arista server: {error}")
+            return None
 
 
 class AristaXmlQuerier(AristaXmlBase):
@@ -104,7 +113,7 @@ class AristaXmlQuerier(AristaXmlBase):
         xpath_query = './/dir[@label="Active Releases"]//dir[@label]'
         regexp = eos_downloader.models.version.EosVersion.regex_version
 
-        if package == 'cvp':
+        if package == "cvp":
             xpath_query = './/dir[@label="Active Releases"]//dir[@label]'
             regexp = eos_downloader.models.version.CvpVersion.regex_version
 
@@ -120,15 +129,22 @@ class AristaXmlQuerier(AristaXmlBase):
                 label = node.get("label")
                 if label is not None and regexp.match(label):
                     package_version = None
-                    if package == 'eos':
-                        package_version = eos_downloader.models.version.EosVersion.from_str(label)
-                    elif package == 'cvp':
-                        package_version = eos_downloader.models.version.CvpVersion.from_str(label)
+                    if package == "eos":
+                        package_version = (
+                            eos_downloader.models.version.EosVersion.from_str(label)
+                        )
+                    elif package == "cvp":
+                        package_version = (
+                            eos_downloader.models.version.CvpVersion.from_str(label)
+                        )
                     package_versions.append(package_version)
         if rtype is not None or branch is not None:
             package_versions = [
-                version for version in package_versions
-                if (rtype is None or version.rtype == rtype) and (branch is None or str(version.branch) == branch)
+                version
+                for version in package_versions
+                if version is not None
+                and (rtype is None or version.rtype == rtype)
+                and (branch is None or str(version.branch) == branch)
             ]
 
         return package_versions
@@ -160,7 +176,11 @@ class AristaXmlQuerier(AristaXmlBase):
 
         return max(versions)
 
-    def branches(self, package: eos_downloader.models.types.AristaPackage = 'eos',  latest: bool = False) -> List[str]:
+    def branches(
+        self,
+        package: eos_downloader.models.types.AristaPackage = "eos",
+        latest: bool = False,
+    ) -> List[str]:
         """Returns a list of valid EOS version branches.
 
         The branches are determined based on the available public EOS versions.
@@ -200,7 +220,7 @@ class AristaXmlQuerier(AristaXmlBase):
         Returns:
             Union[List[EosVersion], List[CvpVersion]]: A list of unique branch names.
         """
-        branch = [ version.branch for version in versions]
+        branch = [version.branch for version in versions]
         return list(set(branch))
 
 
@@ -211,16 +231,19 @@ class AristaXmlObject(AristaXmlBase):
     base_xpath_active_version: ClassVar[str]
     base_xpath_filepath: ClassVar[str]
 
-    def __init__(self, searched_version: str, image_type: str, token: str) -> None:
+    def __init__(
+        self,
+        searched_version: str,
+        image_type: str,
+        token: Union[str, None] = None,
+        xml_path: Union[str, None] = None,
+    ) -> None:
         self.search_version = searched_version
         self.image_type = image_type
-        self.version = eos_downloader.models.version.EosVersion().from_str(searched_version)
-        self.server = eos_downloader.logics.server.AristaServer(token=token)
-        if self.server.authenticate():
-            self.xml_data =  self._get_xml_root()
-        else:
-            raise ValueError("Unable to authenticate to Arista server")
-        pass
+        self.version = eos_downloader.models.version.EosVersion().from_str(
+            searched_version
+        )
+        super().__init__(token=token, xml_path=xml_path)
 
     @property
     def filename(self) -> Union[str, None]:
@@ -241,7 +264,7 @@ class AristaXmlObject(AristaXmlBase):
             logger.error(f"Error: {e}")
         return None
 
-    def hashfile(self, hashtype: str = 'md5sum') -> Union[str,None]:
+    def hashfile(self, hashtype: str = "md5sum") -> Union[str, None]:
         """
         hashfilename Helper to build filename to search on arista.com
 
@@ -297,26 +320,30 @@ class AristaXmlObject(AristaXmlBase):
             Dict[str, str]: Dictionary with file type as key and URL as value
         """
         urls = {}
+
+        if self.filename is None:
+            raise ValueError("Filename not found")
+
         for role in self.supported_role_types:
-            if role == 'image':
+            hashfile = self.hashfile(role)
+            if hashfile is None:
+                raise ValueError("Hash file not found")
+            if role == "image":
                 file_path = self.path_from_xml(self.filename)
             else:
-                file_path = self.path_from_xml(self.hashfile(role))
+                file_path = self.path_from_xml(hashfile)
             if file_path is not None:
                 urls[role] = self._url(file_path)
         return urls
-
-    def available_public_eos_version(self):
-        raise NotImplementedError("Method not implemented")
 
 
 class EosXmlObject(AristaXmlObject):
     """Class to query Arista XML data for EOS versions."""
 
     software: ClassVar[str] = "EOS"
-    base_xpath_active_version: ClassVar[str] = (
-        './/dir[@label="Active Releases"]/dir/dir/[@label]'
-    )
+    base_xpath_active_version: ClassVar[
+        str
+    ] = './/dir[@label="Active Releases"]/dir/dir/[@label]'
     base_xpath_filepath: ClassVar[str] = './/file[.="{}"]'
 
 
@@ -324,7 +351,7 @@ class CvpXmlObject(AristaXmlObject):
     """Class to query Arista XML data for CVP versions."""
 
     software: ClassVar[str] = "CVP"
-    base_xpath_active_version: ClassVar[str] = (
-        './/dir[@label="Active Releases"]/dir/dir/[@label]'
-    )
+    base_xpath_active_version: ClassVar[
+        str
+    ] = './/dir[@label="Active Releases"]/dir/dir/[@label]'
     base_xpath_filepath: ClassVar[str] = './/file[.="{}"]'

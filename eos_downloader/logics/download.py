@@ -26,19 +26,21 @@ Example
 """
 
 import os
-import requests
 import hashlib
-from typing import Union, Dict, Literal
+from typing import Union, Literal, Dict
+
+import requests
 from loguru import logger
-import eos_downloader.console
 from tqdm import tqdm
 
+import eos_downloader.helpers
 import eos_downloader.logics
 import eos_downloader.logics.arista_server
 import eos_downloader.models.version
 
-class SoftManager():
-    """ObjectDownloader helps to download files from a remote location.
+
+class SoftManager:
+    """SoftManager helps to download files from a remote location.
 
     This class provides methods to download files using either a simple progress bar
     or a rich interface with enhanced visual feedback.
@@ -51,7 +53,7 @@ class SoftManager():
 
     Examples
     --------
-    >>> downloader = ObjectDownloader()
+    >>> downloader = SoftManager()
     >>> downloader.download_file(
     ...     url="http://example.com/file.txt",
     ...     file_path="/tmp",
@@ -61,11 +63,10 @@ class SoftManager():
     """
 
     def __init__(self) -> None:
-        self.file = {}
-        self.file['name'] = None
-        self.file['md5sum'] = None
-        self.file['sha512sum'] = None
-        pass
+        self.file: Dict[str, Union[str, None]] = {}
+        self.file["name"] = None
+        self.file["md5sum"] = None
+        self.file["sha512sum"] = None
 
     @staticmethod
     def _download_file_raw(url: str, file_path: str) -> str:
@@ -99,7 +100,7 @@ class SoftManager():
                 f.write(chunk)
         return file_path
 
-    def checksum(self, check_type: Literal['md5sum', 'sha512sum']) -> str:
+    def checksum(self, check_type: Literal["md5sum", "sha512sum"]) -> bool:
         """
         Verifies the integrity of a downloaded file using a specified checksum algorithm.
 
@@ -119,20 +120,26 @@ class SoftManager():
             ```
         """
 
-        if check_type == 'sha512sum':
+        if check_type == "sha512sum":
             hash_sha512 = hashlib.sha512()
-            with open(self.file['sha512sum'], "rb") as f:
+            hash512sum = self.file["sha512sum"]
+            file_name = self.file["name"]
+
+            if file_name is None or hash512sum is None:
+                raise ValueError("File or checksum not found")
+
+            with open(hash512sum, "rb") as f:
                 hash_expected = f.read()
-            with open(self.file['name'], "rb") as f:
+            with open(file_name, "rb") as f:
                 for chunk in iter(lambda: f.read(4096), b""):
                     hash_sha512.update(chunk)
-            if hash_sha512.hexdigest() == hash_expected:
-                return True
-            else:
+            if hash_sha512.hexdigest() != hash_expected:
                 raise ValueError(f"Checksum failed for {self.file['name']}")
+            return True
+        raise ValueError(f"Checksum type {check_type} not yet supported")
 
     def download_file(
-        self, url: str ,file_path: str, filename: str, rich_interface: bool = True
+        self, url: str, file_path: str, filename: str, rich_interface: bool = True
     ) -> Union[None, str]:
         """
         Downloads a file from a given URL to a specified location.
@@ -155,7 +162,7 @@ class SoftManager():
                 return self._download_file_raw(
                     url=url, file_path=os.path.join(file_path, filename)
                 )
-            rich_downloader = eos_downloader.console.DownloadProgressBar()
+            rich_downloader = eos_downloader.helpers.DownloadProgressBar()
             rich_downloader.download(urls=[url], dest_dir=file_path)
             return os.path.join(file_path, filename)
         logger.error(f"Cannot download file {file_path}")
@@ -185,9 +192,10 @@ class SoftManager():
             '/tmp/downloads'
         """
         for file_type, url in object_arista.urls.items():
+            logger.debug(f"Downloading {file_type} from {url}")
             if file_type == "image":
                 filename = object_arista.filename
-                self.file['name'] = filename
+                self.file["name"] = filename
             else:
                 filename = object_arista.hashfile(file_type)
                 self.file[file_type] = filename
