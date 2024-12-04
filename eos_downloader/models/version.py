@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import re
 import typing
-from typing import Any, Optional, Pattern, ClassVar, Literal
+from typing import Any, Optional, Pattern, ClassVar
 
 from loguru import logger
 from pydantic import BaseModel
@@ -104,6 +104,7 @@ class SemVer(BaseModel):
         is_in_branch(self, branch_str: str) -> bool:
             Check if the current version is part of a branch version.
     """
+
     major: int = 0
     minor: int = 0
     patch: int = 0
@@ -117,10 +118,30 @@ class SemVer(BaseModel):
         r"^.*(?P<major>\d+)\.(?P<minor>\d+)(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$"
     )
     # A Basic description of this class
-    description: str = 'A Generic SemVer implementation'
+    description: str = "A Generic SemVer implementation"
 
     @classmethod
     def from_str(cls, semver: str) -> SemVer:
+        """Parse a string into a SemVer object.
+
+        This method parses a semantic version string or branch name into a SemVer object.
+        It supports both standard semver format (x.y.z) and branch format.
+
+        Args:
+            semver (str): The version string to parse. Can be either a semantic version
+                string (e.g., "1.2.3") or a branch format.
+
+        Returns:
+            SemVer: A SemVer object representing the parsed version.
+                Returns an empty SemVer object if parsing fails.
+
+        Examples:
+            >>> SemVer.from_str("1.2.3")
+            SemVer(major=1, minor=2, patch=3)
+            >>> SemVer.from_str("branch-1.2.3")
+            SemVer(major=1, minor=2, patch=3)
+        """
+
         if cls.regex_version.match(semver):
             matches = cls.regex_version.match(semver)
             # assert matches is not None
