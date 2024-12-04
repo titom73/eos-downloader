@@ -9,7 +9,12 @@ import pytest
 from loguru import logger
 from eos_downloader.logics.arista_server import AristaXmlQuerier
 from eos_downloader.models.version import EosVersion, CvpVersion
-from eos_downloader.logics.arista_server import AristaXmlBase
+from unittest.mock import patch
+from eos_downloader.logics.arista_server import (
+    AristaXmlBase,
+    AristaXmlObject,
+    EosXmlObject,
+)
 import xml.etree.ElementTree as ET
 
 
@@ -232,3 +237,117 @@ def test_AristaXmlQuerier_latest_cvp(xml_path):
     assert (
         CvpVersion().from_str("2024.2.1") == versions
     ), "2024.2.1 should be the latest, got {versions}"
+
+
+# ---------------------- #
+# Tests AristaXmlObject
+# ---------------------- #
+
+def test_arista_xml_object_initialization(xml_path):
+    arista_xml_object = AristaXmlObject(searched_version="4.29.2F", image_type="image", xml_path=xml_path)
+    assert arista_xml_object.search_version == "4.29.2F", "Incorrect search version"
+    assert arista_xml_object.image_type == "image", "Incorrect image type"
+    assert arista_xml_object.version == EosVersion().from_str("4.29.2F"), "Incorrect version object"
+
+def test_arista_xml_object_filename_for_ceos(xml_path):
+    arista_xml_object = EosXmlObject(
+        searched_version="4.29.2F",
+        image_type="cEOS",
+        xml_path=xml_path,
+    )
+    filename = arista_xml_object.filename
+    assert filename == "cEOS-lab-4.29.2F.tar.xz", f"Incorrect filename, got {filename}"
+
+def test_arista_xml_object_hashfile(xml_path):
+    arista_xml_object = EosXmlObject(
+        searched_version="4.29.2F",
+        image_type="cEOS",
+        xml_path=xml_path,
+    )
+    hashfile = arista_xml_object.hashfile(hashtype="md5sum")
+    assert (
+        hashfile == "cEOS-lab-4.29.2F.tar.xz.md5sum"
+    ), f"Incorrect hashfile, got {hashfile}"
+    hashfile = arista_xml_object.hashfile(hashtype="sha512sum")
+    assert (
+        hashfile == "cEOS-lab-4.29.2F.tar.xz.sha512sum"
+    ), f"Incorrect hashfile, got {hashfile}"
+
+def test_arista_xml_object_path_from_xml(xml_path):
+    arista_xml_object = EosXmlObject(
+        searched_version="4.29.2F",
+        image_type="cEOS",
+        xml_path=xml_path,
+    )
+    path = arista_xml_object.path_from_xml(search_file="EOS-4.29.2F.swi")
+    assert (
+        path
+        == "/support/download/EOS-USA/Active Releases/4.29/EOS-4.29.2F/EOS-4.29.2F.swi"
+    ), f"Incorrect path, got {path}"
+
+def test_arista_xml_object_url(xml_path):
+    with patch('eos_downloader.logics.arista_server.AristaXmlObject._url') as mock_url:
+        mock_url.return_value = "https://testserver.com/path/to/EOS-4.29.2F.swi"
+        arista_xml_object = EosXmlObject(
+            searched_version="4.29.2F",
+            image_type="cEOS",
+            xml_path=xml_path,
+        )
+        url = arista_xml_object._url(xml_path="/path/to/EOS-4.29.2F.swi")
+        assert url == "https://testserver.com/path/to/EOS-4.29.2F.swi", f"Incorrect URL, got {url}"
+
+def test_arista_xml_object_urls(xml_path):
+    with patch('eos_downloader.logics.arista_server.AristaXmlObject._url') as mock_url:
+        mock_url.side_effect = [
+            "https://arista.com/path/to/EOS-4.29.2F.swi",
+            "https://arista.com/path/to/EOS-4.29.2F.swi.md5sum",
+            "https://arista.com/path/to/EOS-4.29.2F.swi.sha512sum"
+        ]
+        arista_xml_object = EosXmlObject(
+            searched_version="4.29.2F",
+            image_type="default",
+            xml_path=xml_path,
+        )
+        urls = arista_xml_object.urls
+        expected_urls = {
+            "image": "https://arista.com/path/to/EOS-4.29.2F.swi",
+            "md5sum": "https://arista.com/path/to/EOS-4.29.2F.swi.md5sum",
+            "sha512sum": "https://arista.com/path/to/EOS-4.29.2F.swi.sha512sum"
+        }
+        assert urls == expected_urls, f"Incorrect URLs, got {urls}"
+
+def test_arista_xml_object_urls_with_invalid_hash(xml_path):
+    with patch('eos_downloader.logics.arista_server.AristaXmlObject._url') as mock_url:
+        mock_url.side_effect = [
+            "https://arista.com/path/to/EOS-4.29.2F.swi",
+            None,
+            "https://arista.com/path/to/EOS-4.29.2F.swi.sha512sum"
+        ]
+        arista_xml_object = EosXmlObject(
+            searched_version="4.29.2F",
+            image_type="default",
+            xml_path=xml_path,
+        )
+        urls = arista_xml_object.urls
+        expected_urls = {
+            "image": "https://arista.com/path/to/EOS-4.29.2F.swi",
+            "md5sum": None,
+            "sha512sum": "https://arista.com/path/to/EOS-4.29.2F.swi.sha512sum"
+        }
+        assert urls == expected_urls, f"Incorrect URLs, got {urls}"
+
+def test_arista_xml_object_urls_with_missing_files(xml_path):
+    with patch('eos_downloader.logics.arista_server.AristaXmlObject._url') as mock_url:
+        mock_url.side_effect = [None, None, None]
+        arista_xml_object = EosXmlObject(
+            searched_version="4.29.2F",
+            image_type="default",
+            xml_path=xml_path,
+        )
+        urls = arista_xml_object.urls
+        expected_urls = {
+            "image": None,
+            "md5sum": None,
+            "sha512sum": None
+        }
+        assert urls == expected_urls, f"Incorrect URLs, got {urls}"
