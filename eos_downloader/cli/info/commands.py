@@ -34,6 +34,9 @@ from rich import print_json
 from eos_downloader.models.data import software_mapping
 from eos_downloader.models.types import AristaPackage, ReleaseType
 import eos_downloader.logics.arista_server
+from eos_downloader.cli.utils import console_configuration
+
+# from eos_downloader.cli.utils import cli_logging
 
 # """
 # Commands for ARDL CLI to list data.
@@ -81,15 +84,16 @@ def versions(
           - version: 4.28.1F
           - version: 4.28.2F
     """
+    console = console_configuration()
     token = ctx.obj["token"]
     querier = eos_downloader.logics.arista_server.AristaXmlQuerier(token=token)
     received_versions = querier.available_public_versions(
         package=package, branch=branch, rtype=release_type
     )
     if format == "text":
-        click.echo("Listing available versions")
+        console.print("Listing available versions")
         for version in received_versions:
-            click.echo(f"  - version: {version}")
+            console.print(f"  - version: {version}")
     elif format == "json":
         response = []
         for version in received_versions:
@@ -113,15 +117,6 @@ def versions(
 )
 @click.option("--branch", "-b", type=str, required=False)
 @click.option("--release-type", type=str, required=False)
-@click.option(
-    "--log-level",
-    "--log",
-    help="Logging level of the command",
-    default="info",
-    type=click.Choice(
-        ["debug", "info", "warning", "error", "critical"], case_sensitive=False
-    ),
-)
 @click.pass_context
 def latest(
     ctx: click.Context,
@@ -131,26 +126,24 @@ def latest(
     format: str,
 ) -> None:
     """List available versions of Arista packages (eos or CVP) packages"""
+    console = console_configuration()
     token = ctx.obj["token"]
     querier = eos_downloader.logics.arista_server.AristaXmlQuerier(token=token)
-    received_versions = querier.latest(
+    received_version = querier.latest(
         package=package, branch=branch, rtype=release_type
     )
     if format == "text":
         if branch is not None:
-            click.echo(
-                f"Latest version for {package}: "
-                + click.style(f"{received_versions}", fg="blue")
-                + f" for branch {branch}"
+            console.print(
+                f"Latest version for [green]{package}[/green]: [blue]{received_version}[/blue] for branch [blue]{branch}[/blue]"
             )
         else:
-            click.echo(
-                f"Latest version for {package}: "
-                + click.style(f"{received_versions}", fg="blue")
+            console.print(
+                f"Latest version for [green]{package}[/green]: [blue]{received_version}[/blue]"
             )
     elif format == "json":
         response = {}
-        response["version"] = str(received_versions)
+        response["version"] = str(received_version)
         print_json(json.dumps(response))
 
 
@@ -173,14 +166,27 @@ def latest(
 )
 def mapping(package: AristaPackage, details: bool, format: str) -> None:
     """List available flavors of Arista packages (eos or CVP) packages"""
-    if package.upper() in software_mapping.model_fields:
-        mapping_entries = software_mapping.getattr(package.upper())
+    if package == "eos":
+        package = "EOS"
+    elif package == "cvp":
+        package = "CloudVision"
+    console = console_configuration()
+
+    if package in software_mapping.model_fields:
+        mapping_entries = getattr(software_mapping, package, None)
         if format == "text":
-            click.echo(f"Following flavors for {package} have been found:")
+            console.print(
+                f"Following flavors for [red]{package}[/red] have been found:"
+            )
+            if mapping_entries is None:
+                console.print("[red]No flavors found[/red]")
+                return
             for mapping_entry in mapping_entries:
-                click.echo(f"   * Flavor: {mapping_entry}")
+                console.print(f"   * Flavor: [blue]{mapping_entry}[/blue]")
                 if details:
-                    click.echo(f"     - Information: {mapping_entries[mapping_entry]}")
+                    console.print(
+                        f"     - Information: [black]{mapping_entries[mapping_entry]}[/black]"
+                    )
         elif format == "json":
             mapping_json = software_mapping.model_dump()[package.upper()]
             print_json(json.dumps(mapping_json))

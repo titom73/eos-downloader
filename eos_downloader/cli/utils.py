@@ -12,7 +12,9 @@ import logging
 from typing import Any
 import click
 
+from rich import pretty
 from rich.logging import RichHandler
+from rich.console import Console
 
 
 class AliasedGroup(click.Group):
@@ -40,7 +42,7 @@ class AliasedGroup(click.Group):
         return cmd.name, cmd, args
 
 
-def cli_logging(level: str) -> logging.Logger:
+def cli_logging(level: str = "error") -> logging.Logger:
     """
     Configures and returns a logger with the specified logging level.
 
@@ -68,3 +70,10 @@ def cli_logging(level: str) -> logging.Logger:
     )
     log = logging.getLogger("rich")
     return log
+
+
+def console_configuration() -> Console:
+    """Configure Rich Terminal for the CLI."""
+    pretty.install()
+    console = Console()
+    return console
