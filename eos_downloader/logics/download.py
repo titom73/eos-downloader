@@ -29,8 +29,8 @@ import os
 import hashlib
 from typing import Union, Literal, Dict
 
+import logging
 import requests
-from loguru import logger
 from tqdm import tqdm
 
 import eos_downloader.helpers
@@ -67,6 +67,7 @@ class SoftManager:
         self.file["name"] = None
         self.file["md5sum"] = None
         self.file["sha512sum"] = None
+        logging.info("SoftManager initialized")
 
     @staticmethod
     def _download_file_raw(url: str, file_path: str) -> str:
@@ -119,13 +120,14 @@ class SoftManager:
             client.checksum('sha512sum')  # Returns True if checksum matches
             ```
         """
-
+        logging.info(f"Checking checksum for {self.file['name']} using {check_type}")
         if check_type == "sha512sum":
             hash_sha512 = hashlib.sha512()
             hash512sum = self.file["sha512sum"]
             file_name = self.file["name"]
 
             if file_name is None or hash512sum is None:
+                logging.error("File or checksum not found")
                 raise ValueError("File or checksum not found")
 
             with open(hash512sum, "rb") as f:
@@ -134,8 +136,10 @@ class SoftManager:
                 for chunk in iter(lambda: f.read(4096), b""):
                     hash_sha512.update(chunk)
             if hash_sha512.hexdigest() != hash_expected:
+                logging.error(f"Checksum failed for {self.file['name']}")
                 raise ValueError(f"Checksum failed for {self.file['name']}")
             return True
+        logging.error(f"Checksum type {check_type} not yet supported")
         raise ValueError(f"Checksum type {check_type} not yet supported")
 
     def download_file(
@@ -157,6 +161,7 @@ class SoftManager:
             If rich_interface is True, uses rich progress bar for download visualization.
             If rich_interface is False, uses a simple download method without progress indication.
         """
+        logging.info(f"Downloading {filename} from {url}")
         if url is not False:
             if not rich_interface:
                 return self._download_file_raw(
@@ -165,7 +170,7 @@ class SoftManager:
             rich_downloader = eos_downloader.helpers.DownloadProgressBar()
             rich_downloader.download(urls=[url], dest_dir=file_path)
             return os.path.join(file_path, filename)
-        logger.error(f"Cannot download file {file_path}")
+        logging.error(f"Cannot download file {file_path}")
         return None
 
     def downloads(
@@ -191,8 +196,9 @@ class SoftManager:
             >>> client.downloads(eos_obj, "/tmp/downloads")
             '/tmp/downloads'
         """
+        logging.info(f"Downloading files from {object_arista.version}")
         for file_type, url in object_arista.urls.items():
-            logger.debug(f"Downloading {file_type} from {url}")
+            logging.debug(f"Downloading {file_type} from {url}")
             if file_type == "image":
                 filename = object_arista.filename
                 self.file["name"] = filename
@@ -200,8 +206,10 @@ class SoftManager:
                 filename = object_arista.hashfile(file_type)
                 self.file[file_type] = filename
             if url is None:
+                logging.error(f"URL not found for {file_type}")
                 raise ValueError(f"URL not found for {file_type}")
             if filename is None:
+                logging.error(f"Filename not found for {file_type}")
                 raise ValueError(f"Filename not found for {file_type}")
             self.download_file(url, file_path, filename, rich_interface)
         return file_path

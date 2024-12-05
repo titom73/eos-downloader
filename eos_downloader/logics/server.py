@@ -37,6 +37,7 @@ All server interactions are performed over HTTPS and follow Arista's API specifi
 from __future__ import annotations
 
 import base64
+import logging
 import json
 from typing import Dict, Union, Any
 
@@ -121,6 +122,8 @@ class AristaServer:
         self._download_server = download_server
         self._session_id = None
 
+        logging.info(f"Initialized AristaServer with headers: {self._headers}")
+
     def authenticate(self, token: Union[str, None] = None) -> bool:
         """Authenticate to the API server using access token.
 
@@ -164,11 +167,15 @@ class AristaServer:
             "Access token expired",
             "Invalid access token",
         ]:
+            logging.critical(
+                f"Authentication failed: {result.json()['status']['message']}"
+            )
             raise eos_downloader.exceptions.AuthenticationError
             # return False
         try:
             if "data" in result.json():
                 self._session_id = result.json()["data"]["session_code"]
+                logging.info(f"Authenticated with session ID: {self._session_id}")
                 return True
         except KeyError as error:
             logger.error(
@@ -197,6 +204,7 @@ class AristaServer:
             The XML data is expected to be in the response JSON under data.xml path.
         """
 
+        logging.info(f"Getting XML data from server {self._session_server}")
         if self._session_id is None:
             logger.debug("Not authenticated to server, start authentication process")
             self.authenticate()
@@ -209,6 +217,7 @@ class AristaServer:
         )
         try:
             folder_tree = result.json()["data"]["xml"]
+            logging.debug("XML data received from Arista server")
             return ET.ElementTree(ET.fromstring(folder_tree))
         except KeyError as error:
             logger.error(f"Unkown key in server response: {error}")
@@ -235,7 +244,9 @@ class AristaServer:
             requests.exceptions.Timeout: If server request times out
         """
 
+        logging.info(f"Getting download URL for {remote_file_path}")
         if self._session_id is None:
+            logger.debug("Not authenticated to server, start authentication process")
             self.authenticate()
         jsonpost = {"sessionCode": self._session_id, "filePath": remote_file_path}
         result = requests.post(
@@ -246,5 +257,7 @@ class AristaServer:
         )
         if "data" in result.json() and "url" in result.json()["data"]:
             # logger.debug('URL to download file is: {}', result.json())
+            logging.info("Download URL received from server")
+            logging.debug(f'URL to download file is: {result.json()["data"]["url"]}')
             return result.json()["data"]["url"]
         return None

@@ -36,10 +36,10 @@ Classes and Methods:
 """  # noqa: E501
 
 from __future__ import annotations
+
+import logging
 import xml.etree.ElementTree as ET
 from typing import ClassVar, Union, List, Dict
-
-from loguru import logger
 
 import eos_downloader.logics.server
 import eos_downloader.models.version
@@ -56,26 +56,30 @@ class AristaXmlBase:
     def __init__(
         self, token: Union[str, None] = None, xml_path: Union[str, None] = None
     ) -> None:
+        logging.info("Initializing AristXmlBase.")
         self.server = eos_downloader.logics.server.AristaServer(token=token)
         if xml_path is not None:
             try:
                 self.xml_data = ET.parse(xml_path)
             except ET.ParseError as error:
-                logger.error(f"Error while parsing XML data: {error}")
+                logging.error(f"Error while parsing XML data: {error}")
         else:
             if self.server.authenticate():
                 data = self._get_xml_root()
                 if data is None:
+                    logging.error("Unable to get XML data from Arista server")
                     raise ValueError("Unable to get XML data from Arista server")
                 self.xml_data = data
             else:
+                logging.error("Unable to authenticate to Arista server")
                 raise ValueError("Unable to authenticate to Arista server")
 
     def _get_xml_root(self) -> Union[ET.ElementTree, None]:
+        logging.info("Getting XML root from Arista server.")
         try:
             return self.server.get_xml_data()
         except Exception as error:  # pylint: disable=broad-except
-            logger.error(f"Error while getting XML data from Arista server: {error}")
+            logging.error(f"Error while getting XML data from Arista server: {error}")
             return None
 
 
@@ -110,6 +114,9 @@ class AristaXmlQuerier(AristaXmlBase):
             >>> server.available_public_eos_version(branch="4.29", rtype="INT", package="eos")
             [EosVersion('4.29.0F-INT'), EosVersion('4.29.1F-INT'), ...]
         """
+
+        logging.info(f"Getting available versions for {package} package")
+
         xpath_query = './/dir[@label="Active Releases"]//dir[@label]'
         regexp = eos_downloader.models.version.EosVersion.regex_version
 
@@ -173,7 +180,8 @@ class AristaXmlQuerier(AristaXmlBase):
         versions = self.available_public_versions(
             package=package, branch=branch, rtype=rtype
         )
-
+        if len(versions) == 0:
+            raise ValueError("No versions found to run the max() funtion")
         return max(versions)
 
     def branches(
@@ -255,13 +263,14 @@ class AristaXmlObject(AristaXmlBase):
         str:
             Filename to search for on Arista.com
         """
+        logging.info(f"Building filename for {self.software} package.")
         try:
             filename = eos_downloader.models.data.software_mapping.filename(
                 self.software, self.image_type, self.search_version
             )
             return filename
         except ValueError as e:
-            logger.error(f"Error: {e}")
+            logging.error(f"Error: {e}")
         return None
 
     def hashfile(self, hashtype: str = "md5sum") -> Union[str, None]:
@@ -276,6 +285,9 @@ class AristaXmlObject(AristaXmlBase):
         str:
             Filename to search for on Arista.com
         """
+
+        logging.info(f"Building hash filename for {self.software} package.")
+
         if hashtype in self.supported_role_types:
             if self.filename is not None:
                 return f"{self.filename}.{hashtype}"
@@ -290,6 +302,9 @@ class AristaXmlObject(AristaXmlBase):
         Returns:
             Union[str, None]: Path from XML if found, None otherwise
         """
+
+        logging.info(f"Building path from XML for {search_file}.")
+
         # Build xpath with provided file
         xpath_query = self.base_xpath_filepath.format(search_file)
         # Find the element using XPath
@@ -307,6 +322,9 @@ class AristaXmlObject(AristaXmlBase):
         Returns:
             str: URL to download the file
         """
+
+        logging.info(f"Getting URL for {xml_path}.")
+
         return self.server.get_url(xml_path)
 
     @property
@@ -319,6 +337,8 @@ class AristaXmlObject(AristaXmlBase):
         Returns:
             Dict[str, str]: Dictionary with file type as key and URL as value
         """
+        logging.info(f"Getting URLs for {self.software} package.")
+
         urls = {}
 
         if self.filename is None:
