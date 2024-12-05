@@ -11,7 +11,7 @@
 """CLI commands for listing Arista package information."""
 
 import os
-from typing import Union
+from typing import Union, cast
 
 import click
 
@@ -19,6 +19,7 @@ import eos_downloader.logics.arista_server
 import eos_downloader.logics.download
 from eos_downloader.cli.utils import cli_logging, console_configuration
 from eos_downloader.models.data import RTYPE_FEATURE, RTYPES, eos_package_format
+from eos_downloader.models.types import ReleaseType
 
 
 @click.command(no_args_is_help=True)
@@ -140,11 +141,14 @@ def eos(
     eos_dl_obj: eos_downloader.logics.arista_server.EosXmlObject
     if branch is not None or latest:
         querier = eos_downloader.logics.arista_server.AristaXmlQuerier(token=token)
-        version_obj = querier.latest(package="eos", branch=branch, rtype=release_type)
+        rtype: ReleaseType = cast(
+            ReleaseType, release_type if release_type in RTYPES else RTYPE_FEATURE
+        )
+        version_obj = querier.latest(package="eos", branch=branch, rtype=rtype)
         version = str(version_obj)
     try:
         eos_dl_obj = eos_downloader.logics.arista_server.EosXmlObject(
-            searched_version=version,
+            searched_version=version,  # type: ignore[arg-type]
             token=token,
             image_type=format,
         )
@@ -175,11 +179,11 @@ def eos(
             docker_tag = eos_dl_obj.version
         # Not yet implemented - waiting for correct internet connection
         console.print(
-            f"Importing docker image [green]{docker_name}:{docker_tag}[/green] from [blue]{os.path.join(output, eos_dl_obj.filename)}[/blue]..."
+            f"Importing docker image [green]{docker_name}:{docker_tag}[/green] from [blue]{os.path.join(output, eos_dl_obj.filename)}[/blue]..."  # type: ignore[arg-type]
         )
         try:
             cli.import_docker(
-                local_file_path=os.path.join(output, eos_dl_obj.filename),
+                local_file_path=os.path.join(output, eos_dl_obj.filename),  # type: ignore[arg-type]
                 docker_name=docker_name,
                 docker_tag=docker_tag,
             )
@@ -188,7 +192,7 @@ def eos(
                 console.print_exception(show_locals=True)
             else:
                 console.print(
-                    f"\n[red]File not found: {os.path.join(output, eos_dl_obj.filename)}[/red]"
+                    f"\n[red]File not found: {os.path.join(output, eos_dl_obj.filename)}[/red]"  # type: ignore[arg-type]
                 )
             return 1
         console.print(
