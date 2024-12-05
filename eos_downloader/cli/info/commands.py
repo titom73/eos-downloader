@@ -1,10 +1,10 @@
-# #!/usr/bin/env python
-# # coding: utf-8 -*-
-# # pylint: disable=no-value-for-parameter
-# # pylint: disable=too-many-arguments
-# # pylint: disable=line-too-long
-# # pylint: disable=redefined-builtin
-# # flake8: noqa E501
+#!/usr/bin/env python
+# coding: utf-8 -*-
+# pylint: disable=no-value-for-parameter
+# pylint: disable=too-many-arguments
+# pylint: disable=line-too-long
+# pylint: disable=redefined-builtin
+# flake8: noqa E501
 
 """CLI commands for listing Arista package information.
 
@@ -30,13 +30,14 @@ import json
 
 import click
 from rich import print_json
+from rich.panel import Panel
 
 from eos_downloader.models.data import software_mapping
 from eos_downloader.models.types import AristaPackage, ReleaseType
 import eos_downloader.logics.arista_server
 from eos_downloader.cli.utils import console_configuration
 
-# from eos_downloader.cli.utils import cli_logging
+from eos_downloader.cli.utils import cli_logging
 
 # """
 # Commands for ARDL CLI to list data.
@@ -46,8 +47,8 @@ from eos_downloader.cli.utils import console_configuration
 @click.command()
 @click.option(
     "--format",
-    type=click.Choice(["json", "text"]),
-    default="text",
+    type=click.Choice(["json", "text", "fancy"]),
+    default="fancy",
     help="Output format",
 )
 @click.option(
@@ -86,16 +87,42 @@ def versions(
     """
     console = console_configuration()
     token = ctx.obj["token"]
+    log_level = ctx.obj["log_level"]
+    cli_logging(log_level)
+
     querier = eos_downloader.logics.arista_server.AristaXmlQuerier(token=token)
-    received_versions = querier.available_public_versions(
-        package=package, branch=branch, rtype=release_type
-    )
+
+    received_versions = None
+    try:
+        received_versions = querier.available_public_versions(
+            package=package, branch=branch, rtype=release_type
+        )
+    except ValueError:
+        console.print_exception(show_locals=True)
+
     if format == "text":
         console.print("Listing available versions")
+        if received_versions is None:
+            console.print("[red]No versions found[/red]")
+            return
         for version in received_versions:
-            console.print(f"  - version: {version}")
+            console.print(f"  - version: [blue]{version}[/blue]")
+    elif format == "fancy":
+        lines_output = []
+        if received_versions is None:
+            console.print("[red]No versions found[/red]")
+            return
+        for version in received_versions:
+            lines_output.append(f"  - version: [blue]{version}[/blue]")
+        console.print("")
+        console.print(
+            Panel("\n".join(lines_output), title="Available versions", padding=1)
+        )
     elif format == "json":
         response = []
+        if received_versions is None:
+            console.print("[red]No versions found[/red]")
+            return
         for version in received_versions:
             out = {}
             out["version"] = str(version)
@@ -108,8 +135,8 @@ def versions(
 @click.command()
 @click.option(
     "--format",
-    type=click.Choice(["json", "text"]),
-    default="text",
+    type=click.Choice(["json", "text", "fancy"]),
+    default="fancy",
     help="Output format",
 )
 @click.option(
@@ -128,23 +155,30 @@ def latest(
     """List available versions of Arista packages (eos or CVP) packages"""
     console = console_configuration()
     token = ctx.obj["token"]
+    log_level = ctx.obj["log_level"]
+    cli_logging(log_level)
     querier = eos_downloader.logics.arista_server.AristaXmlQuerier(token=token)
-    received_version = querier.latest(
-        package=package, branch=branch, rtype=release_type
-    )
-    if format == "text":
-        if branch is not None:
-            console.print(
-                f"Latest version for [green]{package}[/green]: [blue]{received_version}[/blue] for branch [blue]{branch}[/blue]"
-            )
-        else:
-            console.print(
-                f"Latest version for [green]{package}[/green]: [blue]{received_version}[/blue]"
-            )
-    elif format == "json":
-        response = {}
-        response["version"] = str(received_version)
-        print_json(json.dumps(response))
+    received_version = None
+    try:
+        received_version = querier.latest(
+            package=package, branch=branch, rtype=release_type
+        )
+    except ValueError:
+        console.print_exception(show_locals=True)
+
+    if format in ["text", "fancy"]:
+        version_info = f"Latest version for [green]{package}[/green]: [blue]{received_version}[/blue]"
+        if branch:
+            version_info += f" for branch [blue]{branch}[/blue]"
+
+        if format == "text":
+            console.print("")
+            console.print(version_info)
+        else:  # fancy format
+            console.print("")
+            console.print(Panel(version_info, title="Latest version", padding=1))
+    else:  # json format
+        print_json(json.dumps({"version": str(received_version)}))
 
 
 @click.command()
@@ -153,8 +187,8 @@ def latest(
 )
 @click.option(
     "--format",
-    type=click.Choice(["json", "text"]),
-    default="text",
+    type=click.Choice(["json", "text", "fancy"]),
+    default="fancy",
     help="Output format",
 )
 @click.option(
@@ -164,13 +198,19 @@ def latest(
     default=False,
     help="Show details for each flavor",
 )
-def mapping(package: AristaPackage, details: bool, format: str) -> None:
+@click.pass_context
+def mapping(
+    ctx: click.Context, package: AristaPackage, details: bool, format: str
+) -> None:
     """List available flavors of Arista packages (eos or CVP) packages"""
     if package == "eos":
         package = "EOS"
     elif package == "cvp":
         package = "CloudVision"
     console = console_configuration()
+    log_level = ctx.obj["log_level"]
+    console.print(f"Log Level is: {log_level}")
+    cli_logging(log_level)
 
     if package in software_mapping.model_fields:
         mapping_entries = getattr(software_mapping, package, None)
@@ -187,6 +227,22 @@ def mapping(package: AristaPackage, details: bool, format: str) -> None:
                     console.print(
                         f"     - Information: [black]{mapping_entries[mapping_entry]}[/black]"
                     )
+            console.print("\n")
+        elif format == "fancy":
+            lines_output = []
+            if mapping_entries is None:
+                lines_output.append("[red]No flavors found[/red]")
+                console.print("\n".join(lines_output))
+                return
+            for mapping_entry in mapping_entries:
+                lines_output.append(f"   * Flavor: [blue]{mapping_entry}[/blue]")
+                if details:
+                    lines_output.append(
+                        f"     - Information: [black]{mapping_entries[mapping_entry]}[/black]"
+                    )
+            console.print("")
+            console.print(Panel("\n".join(lines_output), title="Flavors", padding=1))
+            console.print("\n")
         elif format == "json":
             mapping_json = software_mapping.model_dump()[package.upper()]
             print_json(json.dumps(mapping_json))

@@ -28,10 +28,20 @@ from eos_downloader.cli.utils import AliasedGroup
     default=None,
     help="Arista Token from your customer account",
 )
-def ardl(ctx: click.Context, token: str) -> None:
+@click.option(
+    "--log-level",
+    "--log",
+    help="Logging level of the command",
+    default="error",
+    type=click.Choice(
+        ["debug", "info", "warning", "error", "critical"], case_sensitive=False
+    ),
+)
+def ardl(ctx: click.Context, token: str, log_level: str) -> None:
     """Arista Network Download CLI"""
     ctx.ensure_object(dict)
     ctx.obj["token"] = token
+    ctx.obj["log_level"] = log_level
 
 
 @ardl.group(cls=AliasedGroup, no_args_is_help=True)

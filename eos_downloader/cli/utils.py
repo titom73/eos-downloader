@@ -64,7 +64,12 @@ def cli_logging(level: str = "error") -> logging.Logger:
         datefmt="[%X]",
         handlers=[
             RichHandler(
-                show_path=False, show_time=True, markup=True, rich_tracebacks=True
+                show_path=True,
+                show_time=True,
+                show_level=True,
+                markup=True,
+                rich_tracebacks=True,
+                tracebacks_suppress=[click],
             )
         ],
     )
