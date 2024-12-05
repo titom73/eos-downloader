@@ -116,27 +116,7 @@ def eos(
     latest: bool = False,
     branch: Union[str, None] = None,
 ) -> int:
-    """Download EOS image from Arista server.
-    This function handles the download of EOS images from Arista's servers, with options
-    to specify version, format, and docker import capabilities.
-    Args:
-        ctx (click.Context): Click context object containing token and debug settings
-        format (str): Format of the EOS image to download (e.g., 'SWIX', 'vEOS')
-        output (str): Output directory path where the image will be saved
-        import_docker (bool): Whether to import the downloaded image into Docker
-        skip_download (bool): Skip the download process if True
-        docker_name (str): Name to use for the Docker image when importing
-        docker_tag (str): Tag to use for the Docker image when importing
-        version (Union[str, None]): Specific EOS version to download. Defaults to None
-        release_type (str): Release type to filter (e.g., 'feature'). Defaults to RTYPE_FEATURE
-        latest (bool): Whether to download latest version. Defaults to False
-        branch (Union[str, None]): Specific branch to download from. Defaults to None
-    Returns:
-        int: Returns 0 on success, 1 on failure
-    Raises:
-        Exception: When download or checksum verification fails
-        FileNotFoundError: When the downloaded file cannot be found for Docker import
-    """
+    """Download EOS image from Arista server."""
 
     console = console_configuration()
     token = ctx.obj["token"]

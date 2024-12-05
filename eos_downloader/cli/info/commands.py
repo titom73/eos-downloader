@@ -63,27 +63,8 @@ def versions(
     release_type: ReleaseType,
     format: str,
 ) -> None:
-    """List available package versions from Arista server.
+    """List available package versions from Arista server."""
 
-    Args:
-        ctx (click.Context): Click context object containing authentication token.
-        package (str): Name of the package to query versions for.
-        branch (str): Branch name to filter versions.
-        release_type (str): Type of release to filter (e.g. 'release', 'engineering').
-        format (str): Output format - either 'text' or 'json'.
-        log_level (str): Logging level for the command.
-
-    Returns:
-        None. Prints version information to stdout in specified format:
-        - text: Simple list of versions
-        - json: List of dicts with version and branch information
-
-    Example:
-        $ eos-dl info versions --package=EOS --branch=4.28 --release-type=release
-        Listing versions:
-          - version: 4.28.1F
-          - version: 4.28.2F
-    """
     console = console_configuration()
     token = ctx.obj["token"]
     debug = ctx.obj["debug"]
@@ -156,7 +137,8 @@ def latest(
     release_type: ReleaseType,
     format: str,
 ) -> None:
-    """List available versions of Arista packages (eos or CVP) packages"""
+    """List available versions of Arista packages (eos or CVP) packages."""
+
     console = console_configuration()
     token = ctx.obj["token"]
     debug = ctx.obj["debug"]
@@ -210,7 +192,8 @@ def latest(
 def mapping(
     ctx: click.Context, package: AristaPackage, details: bool, format: str
 ) -> None:
-    """List available flavors of Arista packages (eos or CVP) packages"""
+    """List available flavors of Arista packages (eos or CVP) packages."""
+
     mapping_pkg_name: AristaMapping = "EOS"
     if package == "eos":
         mapping_pkg_name = "EOS"
