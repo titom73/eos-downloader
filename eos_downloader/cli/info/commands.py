@@ -86,6 +86,7 @@ def versions(
     """
     console = console_configuration()
     token = ctx.obj["token"]
+    debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
 
@@ -97,7 +98,11 @@ def versions(
             package=package, branch=branch, rtype=release_type
         )
     except ValueError:
-        console.print_exception(show_locals=True)
+        if debug:
+            console.print_exception(show_locals=True)
+        else:
+            console.print("[red]No versions found[/red]")
+            return
 
     if format == "text":
         console.print("Listing available versions")
@@ -154,6 +159,7 @@ def latest(
     """List available versions of Arista packages (eos or CVP) packages"""
     console = console_configuration()
     token = ctx.obj["token"]
+    debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
     querier = eos_downloader.logics.arista_server.AristaXmlQuerier(token=token)
@@ -163,7 +169,10 @@ def latest(
             package=package, branch=branch, rtype=release_type
         )
     except ValueError:
-        console.print_exception(show_locals=True)
+        if debug:
+            console.print_exception(show_locals=True)
+        else:
+            console.print("[red]No versions found[/red]")
 
     if format in ["text", "fancy"]:
         version_info = f"Latest version for [green]{package}[/green]: [blue]{received_version}[/blue]"

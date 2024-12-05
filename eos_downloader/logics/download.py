@@ -26,6 +26,7 @@ Example
 """
 
 import os
+import shutil
 import hashlib
 from typing import Union, Literal, Dict
 
@@ -126,18 +127,22 @@ class SoftManager:
             hash512sum = self.file["sha512sum"]
             file_name = self.file["name"]
 
+            logging.debug(f"checksum sha512sum file is: {hash512sum}")
+
             if file_name is None or hash512sum is None:
                 logging.error("File or checksum not found")
                 raise ValueError("File or checksum not found")
 
-            with open(hash512sum, "rb") as f:
-                hash_expected = f.read()
+            with open(hash512sum, "r", encoding="utf-8") as f:
+                hash_expected = f.read().split()[0]
             with open(file_name, "rb") as f:
                 for chunk in iter(lambda: f.read(4096), b""):
                     hash_sha512.update(chunk)
             if hash_sha512.hexdigest() != hash_expected:
-                logging.error(f"Checksum failed for {self.file['name']}")
-                raise ValueError(f"Checksum failed for {self.file['name']}")
+                logging.error(
+                    f"Checksum failed for {self.file['name']}: computed {hash_sha512.hexdigest()} - expected {hash_expected}"
+                )
+                raise ValueError("Incorrect checksum")
             return True
         logging.error(f"Checksum type {check_type} not yet supported")
         raise ValueError(f"Checksum type {check_type} not yet supported")
@@ -197,7 +202,7 @@ class SoftManager:
             '/tmp/downloads'
         """
         logging.info(f"Downloading files from {object_arista.version}")
-        for file_type, url in object_arista.urls.items():
+        for file_type, url in sorted(object_arista.urls.items(), reverse=True):
             logging.debug(f"Downloading {file_type} from {url}")
             if file_type == "image":
                 filename = object_arista.filename
@@ -213,3 +218,44 @@ class SoftManager:
                 raise ValueError(f"Filename not found for {file_type}")
             self.download_file(url, file_path, filename, rich_interface)
         return file_path
+
+    def import_docker(
+        self,
+        local_file_path: str,
+        docker_name: str = "arista/ceos",
+        docker_tag: str = "latest",
+    ) -> None:
+        """Import a local file into a Docker image.
+
+        This method imports a local file into Docker with a specified image name and tag.
+        It checks for the existence of both the local file and docker binary before proceeding.
+
+        Args:
+            local_file_path (str): Path to the local file to import
+            docker_name (str, optional): Name for the Docker image. Defaults to 'arista/ceos'
+            docker_tag (str, optional): Tag for the Docker image. Defaults to 'latest'
+
+        Raises:
+            FileNotFoundError: If the local file doesn't exist or docker binary is not found
+            Exception: If the docker import operation fails
+
+        Returns:
+            None
+        """
+
+        logging.info(
+            f"Importing {local_file_path} to {docker_name}:{docker_tag} in local docker enginge"
+        )
+
+        if os.path.exists(local_file_path) is False:
+            raise FileNotFoundError(f"File {local_file_path} not found")
+        if not shutil.which("docker"):
+            raise FileNotFoundError(f"File {local_file_path} not found")
+
+        try:
+            os.system(
+                f"$(which docker) import {local_file_path} {docker_name}:{docker_tag}"
+            )
+        except Exception as e:
+            logging.error(f"Error importing docker image: {e}")
+            raise e

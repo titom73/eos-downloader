@@ -96,3 +96,9 @@ software_mapping = DataMapping(
         "default": {"extension": ".swi", "prepend": "EOS"},
     },
 )
+
+# List of supported format for EOS software packages
+eos_package_format = software_mapping.EOS.keys()
+
+# List of supported format for CloudVision software packages
+cvp_package_format = software_mapping.EOS.keys()

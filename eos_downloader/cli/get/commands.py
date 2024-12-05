@@ -1,97 +1,82 @@
-# #!/usr/bin/env python
-# # coding: utf-8 -*-
-# # pylint: disable=no-value-for-parameter
-# # pylint: disable=too-many-arguments
-# # pylint: disable=line-too-long
-# # pylint: disable=redefined-builtin
-# # flake8: noqa E501
+#!/usr/bin/env python
+# coding: utf-8 -*-
+# pylint: disable=no-value-for-parameter
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
+# pylint: disable=line-too-long
+# pylint: disable=redefined-builtin
+# pylint: disable=broad-exception-caught
+# flake8: noqa E501
 
-# """
-# Commands for ARDL CLI to get data.
-# """
+"""CLI commands for listing Arista package information."""
 
-# import os
-# import sys
-# from typing import Union
+import os
+from typing import Union
 
-# import click
-# from loguru import logger
-# from rich.console import Console
+import click
 
-# import eos_downloader.eos
-# from eos_downloader.models.version import BASE_VERSION_STR, RTYPE_FEATURE, RTYPES
-
-# EOS_IMAGE_TYPE = [
-#     "64",
-#     "INT",
-#     "2GB-INT",
-#     "cEOS",
-#     "cEOS64",
-#     "vEOS",
-#     "vEOS-lab",
-#     "EOS-2GB",
-#     "default",
-# ]
-# CVP_IMAGE_TYPE = ["ova", "rpm", "kvm", "upgrade"]
+import eos_downloader.logics.arista_server
+import eos_downloader.logics.download
+from eos_downloader.cli.utils import cli_logging, console_configuration
+from eos_downloader.models.data import RTYPE_FEATURE, RTYPES, eos_package_format
 
 
-# @click.command(no_args_is_help=True)
-# @click.pass_context
-# @click.option(
-#     "--image-type",
-#     default="default",
-#     help="EOS Image type",
-#     type=click.Choice(EOS_IMAGE_TYPE),
-#     required=True,
-# )
-# @click.option("--version", default=None, help="EOS version", type=str, required=False)
-# @click.option(
-#     "--latest",
-#     "-l",
-#     is_flag=True,
-#     type=click.BOOL,
-#     default=False,
-#     help="Get latest version in given branch. If --branch is not use, get the latest branch with specific release type",
-# )
-# @click.option(
-#     "--release-type",
-#     "-rtype",
-#     type=click.Choice(RTYPES, case_sensitive=False),
-#     default=RTYPE_FEATURE,
-#     help="EOS release type to search",
-# )
-# @click.option(
-#     "--branch",
-#     "-b",
-#     type=click.STRING,
-#     default=None,
-#     help="EOS Branch to list releases",
-# )
-# @click.option(
-#     "--docker-name",
-#     default="arista/ceos",
-#     help="Docker image name (default: arista/ceos)",
-#     type=str,
-#     show_default=True,
-# )
-# @click.option(
-#     "--output",
-#     default=str(os.path.relpath(os.getcwd(), start=os.curdir)),
-#     help="Path to save image",
-#     type=click.Path(),
-#     show_default=True,
-# )
-# # Debugging
-# @click.option(
-#     "--log-level",
-#     "--log",
-#     help="Logging level of the command",
-#     default=None,
-#     type=click.Choice(
-#         ["debug", "info", "warning", "error", "critical"], case_sensitive=False
-#     ),
-# )
-# # Boolean triggers
+@click.command(no_args_is_help=True)
+@click.pass_context
+@click.option(
+    "--format",
+    "--image-type",
+    default="default",
+    help="EOS Image type",
+    type=click.Choice(eos_package_format),
+    required=True,
+)
+@click.option("--version", default=None, help="EOS version", type=str, required=False)
+@click.option(
+    "--release-type",
+    "-rtype",
+    type=click.Choice(RTYPES, case_sensitive=False),
+    default=RTYPE_FEATURE,
+    help="EOS release type to search",
+)
+@click.option(
+    "--branch",
+    "-b",
+    type=click.STRING,
+    default=None,
+    help="EOS Branch to list releases",
+)
+@click.option(
+    "--docker-name",
+    default="arista/ceos",
+    help="Docker image name (default: arista/ceos)",
+    type=str,
+    show_default=True,
+)
+@click.option(
+    "--docker-tag",
+    help="Docker image tag (default: ceos-version)",
+    type=click.STRING,
+    default=None,
+    show_default=True,
+    required=False,
+)
+@click.option(
+    "--output",
+    default=str(os.path.relpath(os.getcwd(), start=os.curdir)),
+    help="Path to save image",
+    type=click.Path(),
+    show_default=True,
+)
+
+# Boolean triggers
+@click.option(
+    "--latest",
+    is_flag=True,
+    help="Get latest version. If --branch is not use, get the latest branch with specific release type",
+    default=False,
+)
+# Not yet implemented - waiting for correct internet connection
 # @click.option(
 #     "--eve-ng",
 #     is_flag=True,
@@ -104,150 +89,129 @@
 #     help="Disable ZTP process in vEOS image (only available with --eve-ng)",
 #     default=False,
 # )
-# @click.option(
-#     "--import-docker",
-#     is_flag=True,
-#     help="Import docker image (only available with --image_type cEOSlab)",
-#     default=False,
-# )
-# def eos(
-#     ctx: click.Context,
-#     image_type: str,
-#     output: str,
-#     log_level: str,
-#     eve_ng: bool,
-#     disable_ztp: bool,
-#     import_docker: bool,
-#     docker_name: str,
-#     version: Union[str, None] = None,
-#     release_type: str = RTYPE_FEATURE,
-#     latest: bool = False,
-#     branch: Union[str, None] = None,
-# ) -> int:
-# # pylint: disable=R0917
-#     """Download EOS image from Arista website"""
-#     console = Console()
-#     # Get from Context
-#     token = ctx.obj["token"]
-#     is_latest: bool = False
-#     if token is None or token == "":
-#         console.print(
-#             "❗ Token is unset ! Please configure ARISTA_TOKEN or use --token option",
-#             style="bold red",
-#         )
-#         sys.exit(1)
+@click.option(
+    "--import-docker",
+    is_flag=True,
+    help="Import docker image to local docker",
+    default=False,
+)
+@click.option(
+    "--skip-download",
+    is_flag=True,
+    help="Skip download process - for debug only",
+    default=False,
+)
+def eos(
+    ctx: click.Context,
+    format: str,
+    output: str,
+    # eve_ng: bool,
+    # disable_ztp: bool,
+    import_docker: bool,
+    skip_download: bool,
+    docker_name: str,
+    docker_tag: str,
+    version: Union[str, None] = None,
+    release_type: str = RTYPE_FEATURE,
+    latest: bool = False,
+    branch: Union[str, None] = None,
+) -> int:
+    """Download EOS image from Arista server.
+    This function handles the download of EOS images from Arista's servers, with options
+    to specify version, format, and docker import capabilities.
+    Args:
+        ctx (click.Context): Click context object containing token and debug settings
+        format (str): Format of the EOS image to download (e.g., 'SWIX', 'vEOS')
+        output (str): Output directory path where the image will be saved
+        import_docker (bool): Whether to import the downloaded image into Docker
+        skip_download (bool): Skip the download process if True
+        docker_name (str): Name to use for the Docker image when importing
+        docker_tag (str): Tag to use for the Docker image when importing
+        version (Union[str, None]): Specific EOS version to download. Defaults to None
+        release_type (str): Release type to filter (e.g., 'feature'). Defaults to RTYPE_FEATURE
+        latest (bool): Whether to download latest version. Defaults to False
+        branch (Union[str, None]): Specific branch to download from. Defaults to None
+    Returns:
+        int: Returns 0 on success, 1 on failure
+    Raises:
+        Exception: When download or checksum verification fails
+        FileNotFoundError: When the downloaded file cannot be found for Docker import
+    """
 
-#     logger.remove()
-#     if log_level is not None:
-#         logger.add("eos-downloader.log", rotation="10 MB", level=log_level.upper())
+    console = console_configuration()
+    token = ctx.obj["token"]
+    debug = ctx.obj["debug"]
+    log_level = ctx.obj["log_level"]
+    cli_logging(log_level)
 
-#     console.print(
-#         "🪐 [bold blue]eos-downloader[/bold blue] is starting...",
-#     )
-#     console.print(f"    - Image Type: {image_type}")
-#     console.print(f"    - Version: {version}")
+    if version is not None:
+        console.print(
+            f"Searching for EOS version [green]{version}[/green] for [blue]{format}[/blue] format..."
+        )
+    elif latest:
+        console.print(
+            f"Searching for [blue]latest[/blue] EOS version for [blue]{format}[/blue] format..."
+        )
+    elif branch is not None:
+        console.print(
+            f"Searching for EOS [b]latest[/b] version for [blue]{branch}[/blue] branch for [blue]{format}[/blue] format..."
+        )
 
-#     if version is not None:
-#         my_download = eos_downloader.eos.EOSDownloader(
-#             image=image_type,
-#             software="EOS",
-#             version=version,
-#             token=token,
-#             hash_method="sha512sum",
-#         )
-#         my_download.authenticate()
+    eos_dl_obj: eos_downloader.logics.arista_server.EosXmlObject
+    if branch is not None or latest:
+        querier = eos_downloader.logics.arista_server.AristaXmlQuerier(token=token)
+        version_obj = querier.latest(package="eos", branch=branch, rtype=release_type)
+        version = str(version_obj)
+    try:
+        eos_dl_obj = eos_downloader.logics.arista_server.EosXmlObject(
+            searched_version=version,
+            token=token,
+            image_type=format,
+        )
+    except Exception:
+        console.print_exception(show_locals=True)
 
-#     elif latest:
-#         is_latest = True
-#         my_download = eos_downloader.eos.EOSDownloader(
-#             image=image_type,
-#             software="EOS",
-#             version="unset",
-#             token=token,
-#             hash_method="sha512sum",
-#         )
-#         my_download.authenticate()
-#         if branch is None:
-#             branch = str(my_download.latest_branch(rtype=release_type).branch)
-#         latest_version = my_download.latest_eos(branch, rtype=release_type)
-#         if str(latest_version) == BASE_VERSION_STR:
-#             console.print(
-#                 f"[red]Error[/red], cannot find any version in {branch} for {release_type} release type"
-#             )
-#             sys.exit(1)
-#         my_download.version = str(latest_version)
+    cli = eos_downloader.logics.download.SoftManager()
 
-#     if eve_ng:
-#         my_download.provision_eve(noztp=disable_ztp, checksum=True)
-#     else:
-#         my_download.download_local(file_path=output, checksum=True)
+    console.print(
+        f"Starting download for EOS version [green]{eos_dl_obj.version}[/green] for [blue]{format}[/blue] format."
+    )
 
-#     if import_docker:
-#         my_download.docker_import(image_name=docker_name, is_latest=is_latest)
-#     console.print("✅  processing done !")
-#     sys.exit(0)
+    if skip_download is False:
+        cli.downloads(eos_dl_obj, file_path=output, rich_interface=True)
+        try:
+            cli.checksum("sha512sum")
+        except Exception:
+            console.print_exception(show_locals=True)
+            # logging.critical(f"Checksum error for file {eos_dl_obj.filename}")
+        console.print(
+            f"EOS file [green]{eos_dl_obj.filename}[/green] downloaded in: [blue]{output}[/blue]"
+        )
 
-
-# @click.command(no_args_is_help=True)
-# @click.pass_context
-# @click.option(
-#     "--format",
-#     default="upgrade",
-#     help="CVP Image type",
-#     type=click.Choice(CVP_IMAGE_TYPE),
-#     required=True,
-# )
-# @click.option("--version", default=None, help="CVP version", type=str, required=True)
-# @click.option(
-#     "--output",
-#     default=str(os.path.relpath(os.getcwd(), start=os.curdir)),
-#     help="Path to save image",
-#     type=click.Path(),
-#     show_default=True,
-# )
-# @click.option(
-#     "--log-level",
-#     "--log",
-#     help="Logging level of the command",
-#     default=None,
-#     type=click.Choice(
-#         ["debug", "info", "warning", "error", "critical"], case_sensitive=False
-#     ),
-# )
-# def cvp(
-#     ctx: click.Context, version: str, format: str, output: str, log_level: str
-# ) -> int:
-#     """Download CVP image from Arista website"""
-#     console = Console()
-#     # Get from Context
-#     token = ctx.obj["token"]
-#     if token is None or token == "":
-#         console.print(
-#             "❗ Token is unset ! Please configure ARISTA_TOKEN or use --token option",
-#             style="bold red",
-#         )
-#         sys.exit(1)
-
-#     logger.remove()
-#     if log_level is not None:
-#         logger.add("eos-downloader.log", rotation="10 MB", level=log_level.upper())
-
-#     console.print(
-#         "🪐 [bold blue]eos-downloader[/bold blue] is starting...",
-#     )
-#     console.print(f"    - Image Type: {format}")
-#     console.print(f"    - Version: {version}")
-
-#     my_download = eos_downloader.eos.EOSDownloader(
-#         image=format,
-#         software="CloudVision",
-#         version=version,
-#         token=token,
-#         hash_method="md5sum",
-#     )
-
-#     my_download.authenticate()
-
-#     my_download.download_local(file_path=output, checksum=False)
-#     console.print("✅  processing done !")
-#     sys.exit(0)
+    # Docker management.
+    if import_docker:
+        console.print("Importing docker image...")
+        if docker_tag is None:
+            docker_tag = eos_dl_obj.version
+        # Not yet implemented - waiting for correct internet connection
+        console.print(
+            f"Importing docker image [green]{docker_name}:{docker_tag}[/green] from [blue]{os.path.join(output, eos_dl_obj.filename)}[/blue]..."
+        )
+        try:
+            cli.import_docker(
+                local_file_path=os.path.join(output, eos_dl_obj.filename),
+                docker_name=docker_name,
+                docker_tag=docker_tag,
+            )
+        except FileNotFoundError:
+            if debug:
+                console.print_exception(show_locals=True)
+            else:
+                console.print(
+                    f"\n[red]File not found: {os.path.join(output, eos_dl_obj.filename)}[/red]"
+                )
+            return 1
+        console.print(
+            f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"
+        )
+    return 0
