@@ -33,10 +33,9 @@ from rich import print_json
 from rich.panel import Panel
 
 from eos_downloader.models.data import software_mapping
-from eos_downloader.models.types import AristaPackage, ReleaseType
+from eos_downloader.models.types import AristaPackage, ReleaseType, AristaMapping
 import eos_downloader.logics.arista_server
 from eos_downloader.cli.utils import console_configuration
-
 from eos_downloader.cli.utils import cli_logging
 
 # """
@@ -203,20 +202,21 @@ def mapping(
     ctx: click.Context, package: AristaPackage, details: bool, format: str
 ) -> None:
     """List available flavors of Arista packages (eos or CVP) packages"""
+    mapping_pkg_name: AristaMapping = "EOS"
     if package == "eos":
-        package = "EOS"
+        mapping_pkg_name = "EOS"
     elif package == "cvp":
-        package = "CloudVision"
+        mapping_pkg_name = "CloudVision"
     console = console_configuration()
     log_level = ctx.obj["log_level"]
     console.print(f"Log Level is: {log_level}")
     cli_logging(log_level)
 
-    if package in software_mapping.model_fields:
-        mapping_entries = getattr(software_mapping, package, None)
+    if mapping_pkg_name in software_mapping.model_fields:
+        mapping_entries = getattr(software_mapping, mapping_pkg_name, None)
         if format == "text":
             console.print(
-                f"Following flavors for [red]{package}[/red] have been found:"
+                f"Following flavors for [red]{package}/{mapping_pkg_name}[/red] have been found:"
             )
             if mapping_entries is None:
                 console.print("[red]No flavors found[/red]")
