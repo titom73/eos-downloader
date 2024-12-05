@@ -1,0 +1,60 @@
+// {
+//     "version": "0.2.0",
+//     "configurations": [
+//         {
+//             "name": "Python: Debug eos_downloader/debug.py",
+//             "type": "debugpy",
+//             "request": "launch",
+//             "program": "${workspaceFolder}/eos_downloader/debug.py",
+//             "console": "integratedTerminal"
+//         }
+//     ]
+// },
+// {
+//     "version": "0.2.0",
+//     "configurations": [
+//         {
+//             "name": "Python: Pytest",
+//             "type": "debugpy",
+//             "request": "launch",
+//             "program": "/home/tom/.pyenv/shims/pytest",
+//             "args": [
+//                 "--pdb",
+//                 "-s",
+//                 "${workspaceFolder}/tests/units/"
+//             ],
+//             "console": "integratedTerminal",
+//             "justMyCode": false
+//         }
+//     ]
+// },
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python ARDL GET EOS",
+            "type": "debugpy",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "module": "eos_downloader.cli",
+            "args": [
+                // "ardl",
+                "--log",
+                "debug",
+                "get",
+                "eos",
+                "--version",
+                "4.33.0F",
+                "--format",
+                "cEOS"
+            ],
+            "env": {
+                "ARISTA_TOKEN": "04932d654aa853b5d7b49b73146f169c",
+            },
+            "justMyCode": false
+        }
+    ]
+}
