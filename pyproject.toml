@@ -106,11 +106,11 @@ namespaces = false
 ################################
 [tool.bumpver]
 current_version = "0.10.3"
-version_pattern = "MAJOR.MINOR.PATCH"
+version_pattern = "MAJOR.MINOR.PATCH[TAGNUM]"
 commit_message = "bump: Version {old_version} -> {new_version}"
 commit = true
 # No tag
-tag = false
+tag = true
 push = false
 
 [tool.bumpver.file_patterns]
