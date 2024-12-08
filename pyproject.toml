@@ -105,7 +105,7 @@ namespaces = false
 # Version
 ################################
 [tool.bumpver]
-current_version = "0.10.3"
+current_version = "0.11.0dev0"
 version_pattern = "MAJOR.MINOR.PATCH[TAGNUM]"
 commit_message = "bump: Version {old_version} -> {new_version}"
 commit = true
