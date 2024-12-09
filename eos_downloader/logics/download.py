@@ -34,6 +34,7 @@ import logging
 import requests
 from tqdm import tqdm
 
+import eos_downloader.defaults
 import eos_downloader.helpers
 import eos_downloader.logics
 import eos_downloader.logics.arista_server
@@ -63,12 +64,13 @@ class SoftManager:
     '/tmp/file.txt'
     """
 
-    def __init__(self) -> None:
+    def __init__(self, dry_run: bool = False) -> None:
         self.file: Dict[str, Union[str, None]] = {}
         self.file["name"] = None
         self.file["md5sum"] = None
         self.file["sha512sum"] = None
-        logging.info("SoftManager initialized")
+        self.dry_run = dry_run
+        logging.info("SoftManager initialized%s", " in dry-run mode" if dry_run else "")
 
     @staticmethod
     def _download_file_raw(url: str, file_path: str) -> str:
@@ -101,6 +103,14 @@ class SoftManager:
                     pbar.update(len(chunk))
                 f.write(chunk)
         return file_path
+
+    @staticmethod
+    def _create_destination_folder(path: str) -> None:
+        """Creates a directory path if it doesn't already exist."""
+        try:
+            os.makedirs(path, exist_ok=True)
+        except OSError as e:
+            logging.critical(f"Error creating folder: {e}")
 
     def checksum(self, check_type: Literal["md5sum", "sha512sum"]) -> bool:
         """
@@ -161,12 +171,13 @@ class SoftManager:
 
         Returns:
             Union[None, str]: The full path to the downloaded file if successful, None if download fails.
-
-        Note:
-            If rich_interface is True, uses rich progress bar for download visualization.
-            If rich_interface is False, uses a simple download method without progress indication.
         """
-        logging.info(f"Downloading {filename} from {url}")
+        logging.info(
+            f"{'[DRY-RUN] Would download' if self.dry_run else 'Downloading'} {filename} from {url}"
+        )
+        if self.dry_run:
+            return os.path.join(file_path, filename)
+
         if url is not False:
             if not rich_interface:
                 return self._download_file_raw(
@@ -202,6 +213,11 @@ class SoftManager:
             '/tmp/downloads'
         """
         logging.info(f"Downloading files from {object_arista.version}")
+
+        if len(object_arista.urls) == 0:
+            logging.error("No URLs found for download")
+            raise ValueError("No URLs found for download")
+
         for file_type, url in sorted(object_arista.urls.items(), reverse=True):
             logging.debug(f"Downloading {file_type} from {url}")
             if file_type == "image":
@@ -253,9 +269,96 @@ class SoftManager:
             raise FileNotFoundError(f"File {local_file_path} not found")
 
         try:
-            os.system(
-                f"$(which docker) import {local_file_path} {docker_name}:{docker_tag}"
-            )
+            cmd = f"$(which docker) import {local_file_path} {docker_name}:{docker_tag}"
+            if self.dry_run:
+                logging.info(f"[DRY-RUN] Would execute: {cmd}")
+            else:
+                logging.debug("running docker import process")
+                os.system(cmd)
         except Exception as e:
             logging.error(f"Error importing docker image: {e}")
             raise e
+
+    def provision_eve(
+        self,
+        object_arista: eos_downloader.logics.arista_server.EosXmlObject,
+        noztp: bool = False,
+    ) -> None:
+        """
+        Provisions EVE-NG with the specified Arista EOS object.
+
+        Args:
+            object_arista (eos_downloader.logics.arista_server.EosXmlObject): The Arista EOS object containing version, filename, and URLs.
+            noztp (bool, optional): If True, disables ZTP (Zero Touch Provisioning). Defaults to False.
+            checksum (bool, optional): If True, verifies the checksum of the downloaded files. Defaults to True.
+
+        Raises:
+            ValueError: If no URLs are found for download or if a URL or filename is None.
+
+        """
+
+        # EVE-NG provisioning page for vEOS
+        # https://www.eve-ng.net/index.php/documentation/howtos/howto-add-arista-veos/
+
+        logging.info(
+            f"Provisioning EVE-NG with {object_arista.version} / {object_arista.filename}"
+        )
+
+        file_path = f"{eos_downloader.defaults.EVE_QEMU_FOLDER_PATH}/veos-{object_arista.version}"
+
+        filename: str = ""
+        eos_filename = object_arista.filename
+
+        if len(object_arista.urls) == 0:
+            logging.error("No URLs found for download")
+            raise ValueError("No URLs found for download")
+
+        for file_type, url in sorted(object_arista.urls.items(), reverse=True):
+            logging.debug(f"Downloading {file_type} from {url}")
+            if file_type == "image":
+                filename = object_arista.filename
+                if noztp:
+                    filename = f"{os.path.splitext(object_arista.filename)[0]}-noztp{os.path.splitext(object_arista.filename)[1]}"
+                eos_filename = filename
+                logging.debug(f"filename is {filename}")
+                self.file["name"] = filename
+            else:
+                filename = object_arista.hashfile(file_type)
+                self.file[file_type] = filename
+            if url is None:
+                logging.error(f"URL not found for {file_type}")
+                raise ValueError(f"URL not found for {file_type}")
+            if filename is None:
+                logging.error(f"Filename not found for {file_type}")
+                raise ValueError(f"Filename not found for {file_type}")
+
+            if not os.path.exists(file_path):
+                logging.warning(f"creating folder on eve-ng server : {file_path}")
+                self._create_destination_folder(path=file_path)
+
+            logging.debug(
+                f"downloading file {filename} for version {object_arista.version}"
+            )
+            self.download_file(url, file_path, filename, rich_interface=True)
+
+        # Convert to QCOW2 format
+        file_qcow2 = os.path.join(file_path, "hda.qcow2")
+
+        if not self.dry_run:
+            os.system(
+                f"$(which qemu-img) convert -f vmdk -O qcow2 {file_path}/{eos_filename} {file_path}/{file_qcow2}"
+            )
+        else:
+            logging.info(
+                f"{'[DRY-RUN] Would convert' if self.dry_run else 'Converting'} VMDK to QCOW2 format: {file_path}/{eos_filename} to {file_qcow2} "
+            )
+
+        logging.info("Applying unl_wrapper to fix permissions")
+        if not self.dry_run:
+            os.system("/opt/unetlab/wrappers/unl_wrapper -a fixpermissions")
+        else:
+            logging.info("[DRY-RUN] Would execute unl_wrapper to fix permissions")
+        # os.system(f"rm -f {file_downloaded}")
+
+        # if noztp:
+        #     self._disable_ztp(file_path=file_path)

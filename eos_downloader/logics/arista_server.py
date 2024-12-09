@@ -263,7 +263,9 @@ class AristaXmlObject(AristaXmlBase):
         str:
             Filename to search for on Arista.com
         """
-        logging.info(f"Building filename for {self.software} package.")
+        logging.info(
+            f"Building filename for {self.image_type} package: {self.version}."
+        )
         try:
             filename = eos_downloader.models.data.software_mapping.filename(
                 self.software, self.image_type, self.search_version

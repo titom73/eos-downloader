@@ -4,10 +4,8 @@
 ![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)
 ![GitHub release](https://img.shields.io/github/v/release/titom73/arista-downloader)
 ![PyPI - Downloads/month](https://img.shields.io/pypi/dm/eos-downloader)
-
-<!--
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
-!-->
+
 
 # Arista Software Downloader
 
@@ -17,12 +15,14 @@ A project to download Arista softwares to local folder, Cloudvision or EVE-NG. I
 > This script should not be deployed on EOS device. If you do that, there is no support to expect from Arista TAC team.
 
 ```bash
+# install eos-downloader from pypi
 pip install eos-downloader
+
+# download EOS
+ardl --token <your-token> get eos --format 64 --latest --release-type M
 ```
 
 ## CLI commands
-
-A new CLI is available to execute commands. This CLI is going to replace [`eos-download`](./bin/README.md) script which is now marked as __deprecated__
 
 The CLI comes with a set of options to make life easier:
 
@@ -69,7 +69,7 @@ ardl get eos --branch 4.29 --format cEOS --release-type M
 # Get a specific version
 ardl get eos --version 4.29.4M
 
-# Get a specific version and import to docker using default arista/ceos:4.29.4M
+# Get a specific version and import to docker using default arista/ceos:{version}{release_type}
 ardl get eos --version 4.29.4M --import-docker
 ```
 
@@ -173,19 +173,7 @@ Options:
   --help                          Show this message and exit.
 ```
 
-## Requirements
-
-Repository requires Python `>=3.6` with following requirements:
-
-```requirements
-cvprac
-cryptography
-paramiko
-requests
-requests-toolbelt
-scp
-tqdm
-```
+## FAQ
 
 On EVE-NG, you may have to install/upgrade __pyOpenSSL__ in version `23.0.0`:
 
@@ -194,10 +182,6 @@ On EVE-NG, you may have to install/upgrade __pyOpenSSL__ in version `23.0.0`:
 
 $ pip install pyopenssl --upgrade
 ```
-
-## Docker
-
-Please refer to [docker documentation](docs/docker.md)
 
 ## Author
 

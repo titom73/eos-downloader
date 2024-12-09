@@ -30,8 +30,6 @@ __version__ = importlib.metadata.version("eos-downloader")
 
 # __all__ = ["CvpAuthenticationItem", "CvFeatureManager", "EOSDownloader", "ObjectDownloader", "reverse"]
 
-ARISTA_DOWNLOAD_URL = "https://www.arista.com/custom_data/api/cvp/getDownloadLink/"
-
 MSG_TOKEN_EXPIRED = """The API token has expired. Please visit arista.com, click on your profile and
 select Regenerate Token then re-run the script with the new token.
 """
@@ -42,10 +40,6 @@ check the Access Token. Then re-run the script with the correct token.
 
 MSG_INVALID_DATA = """Invalid data returned by server
 """
-
-EVE_QEMU_FOLDER_PATH = "/opt/unetlab/addons/qemu/"
-
-REQUEST_HEADERS = "{}"
 
 
 class EnhancedJSONEncoder(json.JSONEncoder):

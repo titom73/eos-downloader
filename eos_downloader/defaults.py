@@ -26,3 +26,6 @@ DEFAULT_SOFTWARE_FOLDER_TREE = (
 DEFAULT_DOWNLOAD_URL = "https://www.arista.com/custom_data/api/cvp/getDownloadLink/"
 
 DEFAULT_SERVER_SESSION = "https://www.arista.com/custom_data/api/cvp/getSessionCode/"
+
+# Path to the folder where the downloaded EOS images will be stored on an EVE-NG server.
+EVE_QEMU_FOLDER_PATH = "/opt/unetlab/addons/qemu/"
