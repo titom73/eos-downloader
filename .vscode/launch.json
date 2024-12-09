@@ -1,33 +1,3 @@
-// {
-//     "version": "0.2.0",
-//     "configurations": [
-//         {
-//             "name": "Python: Debug eos_downloader/debug.py",
-//             "type": "debugpy",
-//             "request": "launch",
-//             "program": "${workspaceFolder}/eos_downloader/debug.py",
-//             "console": "integratedTerminal"
-//         }
-//     ]
-// },
-// {
-//     "version": "0.2.0",
-//     "configurations": [
-//         {
-//             "name": "Python: Pytest",
-//             "type": "debugpy",
-//             "request": "launch",
-//             "program": "/home/tom/.pyenv/shims/pytest",
-//             "args": [
-//                 "--pdb",
-//                 "-s",
-//                 "${workspaceFolder}/tests/units/"
-//             ],
-//             "console": "integratedTerminal",
-//             "justMyCode": false
-//         }
-//     ]
-// },
 {
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
@@ -44,16 +14,17 @@
                 // "ardl",
                 "--log",
                 "debug",
+                "--debug-enabled",
                 "get",
                 "eos",
                 "--version",
                 "4.33.0F",
                 "--format",
-                "cEOS"
+                "vEOS-lab",
+                "--eve-ng",
+                "--dry-run"
             ],
-            "env": {
-                "ARISTA_TOKEN": "04932d654aa853b5d7b49b73146f169c",
-            },
+            "envFile": "${workspaceFolder}/.envrc",
             "justMyCode": false
         }
     ]
