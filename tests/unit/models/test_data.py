@@ -2,6 +2,7 @@
 """Tests for the eos_downloader.models.data.DataMapping class."""
 
 import pytest
+
 from eos_downloader.models.data import DataMapping, ImageInfo
 
 

@@ -34,6 +34,7 @@ import logging
 import requests
 from tqdm import tqdm
 
+import eos_downloader.models.types
 import eos_downloader.defaults
 import eos_downloader.helpers
 import eos_downloader.logics
@@ -112,7 +113,36 @@ class SoftManager:
         except OSError as e:
             logging.critical(f"Error creating folder: {e}")
 
-    def checksum(self, check_type: Literal["md5sum", "sha512sum"]) -> bool:
+    def _compute_hash_md5sum(self, file: str, hash_expected: str) -> bool:
+        """
+        _compute_hash_md5sum Compare MD5 sum
+
+        Do comparison between local md5 of the file and value provided by arista.com
+
+        Parameters
+        ----------
+        file : str
+            Local file to use for MD5 sum
+        hash_expected : str
+            MD5 from arista.com
+
+        Returns
+        -------
+        bool
+            True if both are equal, False if not
+        """
+        hash_md5 = hashlib.md5()
+        with open(file, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        if hash_md5.hexdigest() == hash_expected:
+            return True
+        logging.warning(
+            f"Downloaded file is corrupt: local md5 ({hash_md5.hexdigest()}) is different to md5 from arista ({hash_expected})"
+        )
+        return False
+
+    def checksum(self, check_type: Literal["md5sum", "sha512sum", "md5"]) -> bool:
         """
         Verifies the integrity of a downloaded file using a specified checksum algorithm.
 
@@ -132,6 +162,11 @@ class SoftManager:
             ```
         """
         logging.info(f"Checking checksum for {self.file['name']} using {check_type}")
+
+        if self.dry_run:
+            logging.debug("Dry-run mode enabled, skipping checksum verification")
+            return True
+
         if check_type == "sha512sum":
             hash_sha512 = hashlib.sha512()
             hash512sum = self.file["sha512sum"]
@@ -154,6 +189,32 @@ class SoftManager:
                 )
                 raise ValueError("Incorrect checksum")
             return True
+
+        if check_type in ["md5sum", "md5"]:
+            md5sum_file = self.file["md5sum"]
+            file_name = self.file["name"]
+
+            if md5sum_file is None:
+                raise ValueError(f"md5sum is not found: {md5sum_file}")
+
+            with open(md5sum_file, "r", encoding="utf-8") as f:
+                hash_expected = f.read().split()[0]
+
+            if hash_expected is None:
+                raise ValueError("MD5Sum is empty, cannot compute file.")
+
+            if file_name is None:
+                raise ValueError("Filename is None. Please fix it")
+
+            if not self._compute_hash_md5sum(file_name, hash_expected=hash_expected):
+                logging.error(
+                    f"Checksum failed for {self.file['name']}: expected {hash_expected}"
+                )
+
+                raise ValueError("Incorrect checksum")
+
+            return True
+
         logging.error(f"Checksum type {check_type} not yet supported")
         raise ValueError(f"Checksum type {check_type} not yet supported")
 
@@ -191,7 +252,7 @@ class SoftManager:
 
     def downloads(
         self,
-        object_arista: eos_downloader.logics.arista_server.EosXmlObject,
+        object_arista: eos_downloader.logics.arista_server.AristaXmlObjects,
         file_path: str,
         rich_interface: bool = True,
     ) -> Union[None, str]:
@@ -224,7 +285,7 @@ class SoftManager:
                 filename = object_arista.filename
                 self.file["name"] = filename
             else:
-                filename = object_arista.hashfile(file_type)
+                filename = object_arista.hash_filename()
                 self.file[file_type] = filename
             if url is None:
                 logging.error(f"URL not found for {file_type}")
@@ -232,7 +293,16 @@ class SoftManager:
             if filename is None:
                 logging.error(f"Filename not found for {file_type}")
                 raise ValueError(f"Filename not found for {file_type}")
-            self.download_file(url, file_path, filename, rich_interface)
+            if not self.dry_run:
+                logging.info(
+                    f"downloading file {filename} for version {object_arista.version}"
+                )
+                self.download_file(url, file_path, filename, rich_interface)
+            else:
+                logging.info(
+                    f"[DRY-RUN] - downloading file {filename} for version {object_arista.version}"
+                )
+
         return file_path
 
     def import_docker(
@@ -279,6 +349,7 @@ class SoftManager:
             logging.error(f"Error importing docker image: {e}")
             raise e
 
+    # pylint: disable=too-many-branches
     def provision_eve(
         self,
         object_arista: eos_downloader.logics.arista_server.EosXmlObject,
@@ -306,7 +377,7 @@ class SoftManager:
 
         file_path = f"{eos_downloader.defaults.EVE_QEMU_FOLDER_PATH}/veos-{object_arista.version}"
 
-        filename: str = ""
+        filename: Union[str, None] = None
         eos_filename = object_arista.filename
 
         if len(object_arista.urls) == 0:
@@ -316,15 +387,18 @@ class SoftManager:
         for file_type, url in sorted(object_arista.urls.items(), reverse=True):
             logging.debug(f"Downloading {file_type} from {url}")
             if file_type == "image":
-                filename = object_arista.filename
-                if noztp:
-                    filename = f"{os.path.splitext(object_arista.filename)[0]}-noztp{os.path.splitext(object_arista.filename)[1]}"
-                eos_filename = filename
-                logging.debug(f"filename is {filename}")
-                self.file["name"] = filename
+                fname = object_arista.filename
+                if fname is not None:
+                    filename = fname
+                    if noztp:
+                        filename = f"{os.path.splitext(fname)[0]}-noztp{os.path.splitext(fname)[1]}"
+                    eos_filename = filename
+                    logging.debug(f"filename is {filename}")
+                    self.file["name"] = filename
             else:
-                filename = object_arista.hashfile(file_type)
-                self.file[file_type] = filename
+                filename = object_arista.hash_filename()
+                if filename is not None:
+                    self.file[file_type] = filename
             if url is None:
                 logging.error(f"URL not found for {file_type}")
                 raise ValueError(f"URL not found for {file_type}")

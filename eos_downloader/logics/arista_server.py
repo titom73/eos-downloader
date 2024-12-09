@@ -51,7 +51,9 @@ class AristaXmlBase:
     # pylint: disable=too-few-public-methods
     """Base class for Arista XML data management."""
 
-    supported_role_types: List[str] = ["image", "md5sum", "sha512sum"]
+    # File extensions supported to be downloaded from arista server.
+    # Should cover: image file (image) and has files (md5sum and/or sha512sum)
+    supported_role_types: ClassVar[List[str]] = ["image", "md5sum", "sha512sum"]
 
     def __init__(
         self, token: Union[str, None] = None, xml_path: Union[str, None] = None
@@ -161,7 +163,7 @@ class AristaXmlQuerier(AristaXmlBase):
         package: eos_downloader.models.types.AristaPackage = "eos",
         branch: Union[str, None] = None,
         rtype: Union[eos_downloader.models.types.ReleaseType, None] = None,
-    ) -> eos_downloader.models.version.EosVersion:
+    ) -> AristaVersions:
         """
         Get latest branch from semver standpoint
 
@@ -172,16 +174,17 @@ class AristaXmlQuerier(AristaXmlBase):
         Returns:
             eos_downloader.models.version.EosVersion: Latest version found
         """
-        if rtype is not None and rtype not in eos_downloader.models.data.RTYPES:
-            raise ValueError(
-                f"Invalid release type: {rtype}. Expected {eos_downloader.models.data.RTYPES}"
-            )
+        if package == "eos":
+            if rtype is not None and rtype not in eos_downloader.models.data.RTYPES:
+                raise ValueError(
+                    f"Invalid release type: {rtype}. Expected {eos_downloader.models.data.RTYPES}"
+                )
 
         versions = self.available_public_versions(
             package=package, branch=branch, rtype=rtype
         )
         if len(versions) == 0:
-            raise ValueError("No versions found to run the max() funtion")
+            raise ValueError("No versions found to run the max() function")
         return max(versions)
 
     def branches(
@@ -238,6 +241,7 @@ class AristaXmlObject(AristaXmlBase):
     software: ClassVar[AristaMapping]
     base_xpath_active_version: ClassVar[str]
     base_xpath_filepath: ClassVar[str]
+    checksum_file_extension: ClassVar[str] = "sha512sum"
 
     def __init__(
         self,
@@ -248,9 +252,6 @@ class AristaXmlObject(AristaXmlBase):
     ) -> None:
         self.search_version = searched_version
         self.image_type = image_type
-        self.version = eos_downloader.models.version.EosVersion().from_str(
-            searched_version
-        )
         super().__init__(token=token, xml_path=xml_path)
 
     @property
@@ -264,7 +265,7 @@ class AristaXmlObject(AristaXmlBase):
             Filename to search for on Arista.com
         """
         logging.info(
-            f"Building filename for {self.image_type} package: {self.version}."
+            f"Building filename for {self.image_type} package: {self.search_version}."
         )
         try:
             filename = eos_downloader.models.data.software_mapping.filename(
@@ -275,12 +276,9 @@ class AristaXmlObject(AristaXmlBase):
             logging.error(f"Error: {e}")
         return None
 
-    def hashfile(self, hashtype: str = "md5sum") -> Union[str, None]:
+    def hash_filename(self) -> Union[str, None]:
         """
-        hashfilename Helper to build filename to search on arista.com
-
-        Args:
-            hashtype (str, optional): Hash type to search for. Defaults to 'md5sum'.
+        hash_filename Helper to build filename for checksum to search on arista.com
 
         Returns
         -------
@@ -290,9 +288,8 @@ class AristaXmlObject(AristaXmlBase):
 
         logging.info(f"Building hash filename for {self.software} package.")
 
-        if hashtype in self.supported_role_types:
-            if self.filename is not None:
-                return f"{self.filename}.{hashtype}"
+        if self.filename is not None:
+            return f"{self.filename}.{self.checksum_file_extension}"
         return None
 
     def path_from_xml(self, search_file: str) -> Union[str, None]:
@@ -311,6 +308,9 @@ class AristaXmlObject(AristaXmlBase):
         xpath_query = self.base_xpath_filepath.format(search_file)
         # Find the element using XPath
         path_element = self.xml_data.find(xpath_query)
+
+        if path_element is not None:
+            logging.debug(f'found path: {path_element.get("path")} for {search_file}')
 
         # Return the path if found, otherwise return None
         return path_element.get("path") if path_element is not None else None
@@ -347,15 +347,19 @@ class AristaXmlObject(AristaXmlBase):
             raise ValueError("Filename not found")
 
         for role in self.supported_role_types:
-            hashfile = self.hashfile(role)
-            if hashfile is None:
+            file_path = None
+            logging.debug(f"working on {role}")
+            hash_filename = self.hash_filename()
+            if hash_filename is None:
                 raise ValueError("Hash file not found")
             if role == "image":
                 file_path = self.path_from_xml(self.filename)
-            else:
-                file_path = self.path_from_xml(hashfile)
+            elif role == self.checksum_file_extension:
+                file_path = self.path_from_xml(hash_filename)
             if file_path is not None:
+                logging.info(f"Adding {role} with {file_path} to urls dict")
                 urls[role] = self._url(file_path)
+        logging.debug(f"URLs dict contains: {urls}")
         return urls
 
 
@@ -368,6 +372,43 @@ class EosXmlObject(AristaXmlObject):
     ] = './/dir[@label="Active Releases"]/dir/dir/[@label]'
     base_xpath_filepath: ClassVar[str] = './/file[.="{}"]'
 
+    # File extensions supported to be downloaded from arista server.
+    # Should cover: image file (image) and has files (md5sum and/or sha512sum)
+    supported_role_types: ClassVar[List[str]] = ["image", "md5sum", "sha512sum"]
+    checksum_file_extension: ClassVar[str] = "sha512sum"
+
+    def __init__(
+        self,
+        searched_version: str,
+        image_type: str,
+        token: Union[str, None] = None,
+        xml_path: Union[str, None] = None,
+    ) -> None:
+        """Initialize an instance of the EosXmlObject class.
+
+        Args:
+            searched_version (str): The version of the software to search for.
+            image_type (str): The type of image to download.
+            token (Union[str, None], optional): The authentication token. Defaults to None.
+            xml_path (Union[str, None], optional): The path to the XML file. Defaults to None.
+
+        Returns:
+            None
+        """
+
+        self.search_version = searched_version
+        self.image_type = image_type
+        self.version = eos_downloader.models.version.EosVersion().from_str(
+            searched_version
+        )
+
+        super().__init__(
+            searched_version=searched_version,
+            image_type=image_type,
+            token=token,
+            xml_path=xml_path,
+        )
+
 
 class CvpXmlObject(AristaXmlObject):
     """Class to query Arista XML data for CVP versions."""
@@ -377,3 +418,44 @@ class CvpXmlObject(AristaXmlObject):
         str
     ] = './/dir[@label="Active Releases"]/dir/dir/[@label]'
     base_xpath_filepath: ClassVar[str] = './/file[.="{}"]'
+
+    # File extensions supported to be downloaded from arista server.
+    # Should cover: image file (image) and has files (md5sum and/or sha512sum)
+    supported_role_types: ClassVar[List[str]] = ["image", "md5"]
+    checksum_file_extension: ClassVar[str] = "md5"
+
+    def __init__(
+        self,
+        searched_version: str,
+        image_type: str,
+        token: Union[str, None] = None,
+        xml_path: Union[str, None] = None,
+    ) -> None:
+        """Initialize an instance of the CvpXmlObject class.
+
+        Args:
+            searched_version (str): The version of the software to search for.
+            image_type (str): The type of image to download.
+            token (Union[str, None], optional): The authentication token. Defaults to None.
+            xml_path (Union[str, None], optional): The path to the XML file. Defaults to None.
+
+        Returns:
+            None
+        """
+
+        self.search_version = searched_version
+        self.image_type = image_type
+        self.version = eos_downloader.models.version.CvpVersion().from_str(
+            searched_version
+        )
+
+        super().__init__(
+            searched_version=searched_version,
+            image_type=image_type,
+            token=token,
+            xml_path=xml_path,
+        )
+
+
+# Create the custom type
+AristaXmlObjects = Union[CvpXmlObject, EosXmlObject]

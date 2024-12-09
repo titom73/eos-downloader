@@ -11,6 +11,9 @@ Type Aliases:
 
 from typing import Literal, Union
 
+import eos_downloader.logics
+
+# import eos_downloader.logics.arista_server
 import eos_downloader.models.version
 
 # Define the product type using Literal

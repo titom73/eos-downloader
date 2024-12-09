@@ -18,7 +18,7 @@ A project to download Arista softwares to local folder, Cloudvision or EVE-NG. I
 # install eos-downloader from pypi
 pip install eos-downloader
 
-# download EOS
+# download EOS swi for EOS 64bits
 ardl --token <your-token> get eos --format 64 --latest --release-type M
 ```
 
@@ -28,7 +28,7 @@ The CLI comes with a set of options to make life easier:
 
 - Token (`--token`) can be loaded from environment variable: `ARISTA_TOKEN`
 - Log level management (`--log-level`). Can be set to any value from `debug` to `critical`
-- A switch to enable rich execption management (`--debug-enabled`)
+- A switch to enable rich exception management (`--debug-enabled`)
 
 ```bash
 ardl --help
@@ -71,6 +71,9 @@ ardl get eos --version 4.29.4M
 
 # Get a specific version and import to docker using default arista/ceos:{version}{release_type}
 ardl get eos --version 4.29.4M --import-docker
+
+# Get a specific version and import to EVE-NG
+ardl get eos --version 4.33.0F --eve-ng
 ```
 
 ### Get information about softwares versions

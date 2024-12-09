@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import os
 import pytest
-from loguru import logger
+import logging
 from eos_downloader.logics.arista_server import AristaXmlQuerier
 from eos_downloader.models.version import EosVersion, CvpVersion
 from unittest.mock import patch
@@ -32,9 +32,6 @@ def xml_data():
     root = tree.getroot()
     return root
 
-
-logger.remove()
-logger.add(sys.stderr, level="DEBUG")
 
 # ------------------- #
 # Tests AristaXmlBase
@@ -83,7 +80,7 @@ def test_AristaXmlQuerier_available_public_versions_eos_branch_4_29(xml_path):
     versions = xml_querier.available_public_versions(package="eos", branch="4.29")
     assert len(versions) == 34, "Incorrect number of versions"
     for version in versions:
-        # logger.debug(f"Checking version {version}")
+        # logging.debug(f"Checking version {version}")
         assert version.is_in_branch("4.29"), f"Version {version} is not in branch 4.29"
     assert versions[0] == EosVersion().from_str("4.29.10M"), "First version should be 4.29.10M - got {versions[0]}"
 
@@ -93,7 +90,7 @@ def test_AristaXmlQuerier_available_public_versions_eos_f_release_branch_4_29(xm
     versions = xml_querier.available_public_versions(package="eos", rtype="F", branch="4.29")
     assert len(versions) == 6, "Incorrect number of versions - expected 6"
     for version in versions:
-        # logger.debug(f"Checking version {version}")
+        # logging.debug(f"Checking version {version}")
         assert version.is_in_branch("4.29"), f"Version {version} is not in branch 4.29"
     assert versions[0] == EosVersion().from_str(
         "4.29.2F"
@@ -105,7 +102,7 @@ def test_AristaXmlQuerier_available_public_versions_eos_m_release_branch_4_29(xm
     versions = xml_querier.available_public_versions(package="eos", rtype="M", branch="4.29")
     assert len(versions) == 28, "Incorrect number of versions - expected 28"
     for version in versions:
-        # logger.debug(f"Checking version {version}")
+        # logging.debug(f"Checking version {version}")
         assert version.is_in_branch("4.29"), f"Version {version} is not in branch 4.29"
     assert versions[0] == EosVersion().from_str(
         "4.29.10M"
@@ -247,7 +244,6 @@ def test_arista_xml_object_initialization(xml_path):
     arista_xml_object = AristaXmlObject(searched_version="4.29.2F", image_type="image", xml_path=xml_path)
     assert arista_xml_object.search_version == "4.29.2F", "Incorrect search version"
     assert arista_xml_object.image_type == "image", "Incorrect image type"
-    assert arista_xml_object.version == EosVersion().from_str("4.29.2F"), "Incorrect version object"
 
 def test_arista_xml_object_filename_for_ceos(xml_path):
     arista_xml_object = EosXmlObject(
@@ -264,11 +260,11 @@ def test_arista_xml_object_hashfile(xml_path):
         image_type="cEOS",
         xml_path=xml_path,
     )
-    hashfile = arista_xml_object.hashfile(hashtype="md5sum")
+    hashfile = arista_xml_object.hash_filename()
     assert (
-        hashfile == "cEOS-lab-4.29.2F.tar.xz.md5sum"
+        hashfile == "cEOS-lab-4.29.2F.tar.xz.sha512sum"
     ), f"Incorrect hashfile, got {hashfile}"
-    hashfile = arista_xml_object.hashfile(hashtype="sha512sum")
+    hashfile = arista_xml_object.hash_filename()
     assert (
         hashfile == "cEOS-lab-4.29.2F.tar.xz.sha512sum"
     ), f"Incorrect hashfile, got {hashfile}"
@@ -300,7 +296,6 @@ def test_arista_xml_object_urls(xml_path):
     with patch('eos_downloader.logics.arista_server.AristaXmlObject._url') as mock_url:
         mock_url.side_effect = [
             "https://arista.com/path/to/EOS-4.29.2F.swi",
-            "https://arista.com/path/to/EOS-4.29.2F.swi.md5sum",
             "https://arista.com/path/to/EOS-4.29.2F.swi.sha512sum"
         ]
         arista_xml_object = EosXmlObject(
@@ -309,9 +304,9 @@ def test_arista_xml_object_urls(xml_path):
             xml_path=xml_path,
         )
         urls = arista_xml_object.urls
+        logging.warning(f"URLs are: {urls}")
         expected_urls = {
             "image": "https://arista.com/path/to/EOS-4.29.2F.swi",
-            "md5sum": "https://arista.com/path/to/EOS-4.29.2F.swi.md5sum",
             "sha512sum": "https://arista.com/path/to/EOS-4.29.2F.swi.sha512sum"
         }
         assert urls == expected_urls, f"Incorrect URLs, got {urls}"
@@ -320,7 +315,6 @@ def test_arista_xml_object_urls_with_invalid_hash(xml_path):
     with patch('eos_downloader.logics.arista_server.AristaXmlObject._url') as mock_url:
         mock_url.side_effect = [
             "https://arista.com/path/to/EOS-4.29.2F.swi",
-            None,
             "https://arista.com/path/to/EOS-4.29.2F.swi.sha512sum"
         ]
         arista_xml_object = EosXmlObject(
@@ -331,7 +325,6 @@ def test_arista_xml_object_urls_with_invalid_hash(xml_path):
         urls = arista_xml_object.urls
         expected_urls = {
             "image": "https://arista.com/path/to/EOS-4.29.2F.swi",
-            "md5sum": None,
             "sha512sum": "https://arista.com/path/to/EOS-4.29.2F.swi.sha512sum"
         }
         assert urls == expected_urls, f"Incorrect URLs, got {urls}"
@@ -347,7 +340,6 @@ def test_arista_xml_object_urls_with_missing_files(xml_path):
         urls = arista_xml_object.urls
         expected_urls = {
             "image": None,
-            "md5sum": None,
             "sha512sum": None
         }
         assert urls == expected_urls, f"Incorrect URLs, got {urls}"

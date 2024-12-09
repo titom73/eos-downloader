@@ -80,14 +80,18 @@ def debug(ctx: click.Context, cls: click.Group = AliasedGroup) -> None:
 
 def cli() -> None:
     """Load ANTA CLI"""
-    # Load group commands
+    # Load group commands for get
     get.add_command(get_commands.eos)
-    # get.add_command(get_commands.cvp)
-    # info.add_command(info_commands.eos_versions)
+    get.add_command(get_commands.cvp)
+
+    # Debug
     debug.add_command(debug_commands.xml)
+
+    # Get info commands
     info.add_command(info_commands.versions)
     info.add_command(info_commands.latest)
     info.add_command(info_commands.mapping)
+
     # Load CLI
     ardl(obj={}, auto_envvar_prefix="arista")
 

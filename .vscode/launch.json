@@ -20,8 +20,28 @@
                 "--version",
                 "4.33.0F",
                 "--format",
-                "vEOS-lab",
-                "--eve-ng",
+                "cEOS",
+                "--dry-run"
+            ],
+            "envFile": "${workspaceFolder}/.envrc",
+            "justMyCode": false
+        },
+        {
+            "name": "Python ARDL GET CVP",
+            "type": "debugpy",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "module": "eos_downloader.cli",
+            "args": [
+                // "ardl",
+                "--log",
+                "debug",
+                "--debug-enabled",
+                "get",
+                "cvp",
+                "--latest",
+                "--format",
+                "upgrade",
                 "--dry-run"
             ],
             "envFile": "${workspaceFolder}/.envrc",

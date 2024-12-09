@@ -12,7 +12,7 @@ from rich.console import Console
 from eos_downloader.cli.utils import cli_logging, console_configuration
 from eos_downloader.models.data import RTYPE_FEATURE, RTYPES
 from eos_downloader.models.types import ReleaseType
-from eos_downloader.logics.arista_server import AristaXmlQuerier
+from eos_downloader.logics.arista_server import AristaXmlQuerier, AristaXmlObjects
 
 
 def initialize(ctx: click.Context) -> tuple[Console, str, bool, str]:
@@ -30,6 +30,7 @@ def initialize(ctx: click.Context) -> tuple[Console, str, bool, str]:
     debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
+
     return console, token, debug, log_level
 
 
@@ -83,45 +84,49 @@ def search_version(
 def download_files(
     console: Console,
     cli: Any,
-    eos_dl_obj: Any,
+    arista_dl_obj: AristaXmlObjects,
     output: str,
     rich_interface: bool,
     debug: bool,
+    checksum_format: str = "sha512sum",
 ) -> None:
     """Downloads EOS files and verifies their checksums.
 
     Args:
         console (Console): The console object for printing messages.
         cli (CLI): The CLI object used to perform download and checksum operations.
-        eos_dl_obj (EOSDownload): The EOS download object containing version and filename information.
+        arista_dl_obj (AristaPackage): The EOS download object containing version and filename information.
         output (str): The output directory where the files will be saved.
         rich_interface (bool): Flag to indicate if rich interface should be used.
         debug (bool): Flag to indicate if debug information should be printed.
+        checksum_format (str): The checksum format to use for verification.
 
     Raises:
         Exception: If there is an error during the checksum verification.
     """
 
     console.print(
-        f"Starting download for EOS version [green]{eos_dl_obj.version}[/green] for [blue]{format}[/blue] format."
+        f"Starting download for EOS version [green]{arista_dl_obj}[/green] for [blue]{format}[/blue] format."
     )
-    cli.downloads(eos_dl_obj, file_path=output, rich_interface=rich_interface)
+    cli.downloads(arista_dl_obj, file_path=output, rich_interface=rich_interface)
     try:
-        cli.checksum("sha512sum")
+        cli.checksum(checksum_format)
     except subprocess.CalledProcessError:
         if debug:
             console.print_exception(show_locals=True)
         else:
-            console.print(f"[red]Checksum error for file {eos_dl_obj.filename}[/red]")
+            console.print(
+                f"[red]Checksum error for file {arista_dl_obj.filename}[/red]"
+            )
     console.print(
-        f"EOS file [green]{eos_dl_obj.filename}[/green] downloaded in: [blue]{output}[/blue]"
+        f"Arista file [green]{arista_dl_obj.filename}[/green] downloaded in: [blue]{output}[/blue]"
     )
 
 
 def handle_docker_import(
     console: Console,
     cli: Any,
-    eos_dl_obj: Any,
+    arista_dl_obj: AristaXmlObjects,
     output: str,
     docker_name: str,
     docker_tag: Optional[str],
@@ -132,7 +137,7 @@ def handle_docker_import(
     Args:
         console: The console object used for printing messages.
         cli: The CLI tool object that provides the import_docker method.
-        eos_dl_obj: An object containing information about the EOS download, including version and filename.
+        arista_dl_obj: An object containing information about the EOS download, including version and filename.
         output: The directory where the Docker image file is located.
         docker_name: The name to assign to the Docker image.
         docker_tag: The tag to assign to the Docker image. If None, the version from eos_dl_obj is used.
@@ -143,14 +148,21 @@ def handle_docker_import(
     """
 
     console.print("Importing docker image...")
+
     if docker_tag is None:
-        docker_tag = eos_dl_obj.version
+        docker_tag = arista_dl_obj.version
+
+    if arista_dl_obj.filename is None:
+        console.print("[red]Invalid filename[/red]")
+        return 1
+
     console.print(
-        f"Importing docker image [green]{docker_name}:{docker_tag}[/green] from [blue]{os.path.join(output, eos_dl_obj.filename)}[/blue]..."
+        f"Importing docker image [green]{docker_name}:{docker_tag}[/green] from [blue]{os.path.join(output, arista_dl_obj.filename)}[/blue]..."
     )
+
     try:
         cli.import_docker(
-            local_file_path=os.path.join(output, eos_dl_obj.filename),
+            local_file_path=os.path.join(output, arista_dl_obj.filename),
             docker_name=docker_name,
             docker_tag=docker_tag,
         )
@@ -159,10 +171,12 @@ def handle_docker_import(
             console.print_exception(show_locals=True)
         else:
             console.print(
-                f"\n[red]File not found: {os.path.join(output, eos_dl_obj.filename)}[/red]"
+                f"\n[red]File not found: {os.path.join(output, arista_dl_obj.filename)}[/red]"
             )
         return 1
+
     console.print(
         f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"
     )
+
     return 0
