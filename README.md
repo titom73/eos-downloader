@@ -22,6 +22,9 @@ pip install eos-downloader
 ardl --token <your-token> get eos --format 64 --latest --release-type M
 ```
 
+> [!NOTE]
+> The main branch is not the stable branch and can be broken between releases. It is safe to consider using tags for stable versions. All versions on pypi servers are considered stable.
+
 ## CLI commands
 
 The CLI comes with a set of options to make life easier:
