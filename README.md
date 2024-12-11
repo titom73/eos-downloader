@@ -54,7 +54,7 @@ Commands:
   info   List information from Arista website
 ```
 
-> **Warning**
+> [!WARNING]
 > To use this CLI you need to get a valid token from your [Arista Account page](https://www.arista.com/en/users/profile).
 > For technical reason, it is only available for customers with active maintenance contracts and not for personnal accounts
 
