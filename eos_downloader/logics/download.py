@@ -133,7 +133,10 @@ class SoftManager:
         """
         hash_md5 = hashlib.md5()
         with open(file, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
+            while True:
+                chunk = f.read(4096)
+                if not chunk:
+                    break
                 hash_md5.update(chunk)
         if hash_md5.hexdigest() == hash_expected:
             return True
@@ -181,7 +184,10 @@ class SoftManager:
             with open(hash512sum, "r", encoding="utf-8") as f:
                 hash_expected = f.read().split()[0]
             with open(file_name, "rb") as f:
-                for chunk in iter(lambda: f.read(4096), b""):
+                while True:
+                    chunk = f.read(4096)
+                    if not chunk:
+                        break
                     hash_sha512.update(chunk)
             if hash_sha512.hexdigest() != hash_expected:
                 logging.error(
