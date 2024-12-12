@@ -2,78 +2,30 @@
 # coding: utf-8 -*-
 # pylint: disable=no-value-for-parameter
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=line-too-long
 # pylint: disable=redefined-builtin
+# pylint: disable=broad-exception-caught
 # flake8: noqa E501
 
-"""
-Commands for ARDL CLI to get data.
-"""
+"""CLI commands for listing Arista package information."""
 
 import os
-import sys
 from typing import Union
-
 import click
-from loguru import logger
-from rich.console import Console
+from eos_downloader.models.data import RTYPE_FEATURE
+from eos_downloader.logics.download import SoftManager
+from eos_downloader.logics.arista_server import (
+    EosXmlObject,
+    AristaXmlQuerier,
+    CvpXmlObject,
+)
 
-import eos_downloader.eos
-from eos_downloader.models.version import BASE_VERSION_STR, RTYPE_FEATURE, RTYPES
-
-EOS_IMAGE_TYPE = [
-    "64",
-    "INT",
-    "2GB-INT",
-    "cEOS",
-    "cEOS64",
-    "vEOS",
-    "vEOS-lab",
-    "EOS-2GB",
-    "default",
-]
-CVP_IMAGE_TYPE = ["ova", "rpm", "kvm", "upgrade"]
+from .utils import initialize, search_version, download_files, handle_docker_import
 
 
-@click.command(no_args_is_help=True)
-@click.pass_context
-@click.option(
-    "--image-type",
-    default="default",
-    help="EOS Image type",
-    type=click.Choice(EOS_IMAGE_TYPE),
-    required=True,
-)
-@click.option("--version", default=None, help="EOS version", type=str, required=False)
-@click.option(
-    "--latest",
-    "-l",
-    is_flag=True,
-    type=click.BOOL,
-    default=False,
-    help="Get latest version in given branch. If --branch is not use, get the latest branch with specific release type",
-)
-@click.option(
-    "--release-type",
-    "-rtype",
-    type=click.Choice(RTYPES, case_sensitive=False),
-    default=RTYPE_FEATURE,
-    help="EOS release type to search",
-)
-@click.option(
-    "--branch",
-    "-b",
-    type=click.STRING,
-    default=None,
-    help="EOS Branch to list releases",
-)
-@click.option(
-    "--docker-name",
-    default="arista/ceos",
-    help="Docker image name (default: arista/ceos)",
-    type=str,
-    show_default=True,
-)
+@click.command()
+@click.option("--format", default="vmdk", help="Image format", show_default=True)
 @click.option(
     "--output",
     default=str(os.path.relpath(os.getcwd(), start=os.curdir)),
@@ -81,17 +33,12 @@ CVP_IMAGE_TYPE = ["ova", "rpm", "kvm", "upgrade"]
     type=click.Path(),
     show_default=True,
 )
-# Debugging
 @click.option(
-    "--log-level",
-    "--log",
-    help="Logging level of the command",
-    default=None,
-    type=click.Choice(
-        ["debug", "info", "warning", "error", "critical"], case_sensitive=False
-    ),
+    "--latest",
+    is_flag=True,
+    help="Get latest version. If --branch is not use, get the latest branch with specific release type",
+    default=False,
 )
-# Boolean triggers
 @click.option(
     "--eve-ng",
     is_flag=True,
@@ -99,105 +46,96 @@ CVP_IMAGE_TYPE = ["ova", "rpm", "kvm", "upgrade"]
     default=False,
 )
 @click.option(
-    "--disable-ztp",
-    is_flag=True,
-    help="Disable ZTP process in vEOS image (only available with --eve-ng)",
-    default=False,
-)
-@click.option(
     "--import-docker",
     is_flag=True,
-    help="Import docker image (only available with --image_type cEOSlab)",
+    help="Import docker image to local docker",
     default=False,
 )
+@click.option(
+    "--skip-download",
+    is_flag=True,
+    help="Skip download process - for debug only",
+    default=False,
+)
+@click.option(
+    "--docker-name", default="arista/ceos", help="Docker image name", show_default=True
+)
+@click.option("--docker-tag", default=None, help="Docker image tag", show_default=True)
+@click.option(
+    "--version", default=None, help="EOS version to download", show_default=True
+)
+@click.option(
+    "--release-type",
+    default=RTYPE_FEATURE,
+    help="Release type (M for Maintenance, F for Feature)",
+    show_default=True,
+)
+@click.option("--branch", default=None, help="Branch to download", show_default=True)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Enable dry-run mode: only run code without system changes",
+    default=False,
+)
+@click.pass_context
 def eos(
     ctx: click.Context,
-    image_type: str,
+    format: str,
     output: str,
-    log_level: str,
     eve_ng: bool,
-    disable_ztp: bool,
     import_docker: bool,
+    skip_download: bool,
     docker_name: str,
-    version: Union[str, None] = None,
-    release_type: str = RTYPE_FEATURE,
-    latest: bool = False,
-    branch: Union[str, None] = None,
+    docker_tag: str,
+    version: Union[str, None],
+    release_type: str,
+    latest: bool,
+    branch: Union[str, None],
+    dry_run: bool,
 ) -> int:
-# pylint: disable=R0917
-    """Download EOS image from Arista website"""
-    console = Console()
-    # Get from Context
-    token = ctx.obj["token"]
-    is_latest: bool = False
-    if token is None or token == "":
-        console.print(
-            "❗ Token is unset ! Please configure ARISTA_TOKEN or use --token option",
-            style="bold red",
-        )
-        sys.exit(1)
-
-    logger.remove()
-    if log_level is not None:
-        logger.add("eos-downloader.log", rotation="10 MB", level=log_level.upper())
-
-    console.print(
-        "🪐 [bold blue]eos-downloader[/bold blue] is starting...",
+    """Download EOS image from Arista server."""
+    # pylint: disable=unused-variable
+    console, token, debug, log_level = initialize(ctx)
+    version = search_version(
+        console, token, version, latest, branch, format, release_type
     )
-    console.print(f"    - Image Type: {image_type}")
-    console.print(f"    - Version: {version}")
-
-    if version is not None:
-        my_download = eos_downloader.eos.EOSDownloader(
-            image=image_type,
-            software="EOS",
-            version=version,
-            token=token,
-            hash_method="sha512sum",
+    if version is None:
+        raise ValueError("Version is not set correctly")
+    try:
+        eos_dl_obj = EosXmlObject(
+            searched_version=version, token=token, image_type=format
         )
-        my_download.authenticate()
+    except Exception:
+        console.print_exception(show_locals=True)
+        return 1
 
-    elif latest:
-        is_latest = True
-        my_download = eos_downloader.eos.EOSDownloader(
-            image=image_type,
-            software="EOS",
-            version="unset",
-            token=token,
-            hash_method="sha512sum",
-        )
-        my_download.authenticate()
-        if branch is None:
-            branch = str(my_download.latest_branch(rtype=release_type).branch)
-        latest_version = my_download.latest_eos(branch, rtype=release_type)
-        if str(latest_version) == BASE_VERSION_STR:
-            console.print(
-                f"[red]Error[/red], cannot find any version in {branch} for {release_type} release type"
+    cli = SoftManager(dry_run=dry_run)
+
+    if not skip_download:
+        if not eve_ng:
+            download_files(
+                console, cli, eos_dl_obj, output, rich_interface=True, debug=debug
             )
-            sys.exit(1)
-        my_download.version = str(latest_version)
-
-    if eve_ng:
-        my_download.provision_eve(noztp=disable_ztp, checksum=True)
-    else:
-        my_download.download_local(file_path=output, checksum=True)
+        else:
+            try:
+                cli.provision_eve(eos_dl_obj, noztp=True)
+            except Exception as e:
+                if debug:
+                    console.print_exception(show_locals=True)
+                else:
+                    console.print(f"\n[red]Exception raised: {e}[/red]")
+                return 1
 
     if import_docker:
-        my_download.docker_import(image_name=docker_name, is_latest=is_latest)
-    console.print("✅  processing done !")
-    sys.exit(0)
+        return handle_docker_import(
+            console, cli, eos_dl_obj, output, docker_name, docker_tag, debug
+        )
+
+    return 0
 
 
-@click.command(no_args_is_help=True)
-@click.pass_context
-@click.option(
-    "--format",
-    default="upgrade",
-    help="CVP Image type",
-    type=click.Choice(CVP_IMAGE_TYPE),
-    required=True,
-)
-@click.option("--version", default=None, help="CVP version", type=str, required=True)
+@click.command()
+@click.option("--format", default="ova", help="Image format", show_default=True)
 @click.option(
     "--output",
     default=str(os.path.relpath(os.getcwd(), start=os.curdir)),
@@ -206,48 +144,83 @@ def eos(
     show_default=True,
 )
 @click.option(
-    "--log-level",
-    "--log",
-    help="Logging level of the command",
-    default=None,
-    type=click.Choice(
-        ["debug", "info", "warning", "error", "critical"], case_sensitive=False
-    ),
+    "--latest",
+    is_flag=True,
+    help="Get latest version. If --branch is not use, get the latest branch with specific release type",
+    default=False,
 )
+@click.option(
+    "--version", default=None, help="EOS version to download", show_default=True
+)
+@click.option("--branch", default=None, help="Branch to download", show_default=True)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Enable dry-run mode: only run code without system changes",
+    default=False,
+)
+@click.pass_context
 def cvp(
-    ctx: click.Context, version: str, format: str, output: str, log_level: str
+    ctx: click.Context,
+    latest: bool,
+    format: str,
+    output: str,
+    version: Union[str, None],
+    branch: Union[str, None],
+    dry_run: bool = False,
 ) -> int:
-    """Download CVP image from Arista website"""
-    console = Console()
-    # Get from Context
-    token = ctx.obj["token"]
-    if token is None or token == "":
+    """Download CVP image from Arista server."""
+    # pylint: disable=unused-variable
+    console, token, debug, log_level = initialize(ctx)
+
+    if version is not None:
         console.print(
-            "❗ Token is unset ! Please configure ARISTA_TOKEN or use --token option",
-            style="bold red",
+            f"Searching for EOS version [green]{version}[/green] for [blue]{format}[/blue] format..."
         )
-        sys.exit(1)
+    elif latest:
+        console.print(
+            f"Searching for [blue]latest[/blue] EOS version for [blue]{format}[/blue] format..."
+        )
+    elif branch is not None:
+        console.print(
+            f"Searching for EOS [b]latest[/b] version for [blue]{branch}[/blue] branch for [blue]{format}[/blue] format..."
+        )
 
-    logger.remove()
-    if log_level is not None:
-        logger.add("eos-downloader.log", rotation="10 MB", level=log_level.upper())
+    if branch is not None or latest:
+        try:
+            querier = AristaXmlQuerier(token=token)
+            version_obj = querier.latest(package="cvp", branch=branch)
+            version = str(version_obj)
+        except Exception as e:
+            console.print(f"Token is set to: {token}")
+            console.print_exception(show_locals=True)
+            return 1
 
-    console.print(
-        "🪐 [bold blue]eos-downloader[/bold blue] is starting...",
+    console.print(f"version to download is {version}")
+
+    if version is None:
+        raise ValueError("Version is not set correctly")
+    try:
+        cvp_dl_obj = CvpXmlObject(
+            searched_version=version, token=token, image_type=format
+        )
+    except Exception as e:
+        if debug:
+            console.print_exception(show_locals=True)
+        else:
+            console.print(f"\n[red]Exception raised: {e}[/red]")
+        return 1
+
+    cli = SoftManager(dry_run=dry_run)
+    download_files(
+        console,
+        cli,
+        cvp_dl_obj,
+        output,
+        rich_interface=True,
+        debug=debug,
+        checksum_format="md5sum",
     )
-    console.print(f"    - Image Type: {format}")
-    console.print(f"    - Version: {version}")
 
-    my_download = eos_downloader.eos.EOSDownloader(
-        image=format,
-        software="CloudVision",
-        version=version,
-        token=token,
-        hash_method="md5sum",
-    )
-
-    my_download.authenticate()
-
-    my_download.download_local(file_path=output, checksum=False)
-    console.print("✅  processing done !")
-    sys.exit(0)
+    console.print(f"CVP file is saved under: {output}")
+    return 0

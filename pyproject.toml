@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eos_downloader"
-version = "v0.10.3"
+version = "v0.11.0dev0"
 readme = "README.md"
 authors = [{ name = "Thomas Grimonet", email = "thomas.grimonet@gmail.com" }]
 maintainers = [
@@ -105,8 +105,8 @@ namespaces = false
 # Version
 ################################
 [tool.bumpver]
-current_version = "0.10.3"
-version_pattern = "MAJOR.MINOR.PATCH"
+current_version = "0.11.0dev0"
+version_pattern = "MAJOR.MINOR.PATCH[TAGNUM]"
 commit_message = "bump: Version {old_version} -> {new_version}"
 commit = true
 # No tag
@@ -205,8 +205,8 @@ depends = py310
 """
 
 [tool.pytest.ini_options]
-addopts = "-ra -q -s -vv --capture=tee-sys --cov --cov-append"
-log_level = "INFO"
+addopts = "-ra -q -s -vv --capture=tee-sys --cov eos_downloader --cov-append"
+log_level = "DEBUG"
 log_cli = "True"
 
 [tool.coverage.run]

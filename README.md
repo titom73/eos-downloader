@@ -4,188 +4,182 @@
 ![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)
 ![GitHub release](https://img.shields.io/github/v/release/titom73/arista-downloader)
 ![PyPI - Downloads/month](https://img.shields.io/pypi/dm/eos-downloader)
-
-<!--
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
-!-->
+
 
 # Arista Software Downloader
 
-Script to download Arista softwares to local folder, Cloudvision or EVE-NG.
+A project to download Arista softwares to local folder, Cloudvision or EVE-NG. It comes in 2 way: a framework with object to automate Arista software download and a CLI for human activities.
 
 > [!CAUTION]
 > This script should not be deployed on EOS device. If you do that, there is no support to expect from Arista TAC team.
 
-
 ```bash
+# install eos-downloader from pypi
 pip install eos-downloader
+
+# download EOS swi for EOS 64bits
+ardl --token <your-token> get eos --format 64 --latest --release-type M
 ```
+
+> [!NOTE]
+> The main branch is not the stable branch and can be broken between releases. It is safe to consider using tags for stable versions. All versions on pypi servers are considered stable.
 
 ## CLI commands
 
-A new CLI is available to execute commands. This CLI is going to replace [`eos-download`](./bin/README.md) script which is now marked as __deprecated__
+The CLI comes with a set of options to make life easier:
+
+- Token (`--token`) can be loaded from environment variable: `ARISTA_TOKEN`
+- Log level management (`--log-level`). Can be set to any value from `debug` to `critical`
+- A switch to enable rich exception management (`--debug-enabled`)
 
 ```bash
- ardl
+ardl --help
 Usage: ardl [OPTIONS] COMMAND [ARGS]...
 
   Arista Network Download CLI
 
 Options:
-  --version     Show the version and exit.
-  --token TEXT  Arista Token from your customer account  [env var:
-                ARISTA_TOKEN]
-  --help        Show this message and exit.
+  --version                       Show the version and exit.
+  --token TEXT                    Arista Token from your customer account
+                                  [env var: ARISTA_TOKEN]
+  --log-level, --log [debug|info|warning|error|critical]
+                                  Logging level of the command
+  --debug-enabled, --debug        Activate debug mode for ardl cli
+  --help                          Show this message and exit.
 
 Commands:
-  debug    Debug commands to work with ardl
-  get      Download Arista from Arista website
+  debug  Debug commands to work with ardl
+  get    Download Arista from Arista website
+  info   List information from Arista website
 ```
 
-> **Warning**
+> [!WARNING]
 > To use this CLI you need to get a valid token from your [Arista Account page](https://www.arista.com/en/users/profile).
 > For technical reason, it is only available for customers with active maintenance contracts and not for personnal accounts
 
-### Download EOS Package
+### Download EOS package from arista website
 
-> **Note**
-> Supported packages are: EOS, cEOS, vEOS-lab, cEOS64
-
-CLI gives an option to get latest version available. By default it takes latest `F` release
+This command gives you option to download EOS images localy. Some options are available based on image type like importing your cEOS container in your local registry
 
 ```bash
-ardl get eos --image-type cEOS --latest
+# Get latest version of EOS using docker format.
+ardl get eos --latest --format cEOS
+
+# Get latest version of maintenance type in specific branch 4.29
+ardl get eos --branch 4.29 --format cEOS --release-type M
+
+# Get a specific version
+ardl get eos --version 4.29.4M
+
+# Get a specific version and import to docker using default arista/ceos:{version}{release_type}
+ardl get eos --version 4.29.4M --import-docker
+
+# Get a specific version and import to EVE-NG
+ardl get eos --version 4.33.0F --eve-ng
 ```
 
-If you want to get latest M release, you can use `--release-type`:
+### Get information about softwares versions
+
+`ardl` comes witth a tool to get version information from Arista website.
+
+#### Get information about available versions
 
 ```bash
-ardl get eos --image-type cEOS --release-type M --latest
-```
+ardl info versions --help
+Usage: ardl info versions [OPTIONS]
 
-You can download a specific EOS packages with following commands:
-
-```bash
-# Example for a cEOS package
-$ ardl get eos --version 4.28.3M --image-type cEOS
-```
-
-Available options are :
-
-```bash
-Usage: ardl get eos [OPTIONS]
-
-  Download EOS image from Arista website
+  List available versions of Arista packages (eos or CVP) packages
 
 Options:
-  --image-type [64|INT|2GB-INT|cEOS|cEOS64|vEOS|vEOS-lab|EOS-2GB|default]
-                                  EOS Image type  [required]
-  --version TEXT                  EOS version
-  -l, --latest                    Get latest version in given branch. If
-                                  --branch is not use, get the latest branch
-                                  with specific release type
-  -rtype, --release-type [F|M]    EOS release type to search
-  -b, --branch TEXT               EOS Branch to list releases
-  --docker-name TEXT              Docker image name (default: arista/ceos)
-                                  [default: arista/ceos]
-  --output PATH                   Path to save image  [default: .]
-  --log-level, --log [debug|info|warning|error|critical]
-                                  Logging level of the command
-  --eve-ng                        Run EVE-NG vEOS provisioning (only if CLI
-                                  runs on an EVE-NG server)
-  --disable-ztp                   Disable ZTP process in vEOS image (only
-                                  available with --eve-ng)
-  --import-docker                 Import docker image (only available with
-                                  --image_type cEOSlab)
-  --help                          Show this message and exit.
+  --format [json|text|fancy]  Output format
+  --package [eos|cvp]
+  -b, --branch TEXT
+  --release-type TEXT
+  --help                      Show this message and exit.
 ```
 
-You can use `--latest` and `--release-type` option to get latest EOS version matching a specific release type
+With this CLI, you can specify either a branch or a release type when applicable to filter information:
 
 ```bash
-# Get latest M release
-❯ ardl get eos --latest -rtype m
-🪐 eos-downloader is starting...
-    - Image Type: default
-    - Version: None
-🔎  Searching file EOS-4.29.3M.swi
-    -> Found file at /support/download/EOS-USA/Active Releases/4.29/EOS-4.29.3M/EOS-4.29.3M.swi
-...
-✅  Downloaded file is correct.
-✅  processing done !
+# Get F version in branch 4.29 using default fancy mode
+ardl info versions --branch 4.29 --release-type F
+
+╭──────────────────────────── Available versions ──────────────────────────────╮
+│                                                                              │
+│   - version: 4.29.2F                                                         │
+│   - version: 4.29.1F                                                         │
+│   - version: 4.29.0.2F                                                       │
+│   - version: 4.29.2F                                                         │
+│   - version: 4.29.1F                                                         │
+│   - version: 4.29.0.2F                                                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+# Get M version in branch 4.29 using text output
+❯ ardl info versions --branch 4.29 --release-type M --format text
+Listing versions
+  - version: 4.29.10M
+  - version: 4.29.9.1M
+  - version: 4.29.9M
+  - version: 4.29.8M
+  - version: 4.29.7.1M
+  ...
 ```
 
-### List available EOS versions from Arista website
-
-You can easily get list of available version using CLI as shown below:
+You can also specify JSON as output format:
 
 ```bash
-❯ ardl info eos-versions
-Usage: ardl info eos-versions [OPTIONS]
+ardl info versions --branch 4.29 --release-type F --format json
+[
+  {
+    "version": "4.29.2F",
+    "branch": "4.29"
+  },
+  {
+    "version": "4.29.1F",
+    "branch": "4.29"
+  },
+  {
+    "version": "4.29.0.2F",
+    "branch": "4.29"
+  },
+  {
+    "version": "4.29.2F",
+    "branch": "4.29"
+  },
+  {
+    "version": "4.29.1F",
+    "branch": "4.29"
+  },
+  {
+    "version": "4.29.0.2F",
+    "branch": "4.29"
+  }
+]
+```
 
-  List Available EOS version on Arista.com website.
+##### Get information about latest version available
 
-  Comes with some filters to get latest release (F or M) as well as branch
-  filtering
+CLI has option to get latest version available. Like `ardl info versions`, you can filter by `branch` and/or `release-type` when applicable.
 
-    - To get latest M release available (without any branch): ardl info eos-
-    versions --latest -rtype m
+```bash
+ardl info latest --help
+Usage: ardl info latest [OPTIONS]
 
-    - To get latest F release available: ardl info eos-versions --latest
-    -rtype F
+  List available versions of Arista packages (eos or CVP) packages
 
 Options:
-  -l, --latest                    Get latest version in given branch. If
-                                  --branch is not use, get the latest branch
-                                  with specific release type
-  -rtype, --release-type [F|M]    EOS release type to search
-  -b, --branch TEXT               EOS Branch to list releases
-  -v, --verbose                   Human readable output. Default is none to
-                                  use output in script)
+  --format [json|text]            Output format
+  --package [eos|cvp]
+  -b, --branch TEXT
+  --release-type TEXT
   --log-level, --log [debug|info|warning|error|critical]
                                   Logging level of the command
   --help                          Show this message and exit.
 ```
 
-__Example__
-
-```bash
-❯ ardl info eos-versions -rtype m --branch 4.28
-['4.28.6.1M', '4.28.6M', '4.28.5.1M', '4.28.5M', '4.28.4M', '4.28.3M']
-```
-
-### Download CVP package
-
-> Supported packages are: OVA, KVM, RPM, Upgrade
-
-```bash
-$ ardl get cvp --format upgrade --version 2022.2.1 --log-level debug --output ~/Downloads
-```
-
-Available options are :
-
-```bash
-  --format [ova|rpm|kvm|upgrade]  CVP Image type  [required]
-  --version TEXT                  CVP version  [required]
-  --output PATH                   Path to save image  [default: .]
-  --log-level, --log [debug|info|warning|error|critical]
-                                  Logging level of the command
-  --help                          Show this message and exit.
-```
-
-## Requirements
-
-Repository requires Python `>=3.6` with following requirements:
-
-```requirements
-cvprac
-cryptography
-paramiko
-requests
-requests-toolbelt
-scp
-tqdm
-```
+## FAQ
 
 On EVE-NG, you may have to install/upgrade __pyOpenSSL__ in version `23.0.0`:
 
@@ -194,10 +188,6 @@ On EVE-NG, you may have to install/upgrade __pyOpenSSL__ in version `23.0.0`:
 
 $ pip install pyopenssl --upgrade
 ```
-
-## Docker
-
-Please refer to [docker documentation](docs/docker.md)
 
 ## Author
 

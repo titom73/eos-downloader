@@ -347,3 +347,7 @@ report.html
 arista.xml
 tester.py
 *.tgz
+
+eos_downloader/debug.py
+data.xml
+.envrc

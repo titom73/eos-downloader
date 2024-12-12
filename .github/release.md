@@ -17,21 +17,36 @@ It is configured to update:
 * pyproject.toml
 
 For instance to bump a patch version:
-```
-bumpver update --patch
+
+```bash
+bumpver update --patch --tag final
 ```
 
 and for a minor version
 
-```
-bumpver update --minor
+```bash
+bumpver update --minor --tag final
 ```
 
 Tip: It is possible to check what the changes would be using `--dry`
 
+```bash
+bumpver update --minor  --tag final --dry
 ```
-bumpver update --minor --dry
+
+For a development version, you can use the following:
+
+```bash
+bumpver update --minor  --tag dev --tagnum --dry
 ```
+
+The following tag should be used:
+
+- `dev`: for internal testing
+- `rc`: for release candidate testing
+
+> ![INFORMATION]
+> This tags are not released to pypi and are only available via git installation.
 
 ## Creating release on Github
 

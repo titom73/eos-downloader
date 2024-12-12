@@ -14,8 +14,8 @@ import click
 
 from eos_downloader import __version__
 from eos_downloader.cli.debug import commands as debug_commands
-from eos_downloader.cli.get import commands as get_commands
 from eos_downloader.cli.info import commands as info_commands
+from eos_downloader.cli.get import commands as get_commands
 
 from eos_downloader.cli.utils import AliasedGroup
 
@@ -29,10 +29,29 @@ from eos_downloader.cli.utils import AliasedGroup
     default=None,
     help="Arista Token from your customer account",
 )
-def ardl(ctx: click.Context, token: str) -> None:
+@click.option(
+    "--log-level",
+    "--log",
+    help="Logging level of the command",
+    default="error",
+    type=click.Choice(
+        ["debug", "info", "warning", "error", "critical"], case_sensitive=False
+    ),
+)
+# Boolean triggers
+@click.option(
+    "--debug-enabled",
+    "--debug",
+    is_flag=True,
+    help="Activate debug mode for ardl cli",
+    default=False,
+)
+def ardl(ctx: click.Context, token: str, log_level: str, debug_enabled: bool) -> None:
     """Arista Network Download CLI"""
     ctx.ensure_object(dict)
     ctx.obj["token"] = token
+    ctx.obj["log_level"] = log_level
+    ctx.obj["debug"] = debug_enabled
 
 
 @ardl.group(cls=AliasedGroup, no_args_is_help=True)
@@ -61,11 +80,18 @@ def debug(ctx: click.Context, cls: click.Group = AliasedGroup) -> None:
 
 def cli() -> None:
     """Load ANTA CLI"""
-    # Load group commands
+    # Load group commands for get
     get.add_command(get_commands.eos)
     get.add_command(get_commands.cvp)
-    info.add_command(info_commands.eos_versions)
+
+    # Debug
     debug.add_command(debug_commands.xml)
+
+    # Get info commands
+    info.add_command(info_commands.versions)
+    info.add_command(info_commands.latest)
+    info.add_command(info_commands.mapping)
+
     # Load CLI
     ardl(obj={}, auto_envvar_prefix="arista")
 

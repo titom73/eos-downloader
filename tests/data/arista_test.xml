@@ -1,0 +1,25 @@
+
+<?xml version='1.0' encoding='UTF-8'?>
+<SoftwareImages>
+    <Image>
+        <version>4.28.3M</version>
+        <imageFile>EOS-4.28.3M.swi</imageFile>
+        <imageChecksum>abc123</imageChecksum>
+        <imageSize>1024000</imageSize>
+        <downloadPath>/path/to/4.28.3M</downloadPath>
+    </Image>
+    <Image>
+        <version>4.28.2F</version>
+        <imageFile>EOS-4.28.2F.swi</imageFile>
+        <imageChecksum>def456</imageChecksum>
+        <imageSize>1024000</imageSize>
+        <downloadPath>/path/to/4.28.2F</downloadPath>
+    </Image>
+    <Image>
+        <version>4.27.5M</version>
+        <imageFile>EOS-4.27.5M.swi</imageFile>
+        <imageChecksum>ghi789</imageChecksum>
+        <imageSize>1024000</imageSize>
+        <downloadPath>/path/to/4.27.5M</downloadPath>
+    </Image>
+</SoftwareImages>

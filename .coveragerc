@@ -5,4 +5,4 @@ directory = tests/htmlcov
 addopts = --cov=eos_downloader --cov-report html
 
 [run]
-omit = tests/*
+omit = tests/*, eos_downloader/cli
