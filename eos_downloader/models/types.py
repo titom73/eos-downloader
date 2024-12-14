@@ -1,12 +1,35 @@
+#!/usr/bin/python
 # coding: utf-8 -*-
 """
-This module defines various type aliases using the `Literal` and `Union` types from the `typing` module.
+This module defines type aliases and literals used in the eos_downloader project.
 
-Type Aliases:
-    - AristaPackage: A literal type that can be either "eos" or "cvp".
-    - AristaMapping: A literal type that can be either "CloudVision" or "EOS".
-    - AristaVersions: A union type that can be either `EosVersion` or `CvpVersion` from the `eos_downloader.models.version` module.
-    - ReleaseType: A literal type that can be either "M" or "F".
+Attributes
+----------
+AristaPackage : Literal
+    Literal type for Arista package types. Can be either "eos" or "cvp".
+AristaMapping : Literal
+    Literal type for Arista mapping types. Can be either "CloudVision" or "EOS".
+AristaVersions : Union
+    Union type for supported SemVer object types. Can be either EosVersion or CvpVersion.
+ReleaseType : Literal
+    Literal type for release types. Can be either "M" (maintenance) or "F" (feature).
+
+Examples
+--------
+    # Example usage of AristaPackage
+    def get_package_type(package: AristaPackage):
+        if package == "eos":
+            return "Arista EOS package"
+        elif package == "cvp":
+            return "CloudVision Portal package"
+
+    # Example usage of AristaVersions
+    def print_version(version: AristaVersions):
+        print(f"Version: {version}")
+
+    # Example usage of ReleaseType
+    def is_feature_release(release: ReleaseType) -> bool:
+        return release == "F"
 """
 
 from typing import Literal, Union

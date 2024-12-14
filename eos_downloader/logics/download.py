@@ -6,6 +6,7 @@ tqdm or rich interface. It supports both raw downloads and enhanced visual feedb
 the download process.
 
 Methods
+--------
 download_file(url: str, file_path: str, filename: str, rich_interface: bool = True) -> Union[None, str]
     Downloads a file from the given URL to the specified path with optional rich interface.
 
@@ -13,16 +14,18 @@ _download_file_raw(url: str, file_path: str) -> str
     Static method that performs the actual file download with tqdm progress bar.
 
 Attributes
+--------
 None
 
 Example
->>> downloader = ObjectDownloader()
->>> result = downloader.download_file(
-...     url='http://example.com/file.zip',
-...     file_path='/downloads',
-...     filename='file.zip',
-...     rich_interface=True
-... )
+--------
+    >>> downloader = ObjectDownloader()
+    >>> result = downloader.download_file(
+    ...     url='http://example.com/file.zip',
+    ...     file_path='/downloads',
+    ...     filename='file.zip',
+    ...     rich_interface=True
+    ... )
 """
 
 import os
@@ -38,7 +41,7 @@ import eos_downloader.models.types
 import eos_downloader.defaults
 import eos_downloader.helpers
 import eos_downloader.logics
-import eos_downloader.logics.arista_server
+import eos_downloader.logics.arista_xml_server
 import eos_downloader.models.version
 
 
@@ -47,12 +50,6 @@ class SoftManager:
 
     This class provides methods to download files using either a simple progress bar
     or a rich interface with enhanced visual feedback.
-
-    Methods
-    download_file(url: str, file_path: str, filename: str, rich_interface: bool = True) -> Union[None, str]
-        Downloads a file from the given URL to the specified path
-    _download_file_raw(url: str, file_path: str) -> str
-        Internal method to download file with basic progress bar
 
     Examples
     --------
@@ -77,17 +74,23 @@ class SoftManager:
     def _download_file_raw(url: str, file_path: str) -> str:
         """Downloads a file from a URL and saves it to a local file.
 
-        Args:
-            url (str): The URL of the file to download.
-            file_path (str): The local path where the file will be saved.
+        Parameters
+        ----------
+        url : str
+            The URL of the file to download.
+        file_path : str
+            The local path where the file will be saved.
 
-        Returns:
-            str: The path to the downloaded file.
+        Returns
+        -------
+        str
+            The path to the downloaded file.
 
-        Notes:
-            - Uses requests library to stream download in chunks of 1024 bytes
-            - Shows download progress using tqdm progress bar
-            - Sets timeout of 5 seconds for initial connection
+        Notes
+        -----
+        - Uses requests library to stream download in chunks of 1024 bytes
+        - Shows download progress using tqdm progress bar
+        - Sets timeout of 5 seconds for initial connection
         """
 
         chunkSize = 1024
@@ -107,7 +110,17 @@ class SoftManager:
 
     @staticmethod
     def _create_destination_folder(path: str) -> None:
-        """Creates a directory path if it doesn't already exist."""
+        """Creates a directory path if it doesn't already exist.
+
+        Parameters
+        ----------
+        path : str
+            The directory path to create.
+
+        Returns
+        -------
+        None
+        """
         try:
             os.makedirs(path, exist_ok=True)
         except OSError as e:
@@ -115,21 +128,21 @@ class SoftManager:
 
     def _compute_hash_md5sum(self, file: str, hash_expected: str) -> bool:
         """
-        _compute_hash_md5sum Compare MD5 sum
+        Compare MD5 sum.
 
-        Do comparison between local md5 of the file and value provided by arista.com
+        Do comparison between local md5 of the file and value provided by arista.com.
 
         Parameters
         ----------
         file : str
-            Local file to use for MD5 sum
+            Local file to use for MD5 sum.
         hash_expected : str
-            MD5 from arista.com
+            MD5 from arista.com.
 
         Returns
         -------
         bool
-            True if both are equal, False if not
+            True if both are equal, False if not.
         """
         hash_md5 = hashlib.md5()
         with open(file, "rb") as f:
@@ -149,20 +162,26 @@ class SoftManager:
         """
         Verifies the integrity of a downloaded file using a specified checksum algorithm.
 
-        Args:
-            check_type (Literal['md5sum', 'sha512sum']): The type of checksum to perform. Currently supports 'md5sum' or 'sha512sum'.
+        Parameters
+        ----------
+        check_type : Literal['md5sum', 'sha512sum', 'md5']
+            The type of checksum to perform. Currently supports 'md5sum' or 'sha512sum'.
 
-        Returns:
-            bool: True if the checksum verification passes.
+        Returns
+        -------
+        bool
+            True if the checksum verification passes.
 
-        Raises:
-            ValueError: If the calculated checksum does not match the expected checksum.
-            FileNotFoundError: If either the checksum file or the target file cannot be found.
+        Raises
+        ------
+        ValueError
+            If the calculated checksum does not match the expected checksum.
+        FileNotFoundError
+            If either the checksum file or the target file cannot be found.
 
-        Example:
-            ```python
-            client.checksum('sha512sum')  # Returns True if checksum matches
-            ```
+        Examples
+        --------
+        >>> client.checksum('sha512sum')  # Returns True if checksum matches
         """
         logging.info(f"Checking checksum for {self.file['name']} using {check_type}")
 
@@ -230,14 +249,21 @@ class SoftManager:
         """
         Downloads a file from a given URL to a specified location.
 
-        Args:
-            url (str): The URL from which to download the file.
-            file_path (str): The directory path where the file should be saved.
-            filename (str): The name to be given to the downloaded file.
-            rich_interface (bool, optional): Whether to use rich progress bar interface. Defaults to True.
+        Parameters
+        ----------
+        url : str
+            The URL from which to download the file.
+        file_path : str
+            The directory path where the file should be saved.
+        filename : str
+            The name to be given to the downloaded file.
+        rich_interface : bool, optional
+            Whether to use rich progress bar interface. Defaults to True.
 
-        Returns:
-            Union[None, str]: The full path to the downloaded file if successful, None if download fails.
+        Returns
+        -------
+        Union[None, str]
+            The full path to the downloaded file if successful, None if download fails.
         """
         logging.info(
             f"{'[DRY-RUN] Would download' if self.dry_run else 'Downloading'} {filename} from {url}"
@@ -258,26 +284,34 @@ class SoftManager:
 
     def downloads(
         self,
-        object_arista: eos_downloader.logics.arista_server.AristaXmlObjects,
+        object_arista: eos_downloader.logics.arista_xml_server.AristaXmlObjects,
         file_path: str,
         rich_interface: bool = True,
     ) -> Union[None, str]:
-        """Downloads files from Arista EOS server.
+        """
+        Downloads files from Arista EOS server.
 
         Downloads the EOS image and optional md5/sha512 files based on the provided EOS XML object.
         Each file is downloaded to the specified path with appropriate filenames.
 
-        Args:
-            object_arista (EosXmlObject): Object containing EOS image and hash file URLs
-            file_path (str): Directory path where files should be downloaded
-            rich_interface (bool, optional): Whether to use rich console output. Defaults to True.
+        Parameters
+        ----------
+        object_arista : eos_downloader.logics.arista_xml_server.AristaXmlObjects
+            Object containing EOS image and hash file URLs.
+        file_path : str
+            Directory path where files should be downloaded.
+        rich_interface : bool, optional
+            Whether to use rich console output. Defaults to True.
 
-        Returns:
-            Union[None, str]: The file path where files were downloaded, or None if download failed
+        Returns
+        -------
+        Union[None, str]
+            The file path where files were downloaded, or None if download failed.
 
-        Example:
-            >>> client.downloads(eos_obj, "/tmp/downloads")
-            '/tmp/downloads'
+        Examples
+        --------
+        >>> client.downloads(eos_obj, "/tmp/downloads")
+        '/tmp/downloads'
         """
         logging.info(f"Downloading files from {object_arista.version}")
 
@@ -317,22 +351,31 @@ class SoftManager:
         docker_name: str = "arista/ceos",
         docker_tag: str = "latest",
     ) -> None:
-        """Import a local file into a Docker image.
+        """
+        Import a local file into a Docker image.
 
         This method imports a local file into Docker with a specified image name and tag.
         It checks for the existence of both the local file and docker binary before proceeding.
 
-        Args:
-            local_file_path (str): Path to the local file to import
-            docker_name (str, optional): Name for the Docker image. Defaults to 'arista/ceos'
-            docker_tag (str, optional): Tag for the Docker image. Defaults to 'latest'
+        Parameters
+        ----------
+        local_file_path : str
+            Path to the local file to import.
+        docker_name : str, optional
+            Name for the Docker image. Defaults to 'arista/ceos'.
+        docker_tag : str, optional
+            Tag for the Docker image. Defaults to 'latest'.
 
-        Raises:
-            FileNotFoundError: If the local file doesn't exist or docker binary is not found
-            Exception: If the docker import operation fails
+        Raises
+        ------
+        FileNotFoundError
+            If the local file doesn't exist or docker binary is not found.
+        Exception
+            If the docker import operation fails.
 
-        Returns:
-            None
+        Returns
+        -------
+        None
         """
 
         logging.info(
@@ -358,20 +401,27 @@ class SoftManager:
     # pylint: disable=too-many-branches
     def provision_eve(
         self,
-        object_arista: eos_downloader.logics.arista_server.EosXmlObject,
+        object_arista: eos_downloader.logics.arista_xml_server.EosXmlObject,
         noztp: bool = False,
     ) -> None:
         """
         Provisions EVE-NG with the specified Arista EOS object.
 
-        Args:
-            object_arista (eos_downloader.logics.arista_server.EosXmlObject): The Arista EOS object containing version, filename, and URLs.
-            noztp (bool, optional): If True, disables ZTP (Zero Touch Provisioning). Defaults to False.
-            checksum (bool, optional): If True, verifies the checksum of the downloaded files. Defaults to True.
+        Parameters
+        ----------
+        object_arista : eos_downloader.logics.arista_xml_server.EosXmlObject
+            The Arista EOS object containing version, filename, and URLs.
+        noztp : bool, optional
+            If True, disables ZTP (Zero Touch Provisioning). Defaults to False.
 
-        Raises:
-            ValueError: If no URLs are found for download or if a URL or filename is None.
+        Raises
+        ------
+        ValueError
+            If no URLs are found for download or if a URL or filename is None.
 
+        Returns
+        -------
+        None
         """
 
         # EVE-NG provisioning page for vEOS

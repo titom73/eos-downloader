@@ -2,7 +2,7 @@ import os
 import pytest
 from unittest.mock import Mock, patch, mock_open
 from eos_downloader.logics.download import SoftManager
-from eos_downloader.logics.arista_server import EosXmlObject
+from eos_downloader.logics.arista_xml_server import EosXmlObject
 
 
 @pytest.fixture

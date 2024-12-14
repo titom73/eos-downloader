@@ -7,10 +7,10 @@ import sys
 import os
 import pytest
 import logging
-from eos_downloader.logics.arista_server import AristaXmlQuerier
+from eos_downloader.logics.arista_xml_server import AristaXmlQuerier
 from eos_downloader.models.version import EosVersion, CvpVersion
 from unittest.mock import patch
-from eos_downloader.logics.arista_server import (
+from eos_downloader.logics.arista_xml_server import (
     AristaXmlBase,
     AristaXmlObject,
     EosXmlObject,

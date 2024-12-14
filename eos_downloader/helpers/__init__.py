@@ -5,12 +5,13 @@ This module provides functionality for downloading files with visual progress in
 using the Rich library. It includes a signal handler for graceful interruption and
 a DownloadProgressBar class for concurrent file downloads with progress tracking.
 
-Classes:
+Classes
+-------
     DownloadProgressBar: A class that provides visual progress tracking for file downloads.
 
-Functions:
+Functions
+-------
     handle_sigint: Signal handler for SIGINT (Ctrl+C) to enable graceful termination.
-
     console (Console): Rich Console instance for output rendering.
     done_event (Event): Threading Event used for signaling download interruption.
 """
@@ -52,12 +53,16 @@ def handle_sigint(signum: Any, frame: Any) -> None:
     This function sets the done_event flag when SIGINT is received,
     allowing for graceful termination of the program.
 
-    Args:
-        signum (Any): Signal number
-        frame (Any): Current stack frame object
+    Parameters
+    ----------
+    signum : Any
+        Signal number.
+    frame : Any
+        Current stack frame object.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
     """
     done_event.set()
 
@@ -72,16 +77,16 @@ class DownloadProgressBar:
     It supports downloading multiple files concurrently with a progress bar showing download
     speed, completion percentage, and elapsed time.
 
-    Attributes:
-        progress (Progress): A Rich Progress instance configured with custom columns for
-            displaying download information.
+    Attributes
+    ----------
+    progress : Progress
+        A Rich Progress instance configured with custom columns for displaying download information.
 
-    Example:
-        ```python
-        downloader = DownloadProgressBar()
-        urls = ['http://example.com/file1.zip', 'http://example.com/file2.zip']
-        downloader.download(urls, '/path/to/destination')
-        ```
+    Examples
+    --------
+    >>> downloader = DownloadProgressBar()
+    >>> urls = ['http://example.com/file1.zip', 'http://example.com/file2.zip']
+    >>> downloader.download(urls, '/path/to/destination')
     """
 
     def __init__(self) -> None:
@@ -110,19 +115,30 @@ class DownloadProgressBar:
         specified local path while updating a progress bar. The download can be interrupted via
         a done event.
 
-        Args:
-            task_id (TaskID): Identifier for the progress tracking task
-            url (str): URL to download the file from
-            path (str): Local path where the file should be saved
-            block_size (int, optional): Size of chunks to download at a time. Defaults to 1024 bytes
+        Parameters
+        ----------
+        task_id : TaskID
+            Identifier for the progress tracking task.
+        url : str
+            URL to download the file from.
+        path : str
+            Local path where the file should be saved.
+        block_size : int, optional
+            Size of chunks to download at a time. Defaults to 1024 bytes.
 
-        Returns:
-            bool: True if download was interrupted by done_event, False if completed successfully
+        Returns
+        -------
+        bool
+            True if download was interrupted by done_event, False if completed successfully.
 
-        Raises:
-            requests.exceptions.RequestException: If the download request fails
-            IOError: If there are issues writing to the local file
-            KeyError: If the response doesn't contain Content-Length header
+        Raises
+        ------
+        requests.exceptions.RequestException
+            If the download request fails.
+        IOError
+            If there are issues writing to the local file.
+        KeyError
+            If the response doesn't contain Content-Length header.
         """
         response = requests.get(
             url,
@@ -148,19 +164,23 @@ class DownloadProgressBar:
         This method downloads files from the provided URLs in parallel using a thread pool,
         displaying progress for each download in the console.
 
-        Args:
-            urls (Iterable[str]): An iterable of URLs to download files from.
-            dest_dir (str): The destination directory where files will be saved.
+        Parameters
+        ----------
+        urls : Iterable[str]
+            An iterable of URLs to download files from.
+        dest_dir : str
+            The destination directory where files will be saved.
 
-        Returns:
-            None
+        Returns
+        -------
+        None
 
-        Example:
-            >>> downloader = Downloader()
-            >>> urls = ["http://example.com/file1.txt", "http://example.com/file2.txt"]
-            >>> downloader.download(urls, "/path/to/destination")
+        Examples
+        --------
+        >>> downloader = DownloadProgressBar()
+        >>> urls = ["http://example.com/file1.txt", "http://example.com/file2.txt"]
+        >>> downloader.download(urls, "/path/to/destination")
         """
-
         with self.progress:
             with ThreadPoolExecutor(max_workers=4) as pool:
                 futures = []

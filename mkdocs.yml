@@ -1,0 +1,177 @@
+# Project information
+site_name: Arista EOS Downloader
+site_author: Thomas Grimonet
+site_description: A downloader CLI to download arista software images.
+# copyright: Copyright &copy; 2019 - 2024 Arista Networks
+
+# Repository
+repo_name: eos_downloader on Github
+repo_url: https://github.com/titom73/eos-downloader
+
+# Configuration
+use_directory_urls: true
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.top
+    - content.tabs.link
+    - content.code.copy
+    # - toc.integrate
+    - toc.follow
+    - navigation.indexes
+    - content.tabs.link
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - python
+    - shell
+  icon:
+    repo: fontawesome/brands/github
+    logo: fontawesome/solid/network-wired
+  favicon: imgs/favicon.ico
+  font:
+    code: Fira Mono
+  language: en
+  include_search_page: false
+  search_index_only: true
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  # custom_dir: docs/overrides
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/titom73/eos-downloader
+    - icon: fontawesome/brands/docker
+      link: https://github.com/titom73/eos-downloader/pkgs/container/eos-downloader
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/eos-downloader/
+  version:
+    provider: mike
+    default:
+      - stable
+
+extra_css:
+  - stylesheets/extra.material.css
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.2.1/tablesort.min.js
+  - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js
+
+watch:
+  - docs
+  - eos_downloader
+
+plugins:
+  - gh-admonitions
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [eos_downloader]
+          import:
+            - https://docs.python.org/3/objects.inv
+            - https://mkdocstrings.github.io/objects.inv
+            - https://mkdocstrings.github.io/griffe/objects.inv
+          options:
+            docstring_style: numpy
+            docstring_options:
+              ignore_init_summary: true
+            docstring_section_style: table
+            show_docstring_other_parameters: true
+            heading_level: 2
+            inherited_members: false
+            merge_init_into_class: true
+            separate_signature: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_signature_annotations: true
+            filters: ["!^_[^_]"]
+
+  - search:
+      lang: en
+  - git-revision-date-localized:
+      type: date
+  - mike:
+  - glightbox:
+      background: none
+      shadow: true
+      touchNavigation: true
+      loop: false
+      effect: fade
+      slide_effect: slide
+      width: 90vw
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - codehilite:
+      guess_lang: true
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  # - pymdownx.snippets:
+  #     base_path:
+  #       - docs/snippets
+  #       - examples
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - smarty
+  - toc:
+      separator: "-"
+      # permalink: "#"
+      permalink: true
+      baselevel: 2
+
+# TOC
+docs_dir: docs/
+nav:
+  - Home: README.md
+  - Usage:
+      - Get EOS package: usage/eos.md
+      - Version information: usage/info.md
+  - Code documentation:
+    - Models:
+      - Version: api/models/version.md
+      - Data: api/models/data.md
+      - Custom Types: api/models/custom_types.md
+    - Logics:
+      - Arista Server: api/logics/arista_server.md
+      - Arista XML API: api/logics/arista_xml_server.md
+      - Download Management: api/logics/download.md
+    - Helpers: api/helpers.md
+

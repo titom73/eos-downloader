@@ -1,7 +1,7 @@
 import pytest
 import requests
 from unittest.mock import patch, Mock
-from eos_downloader.logics.server import AristaServer
+from eos_downloader.logics.arista_server import AristaServer
 
 import eos_downloader.exceptions
 
