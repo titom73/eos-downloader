@@ -3,27 +3,47 @@
 """The module implements version management following semantic versioning principles with custom adaptations for
 Arista EOS and CloudVision Portal (CVP) software versioning schemes.
 
-    SemVer: Base class implementing semantic versioning with comparison and matching capabilities.
-    EosVersion: Specialized version handling for Arista EOS software releases.
-    CvpVersion: Specialized version handling for CloudVision Portal releases.
+Classes
+-------
+SemVer:
+    Base class implementing semantic versioning with comparison and matching capabilities.
+EosVersion:
+    Specialized version handling for Arista EOS software releases.
+CvpVersion:
+    Specialized version handling for CloudVision Portal releases.
 
-Each class provides methods to:
-- Parse version strings into structured objects
-- Compare versions
-- Extract branch information
-- Match version patterns
-- Convert versions to string representations
+Attributes
+----------
+major : int
+    Major version number.
+minor : int
+    Minor version number.
+patch : int
+    Patch version number.
+rtype : Optional[str]
+    Release type (e.g., 'M' for maintenance, 'F' for feature).
+other : Any
+    Additional version information.
+regex_version : ClassVar[Pattern[str]]
+    Regular expression to extract version information.
+regex_branch : ClassVar[Pattern[str]]
+    Regular expression to extract branch information.
+description : str
+    A basic description of this class.
 
-    Basic SemVer usage:
+
+Examples
+--------
+    # Basic SemVer usage:
     >>> version = SemVer(major=4, minor=23, patch=3)
     '4.23.3'
 
-    EOS version handling:
+    # EOS version handling:
     >>> eos = EosVersion.from_str('4.23.3M')
     >>> eos.branch
     '4.23'
 
-    CVP version handling:
+    # CVP version handling:
     >>> cvp = CvpVersion.from_str('2024.1.0')
     >>> str(cvp)
 
@@ -31,8 +51,9 @@ The module enforces version format validation through regular expressions and pr
 comprehensive comparison operations (==, !=, <, <=, >, >=) between versions.
 
 Note:
-    - EOS versions follow the format: <major>.<minor>.<patch>[M|F]
-    - CVP versions follow the format: <year>.<minor>.<patch>
+--------
+- EOS versions follow the format: <major>.<minor>.<patch>[M|F]
+- CVP versions follow the format: <year>.<minor>.<patch>
 """
 
 from __future__ import annotations
@@ -56,69 +77,43 @@ class SemVer(BaseModel):
     This class provides methods to parse, compare, and manipulate semantic versions.
     It supports standard semantic versioning with optional release type and additional version information.
 
-    Examples:
-        >>> version = SemVer(major=4, minor=23, patch=3, rtype="M")
-        >>> str(version)
-        '4.23.3M'
+    Examples
+    --------
+    >>> version = SemVer(major=4, minor=23, patch=3, rtype="M")
+    >>> str(version)
+    '4.23.3M'
 
-        >>> version2 = SemVer.from_str('4.24.1F')
-        >>> version2.branch
-        '4.24'
+    >>> version2 = SemVer.from_str('4.24.1F')
+    >>> version2.branch
+    '4.24'
 
-        >>> version < version2
-        True
+    >>> version < version2
+    True
 
-        >>> version.match("<=4.24.0")
-        True
+    >>> version.match("<=4.24.0")
+    True
 
-        >>> version.is_in_branch("4.23")
-        True
+    >>> version.is_in_branch("4.23")
+    True
 
-    Attributes:
-        major (int): Major version number.
-        minor (int): Minor version number.
-        patch (int): Patch version number.
-        rtype (Optional[str]): Release type (e.g., 'M' for maintenance, 'F' for feature).
-        other (Any): Additional version information.
-        regex_version (ClassVar[Pattern[str]]): Regular expression to extract version information.
-        regex_branch (ClassVar[Pattern[str]]): Regular expression to extract branch information.
-        description (str): A basic description of this class.
-
-    Methods:
-        from_str(cls, semver: str) -> SemVer:
-            Create a SemVer instance from a version string.
-
-        branch(self) -> str:
-            Extract the branch of the version.
-
-        __str__(self) -> str:
-            Return a standard string representation of the version.
-
-        _compare(self, other: SemVer) -> float:
-            Compare this SemVer instance with another.
-
-        __eq__(self, other):
-            Implement equality comparison (==).
-
-        __ne__(self, other):
-            Implement inequality comparison (!=).
-
-        __lt__(self, other):
-            Implement less than comparison (<).
-
-        __le__(self, other):
-            Implement less than or equal comparison (<=).
-
-        __gt__(self, other):
-            Implement greater than comparison (>).
-
-        __ge__(self, other):
-            Implement greater than or equal comparison (>=).
-
-        match(self, match_expr: str) -> bool:
-
-        is_in_branch(self, branch_str: str) -> bool:
-            Check if the current version is part of a branch version.
+    Attributes
+    ----------
+    major : int
+        Major version number.
+    minor : int
+        Minor version number.
+    patch : int
+        Patch version number.
+    rtype : Optional[str]
+        Release type (e.g., 'M' for maintenance, 'F' for feature).
+    other : Any
+        Additional version information.
+    regex_version : ClassVar[Pattern[str]]
+        Regular expression to extract version information.
+    regex_branch : ClassVar[Pattern[str]]
+        Regular expression to extract branch information.
+    description : str
+        A basic description of this class.
     """
 
     major: int = 0
@@ -143,19 +138,24 @@ class SemVer(BaseModel):
         This method parses a semantic version string or branch name into a SemVer object.
         It supports both standard semver format (x.y.z) and branch format.
 
-        Args:
-            semver (str): The version string to parse. Can be either a semantic version
-                string (e.g., "1.2.3") or a branch format.
+        Parameters
+        ----------
+        semver : str
+            The version string to parse. Can be either a semantic version
+            string (e.g., "1.2.3") or a branch format.
 
-        Returns:
-            SemVer: A SemVer object representing the parsed version.
-                Returns an empty SemVer object if parsing fails.
+        Returns
+        -------
+        SemVer
+            A SemVer object representing the parsed version.
+            Returns an empty SemVer object if parsing fails.
 
-        Examples:
-            >>> SemVer.from_str("1.2.3")
-            SemVer(major=1, minor=2, patch=3)
-            >>> SemVer.from_str("branch-1.2.3")
-            SemVer(major=1, minor=2, patch=3)
+        Examples
+        --------
+        >>> SemVer.from_str("1.2.3")
+        SemVer(major=1, minor=2, patch=3)
+        >>> SemVer.from_str("branch-1.2.3")
+        SemVer(major=1, minor=2, patch=3)
         """
 
         logging.debug(f"Creating SemVer object from string: {semver}")
@@ -178,42 +178,52 @@ class SemVer(BaseModel):
     @property
     def branch(self) -> str:
         """
-        Extract branch of version
+        Extract branch of version.
 
-        Returns:
-            str: branch from version
+        Returns
+        -------
+        str
+            Branch from version.
         """
         return f"{self.major}.{self.minor}"
 
     def __str__(self) -> str:
         """
-        Standard str representation
+        Standard str representation.
 
-        Return string for EOS version like 4.23.3M
+        Return string for EOS version like 4.23.3M.
 
-        Returns:
-            str: A standard EOS version string representing <MAJOR>.<MINOR>.<PATCH><RTYPE>
+        Returns
+        -------
+        str
+            A standard EOS version string representing <MAJOR>.<MINOR>.<PATCH><RTYPE>.
         """
         return f"{self.major}.{self.minor}.{self.patch}{self.other if self.other is not None else ''}{self.rtype if self.rtype is not None else ''}"
 
     def _compare(self, other: SemVer) -> float:
         """
-        An internal comparison function to compare 2 EosVersion objects
+        An internal comparison function to compare 2 EosVersion objects.
 
-        Do a deep comparison from Major to Release Type
-        The return value is
+        Do a deep comparison from Major to Release Type.
+        The return value is:
         - negative if ver1 < ver2,
-        - zero if ver1 == ver2
-        - strictly positive if ver1 > ver2
+        - zero if ver1 == ver2,
+        - strictly positive if ver1 > ver2.
 
-        Args:
-            other (EosVersion): An EosVersion to compare with this object
+        Parameters
+        ----------
+        other : SemVer
+            An EosVersion to compare with this object.
 
-        Raises:
-            ValueError: Raise ValueError if input is incorrect type
+        Raises
+        ------
+        ValueError
+            Raise ValueError if input is incorrect type.
 
-        Returns:
-            float: -1 if ver1 < ver2, 0 if ver1 == ver2, 1 if ver1 > ver2
+        Returns
+        -------
+        float
+            -1 if ver1 < ver2, 0 if ver1 == ver2, 1 if ver1 > ver2.
         """
         if not isinstance(other, SemVer):
             raise ValueError(
@@ -283,26 +293,33 @@ class SemVer(BaseModel):
         """
         Compare self to match a match expression.
 
-        Example:
+        Parameters
+        ----------
+        match_expr : str
+            Optional operator and version; valid operators are:
+              ``<``   smaller than
+              ``>``   greater than
+              ``>=``  greater or equal than
+              ``<=``  smaller or equal than
+              ``==``  equal
+              ``!=``  not equal.
+
+        Raises
+        ------
+        ValueError
+            If input has no match_expr nor match_ver.
+
+        Returns
+        -------
+        bool
+            True if the expression matches the version, otherwise False.
+
+        Examples
+        --------
         >>> eos_version.match("<=4.23.3M")
         True
         >>> eos_version.match("==4.23.3M")
         False
-
-        Args:
-            match_expr (str):  optional operator and version; valid operators are
-              ``<``   smaller than
-              ``>``   greater than
-              ``>=``  greator or equal than
-              ``<=``  smaller or equal than
-              ``==``  equal
-              ``!=``  not equal
-
-        Raises:
-            ValueError: If input has no match_expr nor match_ver
-
-        Returns:
-            bool: True if the expression matches the version, otherwise False
         """
         prefix = match_expr[:2]
         if prefix in (">=", "<=", "==", "!="):
@@ -335,15 +352,19 @@ class SemVer(BaseModel):
 
     def is_in_branch(self, branch_str: str) -> bool:
         """
-        Check if current version is part of a branch version
+        Check if current version is part of a branch version.
 
-        Comparison is done across MAJOR and MINOR
+        Comparison is done across MAJOR and MINOR.
 
-        Args:
-            branch_str (str): a string for EOS branch. It supports following formats 4.23 or 4.23.0
+        Parameters
+        ----------
+        branch_str : str
+            A string for EOS branch. It supports following formats 4.23 or 4.23.0.
 
-        Returns:
-            bool: True if current version is in provided branch, otherwise False
+        Returns
+        -------
+        bool
+            True if current version is in provided branch, otherwise False.
         """
         logging.info(f"Checking if {self} is in branch {branch_str}")
         try:
@@ -361,23 +382,33 @@ class EosVersion(SemVer):
     Since EOS is not using strictly semver approach, this class mimics some functions from the semver library for Arista EOS versions.
     It is based on Pydantic and provides helpers for comparison.
 
-    Example:
-        >>> version = EosVersion(major=4, minor=21, patch=1, rtype="M")
-        >>> print(version)
-        EosVersion(major=4, minor=21, patch=1, rtype='M', other=None)
-        >>> version = EosVersion.from_str('4.32.1F')
-        >>> print(version)
-        EosVersion(major=4, minor=32, patch=1, rtype='F', other=None)
+    Examples
+    --------
+    >>> version = EosVersion(major=4, minor=21, patch=1, rtype="M")
+    >>> print(version)
+    EosVersion(major=4, minor=21, patch=1, rtype='M', other=None)
+    >>> version = EosVersion.from_str('4.32.1F')
+    >>> print(version)
+    EosVersion(major=4, minor=32, patch=1, rtype='F', other=None)
 
-    Attributes:
-        major (int): Major version number, default is 4.
-        minor (int): Minor version number, default is 0.
-        patch (int): Patch version number, default is 0.
-        rtype (Optional[str]): Release type, default is "F".
-        other (Any): Any other version information.
-        regex_version (ClassVar[Pattern[str]]): Regular expression to extract version information.
-        regex_branch (ClassVar[Pattern[str]]): Regular expression to extract branch information.
-        description (str): A basic description of this class, default is "A Generic SemVer implementation".
+    Attributes
+    ----------
+    major : int
+        Major version number, default is 4.
+    minor : int
+        Minor version number, default is 0.
+    patch : int
+        Patch version number, default is 0.
+    rtype : Optional[str]
+        Release type, default is "F".
+    other : Any
+        Any other version information.
+    regex_version : ClassVar[Pattern[str]]
+        Regular expression to extract version information.
+    regex_branch : ClassVar[Pattern[str]]
+        Regular expression to extract branch information.
+    description : str
+        A basic description of this class, default is "A Generic SemVer implementation".
     """
 
     major: int = 4
@@ -405,20 +436,30 @@ class CvpVersion(SemVer):
     - minor version represents feature releases
     - patch version represents bug fixes
 
-    Attributes:
-        major (int): The year component of the version (e.g. 2024)
-        minor (int): The minor version number
-        patch (int): The patch version number
-        rtype (Optional[str]): Release type if any
-        other (Any): Additional version information if any
-        regex_version (Pattern[str]): Regular expression to parse version strings
-        regex_branch (Pattern[str]): Regular expression to parse branch version strings
-        description (str): Brief description of the class purpose
+    Examples
+    --------
+    >>> version = CvpVersion(2024, 1, 0)
+    >>> str(version)
+    '2024.1.0'
 
-    Example:
-        >>> version = CvpVersion(2024, 1, 0)
-        >>> str(version)
-        '2024.1.0'
+    Attributes
+    ----------
+    major : int
+        The year component of the version (e.g. 2024).
+    minor : int
+        The minor version number.
+    patch : int
+        The patch version number.
+    rtype : Optional[str]
+        Release type if any.
+    other : Any
+        Additional version information if any.
+    regex_version : ClassVar[Pattern[str]]
+        Regular expression to parse version strings.
+    regex_branch : ClassVar[Pattern[str]]
+        Regular expression to parse branch version strings.
+    description : str
+        Brief description of the class purpose.
     """
 
     major: int = 2024

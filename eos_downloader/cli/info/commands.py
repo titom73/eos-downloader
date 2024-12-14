@@ -34,7 +34,7 @@ from rich.panel import Panel
 
 from eos_downloader.models.data import software_mapping
 from eos_downloader.models.types import AristaPackage, ReleaseType, AristaMapping
-import eos_downloader.logics.arista_server
+import eos_downloader.logics.arista_xml_server
 from eos_downloader.cli.utils import console_configuration
 from eos_downloader.cli.utils import cli_logging
 
@@ -71,7 +71,7 @@ def versions(
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
 
-    querier = eos_downloader.logics.arista_server.AristaXmlQuerier(token=token)
+    querier = eos_downloader.logics.arista_xml_server.AristaXmlQuerier(token=token)
 
     received_versions = None
     try:
@@ -144,7 +144,7 @@ def latest(
     debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
-    querier = eos_downloader.logics.arista_server.AristaXmlQuerier(token=token)
+    querier = eos_downloader.logics.arista_xml_server.AristaXmlQuerier(token=token)
     received_version = None
     try:
         received_version = querier.latest(
