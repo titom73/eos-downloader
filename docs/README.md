@@ -40,4 +40,4 @@ From an original idea of [@Mark Rayson](https://github.com/Sparky-python) in [ar
 
 ## License
 
-Code is under [Apache2](LICENSE) License
+Code is under [Apache2](https://github.com/titom73/eos-downloader/blob/main/LICENSE) License
