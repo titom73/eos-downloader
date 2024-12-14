@@ -1,14 +1,12 @@
-[![tests](https://github.com/titom73/eos-downloader/actions/workflows/pr-management.yml/badge.svg?event=push)](https://github.com/titom73/eos-downloader/actions/workflows/pr-management.yml)
+<!-- [![tests](https://github.com/titom73/eos-downloader/actions/workflows/pr-management.yml/badge.svg?event=push)](https://github.com/titom73/eos-downloader/actions/workflows/pr-management.yml)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/eos-downloader)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)
 ![GitHub release](https://img.shields.io/github/v/release/titom73/arista-downloader)
 ![PyPI - Downloads/month](https://img.shields.io/pypi/dm/eos-downloader)
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit) -->
 
 # Arista Software Downloader
-
-## Overview
 
 A project to download Arista softwares to local folder, Cloudvision or EVE-NG. It comes in 2 way: a framework with object to automate Arista software download and a CLI for human activities.
 
@@ -23,27 +21,17 @@ pip install eos-downloader
 ardl --token <your-token> get eos --format 64 --latest --release-type M
 ```
 
-Full documentation is available on [our website](https://titom73.github.io/eos-downloader/).
+> [!NOTE]
+> The main branch is not the stable branch and can be broken between releases. It is safe to consider using tags for stable versions. All versions on pypi servers are considered stable.
 
-## Download EOS package from arista website
+## FAQ
 
-This command gives you option to download EOS images localy. Some options are available based on image type like importing your cEOS container in your local registry
+On EVE-NG, you may have to install/upgrade __pyOpenSSL__ in version `23.0.0`:
 
 ```bash
-# Get latest version of EOS using docker format.
-ardl get eos --latest --format cEOS
+# Error when running ardl: AttributeError: module 'lib' has no attribute 'X509_V_FLAG_CB_ISSUER_CHECK'
 
-# Get latest version of maintenance type in specific branch 4.29
-ardl get eos --branch 4.29 --format cEOS --release-type M
-
-# Get a specific version
-ardl get eos --version 4.29.4M
-
-# Get a specific version and import to docker using default arista/ceos:{version}{release_type}
-ardl get eos --version 4.29.4M --import-docker
-
-# Get a specific version and import to EVE-NG
-ardl get eos --version 4.33.0F --eve-ng
+$ pip install pyopenssl --upgrade
 ```
 
 ## Author
