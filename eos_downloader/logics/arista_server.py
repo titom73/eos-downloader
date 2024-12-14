@@ -1,461 +1,272 @@
+#!/usr/bin/python
 # coding: utf-8 -*-
+# pylint: disable=too-many-positional-arguments
+# pylint: disable=dangerous-default-value
 
-"""This module provides classes for managing and querying Arista XML data.
+"""Server module for handling interactions with Arista software download portal.
 
-Classes:
-    AristaXmlBase: Base class for Arista XML data management.
-    AristaXmlQuerier: Class to query Arista XML data for Software versions.
-    AristaXmlObject: Base class for Arista XML data management with specific software and version.
-    EosXmlObject: Class to query Arista XML data for EOS versions.
+This module provides the AristaServer class which manages authentication and
+file retrieval operations with the Arista software download portal. It handles
+session management, XML data retrieval, and download URL generation.
 
-Classes and Methods:
-    AristaXmlBase:
-        - __init__(self, token: str) -> None: Initializes the AristaXmlBase class with a token.
-        - _get_xml_root(self): Retrieves the XML root from the Arista server.
+Classes
+-------
+AristaServer
+    Main class for interacting with the Arista software portal.
 
-    AristaXmlQuerier(AristaXmlBase):
-        - available_public_eos_version(self, branch: Union[str, None] = None, rtype: Union[str, None] = None)
-                -> List[eos_downloader.models.version.EosVersion]: Extracts a list of available EOS versions from Arista.com.
-        - latest(self, branch: Union[str, None] = None, rtype: str = eos_downloader.models.version.RTYPE_FEATURE)
-                -> eos_downloader.models.version.EosVersion: Gets the latest branch from a semver standpoint.
-        - branches(self, latest: bool = False) -> List[str]: Returns a list of valid EOS version branches.
-        - _get_branches(self, versions: Union[List[eos_downloader.models.version.EosVersion], List[eos_downloader.models.version.CvpVersion]])
-                -> Union[List[eos_downloader.models.version.EosVersion], List[eos_downloader.models.version.CvpVersion]]: Extracts unique branch names from a list of version objects.
+Dependencies
+-----------
+- base64: For encoding authentication tokens
+- json: For handling JSON data in requests
+- xml.etree.ElementTree: For parsing XML responses
+- loguru: For logging
+- requests: For making HTTP requests
 
-    AristaXmlObject(AristaXmlBase):
-        - __init__(self, searched_version: str, image_type: str, token: str) -> None: Initializes the AristaXmlObject class with a searched version, image type, and token.
-        - filename(self) -> Union[str, None]: Builds the filename to search on arista.com.
-        - hashfile(self, hashtype: str = 'md5sum') -> Union[str, None]: Builds the hash filename to search on arista.com.
-        - path_from_xml(self, search_file: str) -> Union[str, None]: Parses XML to find the path for a given file.
-        - _url(self, xml_path: str) -> str: Gets the URL to download a file from the Arista server.
-        - urls(self) -> Dict[str, str]: Gets URLs to download files from the Arista server for given software and version.
-        - available_public_eos_version(self): Raises NotImplementedError.
+Example
+-------
+    >>> from eos_downloader.logics.server import AristaServer
+    >>> server = AristaServer(token='my_auth_token')
+    >>> server.authenticate()
+    >>> xml_data = server.get_xml_data()
+    >>> download_url = server.get_url('/path/to/file')
 
-    EosXmlObject(AristaXmlObject):
-        - Class to query Arista XML data for EOS versions.
-"""  # noqa: E501
+Notes
+-----
+The module requires valid authentication credentials to interact with the Arista portal.
+All server interactions are performed over HTTPS and follow Arista's API specifications.
+"""
 
 from __future__ import annotations
 
+import base64
 import logging
+import json
+from typing import Dict, Union, Any
+
 import xml.etree.ElementTree as ET
-from typing import ClassVar, Union, List, Dict
+from loguru import logger
+import requests
 
-import eos_downloader.logics.server
-import eos_downloader.models.version
-import eos_downloader.models.data
-from eos_downloader.models.types import AristaPackage, AristaVersions, AristaMapping
+import eos_downloader.exceptions
+import eos_downloader.defaults
 
 
-class AristaXmlBase:
-    # pylint: disable=too-few-public-methods
-    """Base class for Arista XML data management."""
+class AristaServer:
+    """AristaServer class to handle authentication and interactions with Arista software download portal.
 
-    # File extensions supported to be downloaded from arista server.
-    # Should cover: image file (image) and has files (md5sum and/or sha512sum)
-    supported_role_types: ClassVar[List[str]] = ["image", "md5sum", "sha512sum"]
+    This class provides methods to authenticate with the Arista software portal,
+    retrieve XML data containing available software packages, and generate download URLs
+    for specific files.
+
+    Attributes
+    ----------
+    token : str, optional
+        Authentication token for Arista portal access
+    timeout : int, default=5
+        Timeout in seconds for HTTP requests
+    session_server : str
+        URL of the authentication server
+    headers : Dict[str, any]
+        HTTP headers to use in requests
+    xml_url : str
+        URL to retrieve software package XML data
+    download_server : str
+        Base URL for file downloads
+    _session_id : str
+        Session ID obtained after authentication
+
+    Methods
+    -------
+    authenticate(token: Union[bool, None] = None) -> bool
+        Authenticates with the Arista portal using provided or stored token
+    get_xml_data() -> ET.ElementTree
+        Retrieves XML data containing available software packages
+    get_url(remote_file_path: str) -> Union[str, None]
+        Generates download URL for a specific file path
+
+    Raises
+    ------
+    eos_downloader.exceptions.AuthenticationError
+        When authentication fails due to invalid or expired token
+    """
 
     def __init__(
-        self, token: Union[str, None] = None, xml_path: Union[str, None] = None
+        self,
+        token: Union[str, None] = None,
+        timeout: int = 5,
+        session_server: str = eos_downloader.defaults.DEFAULT_SERVER_SESSION,
+        headers: Dict[str, Any] = eos_downloader.defaults.DEFAULT_REQUEST_HEADERS,
+        xml_url: str = eos_downloader.defaults.DEFAULT_SOFTWARE_FOLDER_TREE,
+        download_server: str = eos_downloader.defaults.DEFAULT_DOWNLOAD_URL,
     ) -> None:
-        logging.info("Initializing AristXmlBase.")
-        self.server = eos_downloader.logics.server.AristaServer(token=token)
-        if xml_path is not None:
-            try:
-                self.xml_data = ET.parse(xml_path)
-            except ET.ParseError as error:
-                logging.error(f"Error while parsing XML data: {error}")
-        else:
-            if self.server.authenticate():
-                data = self._get_xml_root()
-                if data is None:
-                    logging.error("Unable to get XML data from Arista server")
-                    raise ValueError("Unable to get XML data from Arista server")
-                self.xml_data = data
-            else:
-                logging.error("Unable to authenticate to Arista server")
-                raise ValueError("Unable to authenticate to Arista server")
+        """Initialize the Server class with optional parameters.
 
-    def _get_xml_root(self) -> Union[ET.ElementTree, None]:
-        logging.info("Getting XML root from Arista server.")
+        Parameters
+        ----------
+        token : Union[str, None], optional
+            Authentication token. Defaults to None.
+        timeout : int, optional
+            Request timeout in seconds. Defaults to 5.
+        session_server : str, optional
+            URL of the session server. Defaults to DEFAULT_SERVER_SESSION.
+        headers : Dict[str, any], optional
+            HTTP headers for requests. Defaults to DEFAULT_REQUEST_HEADERS.
+        xml_url : str, optional
+            URL of the software folder tree XML. Defaults to DEFAULT_SOFTWARE_FOLDER_TREE.
+        download_server : str, optional
+            Base URL for downloads. Defaults to DEFAULT_DOWNLOAD_URL.
+
+        Returns
+        -------
+        None
+        """
+        self.token: Union[str, None] = token
+        self._session_server = session_server
+        self._headers = headers
+        self._timeout = timeout
+        self._xml_url = xml_url
+        self._download_server = download_server
+        self._session_id = None
+
+        logging.info(f"Initialized AristaServer with headers: {self._headers}")
+
+    def authenticate(self, token: Union[str, None] = None) -> bool:
+        """Authenticate to the API server using access token.
+
+        The token is encoded in base64 and sent to the server for authentication.
+        A session ID is retrieved from the server response if authentication is successful.
+
+        Parameters
+        ----------
+        token : Union[str, None], optional
+            Access token for authentication. If None, uses existing token stored in instance. Defaults to None.
+
+        Returns
+        -------
+        bool
+            True if authentication successful, False otherwise
+
+        Raises
+        ------
+        eos_downloader.exceptions.AuthenticationError
+            If access token is invalid or expired
+        """
+
+        if token is not None:
+            self.token = token
+        if self.token is None:
+            logger.error("No token provided for authentication")
+            return False
+        credentials = (base64.b64encode(self.token.encode())).decode("utf-8")
+        jsonpost = {"accessToken": credentials}
+        result = requests.post(
+            self._session_server,
+            data=json.dumps(jsonpost),
+            timeout=self._timeout,
+            headers=self._headers,
+        )
+        if result.json()["status"]["message"] in [
+            "Access token expired",
+            "Invalid access token",
+        ]:
+            logging.critical(
+                f"Authentication failed: {result.json()['status']['message']}"
+            )
+            raise eos_downloader.exceptions.AuthenticationError
+            # return False
         try:
-            return self.server.get_xml_data()
-        except Exception as error:  # pylint: disable=broad-except
-            logging.error(f"Error while getting XML data from Arista server: {error}")
+            if "data" in result.json():
+                self._session_id = result.json()["data"]["session_code"]
+                logging.info(f"Authenticated with session ID: {self._session_id}")
+                return True
+        except KeyError as error:
+            logger.error(
+                f"Key Error in parsing server response ({result.json()}): {error}"
+            )
+            return False
+        return False
+
+    def get_xml_data(self) -> Union[ET.ElementTree, None]:
+        """Retrieves XML data from the server.
+
+        This method fetches XML data by making a POST request to the server's XML endpoint.
+        If not already authenticated, it will initiate the authentication process first.
+
+        Returns
+        -------
+        ET.ElementTree
+            An ElementTree object containing the parsed XML data from the server response.
+
+        Raises
+        ------
+        KeyError
+            If the server response doesn't contain the expected data structure.
+
+        Notes
+        -----
+        The method requires a valid session ID which is obtained through authentication.
+        The XML data is expected to be in the response JSON under data.xml path.
+        """
+
+        logging.info(f"Getting XML data from server {self._session_server}")
+        if self._session_id is None:
+            logger.debug("Not authenticated to server, start authentication process")
+            self.authenticate()
+        jsonpost = {"sessionCode": self._session_id}
+        result = requests.post(
+            self._xml_url,
+            data=json.dumps(jsonpost),
+            timeout=self._timeout,
+            headers=self._headers,
+        )
+        try:
+            folder_tree = result.json()["data"]["xml"]
+            logging.debug("XML data received from Arista server")
+            return ET.ElementTree(ET.fromstring(folder_tree))
+        except KeyError as error:
+            logger.error(f"Unkown key in server response: {error}")
             return None
 
+    def get_url(self, remote_file_path: str) -> Union[str, None]:
+        """Get download URL for a remote file from server.
 
-class AristaXmlQuerier(AristaXmlBase):
-    """Class to query Arista XML data for Software versions."""
+        This method retrieves the download URL for a specified remote file by making a POST request
+        to the server. If not authenticated, it will first authenticate before making the request.
 
-    def available_public_versions(
-        self,
-        branch: Union[str, None] = None,
-        rtype: Union[str, None] = None,
-        package: AristaPackage = "eos",
-    ) -> List[AristaVersions]:
-        """Get list of available public EOS versions from Arista website.
-
-        This method parses XML data to extract available EOS or CVP versions based on specified criteria.
-
-        Args:
-            branch (Union[str, None], optional): Branch number to filter versions (e.g. "4.29").
-                Defaults to None.
-            rtype (Union[str, None], optional): Release type to filter versions.
-                Must be one of the valid release types defined in RTYPES. Defaults to None.
-            package (AristaPackage, optional): Type of package to look for - either 'eos' or 'cvp'.
-                Defaults to 'eos'.
-        Returns:
-            List[eos_downloader.models.types.AristaVersions]: List of version objects (EosVersion or CvpVersion) matching the criteria.
-            List[AristaVersions]: List of version objects (EosVersion or CvpVersion) matching the criteria.
-
-        Raises:
-            ValueError: If provided rtype is not in the list of valid release types.
-
-        Example:
-            >>> server.available_public_eos_version(branch="4.29", rtype="INT", package="eos")
-            [EosVersion('4.29.0F-INT'), EosVersion('4.29.1F-INT'), ...]
-        """
-
-        logging.info(f"Getting available versions for {package} package")
-
-        xpath_query = './/dir[@label="Active Releases"]//dir[@label]'
-        regexp = eos_downloader.models.version.EosVersion.regex_version
-
-        if package == "cvp":
-            xpath_query = './/dir[@label="Active Releases"]//dir[@label]'
-            regexp = eos_downloader.models.version.CvpVersion.regex_version
-
-        package_versions = []
-
-        if rtype is not None and rtype not in eos_downloader.models.data.RTYPES:
-            raise ValueError(
-                f"Invalid release type: {rtype}. Expected one of {eos_downloader.models.data.RTYPES}"
-            )
-        nodes = self.xml_data.findall(xpath_query)
-        for node in nodes:
-            if "label" in node.attrib and node.get("label") is not None:
-                label = node.get("label")
-                if label is not None and regexp.match(label):
-                    package_version = None
-                    if package == "eos":
-                        package_version = (
-                            eos_downloader.models.version.EosVersion.from_str(label)
-                        )
-                    elif package == "cvp":
-                        package_version = (
-                            eos_downloader.models.version.CvpVersion.from_str(label)
-                        )
-                    package_versions.append(package_version)
-        if rtype is not None or branch is not None:
-            package_versions = [
-                version
-                for version in package_versions
-                if version is not None
-                and (rtype is None or version.rtype == rtype)
-                and (branch is None or str(version.branch) == branch)
-            ]
-
-        return package_versions
-
-    def latest(
-        self,
-        package: eos_downloader.models.types.AristaPackage = "eos",
-        branch: Union[str, None] = None,
-        rtype: Union[eos_downloader.models.types.ReleaseType, None] = None,
-    ) -> AristaVersions:
-        """
-        Get latest branch from semver standpoint
-
-        Args:
-            branch (str): Branch to search for
-            rtype (str): Release type to search for
-
-        Returns:
-            eos_downloader.models.version.EosVersion: Latest version found
-        """
-        if package == "eos":
-            if rtype is not None and rtype not in eos_downloader.models.data.RTYPES:
-                raise ValueError(
-                    f"Invalid release type: {rtype}. Expected {eos_downloader.models.data.RTYPES}"
-                )
-
-        versions = self.available_public_versions(
-            package=package, branch=branch, rtype=rtype
-        )
-        if len(versions) == 0:
-            raise ValueError("No versions found to run the max() function")
-        return max(versions)
-
-    def branches(
-        self,
-        package: eos_downloader.models.types.AristaPackage = "eos",
-        latest: bool = False,
-    ) -> List[str]:
-        """Returns a list of valid EOS version branches.
-
-        The branches are determined based on the available public EOS versions.
-        When latest=True, only the most recent branch is returned.
-
-        Args:
-            latest: If True, returns only the latest branch version.
-                   If False, returns all available branches sorted in descending order.
-
-        Returns:
-            List[str]: A list of branch version strings.
-                      Contains single latest version if latest=True,
-                      otherwise all available versions sorted descendingly.
-        """
-        if latest:
-            latest_branch = max(
-                self._get_branches(self.available_public_versions(package=package))
-            )
-            return [str(latest_branch)]
-        return sorted(
-            self._get_branches(self.available_public_versions(package=package)),
-            reverse=True,
-        )
-
-    def _get_branches(
-        self,
-        versions: Union[
-            List[eos_downloader.models.version.EosVersion],
-            List[eos_downloader.models.version.CvpVersion],
-        ],
-    ) -> List[str]:
-        """
-        Extracts unique branch names from a list of version objects.
-        Args:
-            versions (Union[List[EosVersion], List[CvpVersion]]): A list of version objects,
-                either EosVersion or CvpVersion types.
-        Returns:
-            Union[List[EosVersion], List[CvpVersion]]: A list of unique branch names.
-        """
-        branch = [version.branch for version in versions]
-        return list(set(branch))
-
-
-class AristaXmlObject(AristaXmlBase):
-    """Base class for Arista XML data management."""
-
-    software: ClassVar[AristaMapping]
-    base_xpath_active_version: ClassVar[str]
-    base_xpath_filepath: ClassVar[str]
-    checksum_file_extension: ClassVar[str] = "sha512sum"
-
-    def __init__(
-        self,
-        searched_version: str,
-        image_type: str,
-        token: Union[str, None] = None,
-        xml_path: Union[str, None] = None,
-    ) -> None:
-        self.search_version = searched_version
-        self.image_type = image_type
-        super().__init__(token=token, xml_path=xml_path)
-
-    @property
-    def filename(self) -> Union[str, None]:
-        """
-        _build_filename Helper to build filename to search on arista.com
+        Parameters
+        ----------
+        remote_file_path : str
+            Path to the remote file on server to get download URL for
 
         Returns
         -------
-        str:
-            Filename to search for on Arista.com
+        Union[str, None]
+            The download URL if successful, None if request fails or URL not found in response
+
+        Raises
+        ------
+        requests.exceptions.RequestException
+            If the request to server fails
+        json.JSONDecodeError
+            If server response is not valid JSON
+        requests.exceptions.Timeout
+            If server request times out
         """
-        logging.info(
-            f"Building filename for {self.image_type} package: {self.search_version}."
+
+        logging.info(f"Getting download URL for {remote_file_path}")
+        if self._session_id is None:
+            logger.debug("Not authenticated to server, start authentication process")
+            self.authenticate()
+        jsonpost = {"sessionCode": self._session_id, "filePath": remote_file_path}
+        result = requests.post(
+            self._download_server,
+            data=json.dumps(jsonpost),
+            timeout=self._timeout,
+            headers=self._headers,
         )
-        try:
-            filename = eos_downloader.models.data.software_mapping.filename(
-                self.software, self.image_type, self.search_version
-            )
-            return filename
-        except ValueError as e:
-            logging.error(f"Error: {e}")
+        if "data" in result.json() and "url" in result.json()["data"]:
+            # logger.debug('URL to download file is: {}', result.json())
+            logging.info("Download URL received from server")
+            logging.debug(f'URL to download file is: {result.json()["data"]["url"]}')
+            return result.json()["data"]["url"]
         return None
-
-    def hash_filename(self) -> Union[str, None]:
-        """
-        hash_filename Helper to build filename for checksum to search on arista.com
-
-        Returns
-        -------
-        str:
-            Filename to search for on Arista.com
-        """
-
-        logging.info(f"Building hash filename for {self.software} package.")
-
-        if self.filename is not None:
-            return f"{self.filename}.{self.checksum_file_extension}"
-        return None
-
-    def path_from_xml(self, search_file: str) -> Union[str, None]:
-        """Parse XML to find path for a given file.
-
-        Args:
-            search_file (str): File to search for
-
-        Returns:
-            Union[str, None]: Path from XML if found, None otherwise
-        """
-
-        logging.info(f"Building path from XML for {search_file}.")
-
-        # Build xpath with provided file
-        xpath_query = self.base_xpath_filepath.format(search_file)
-        # Find the element using XPath
-        path_element = self.xml_data.find(xpath_query)
-
-        if path_element is not None:
-            logging.debug(f'found path: {path_element.get("path")} for {search_file}')
-
-        # Return the path if found, otherwise return None
-        return path_element.get("path") if path_element is not None else None
-
-    def _url(self, xml_path: str) -> Union[str, None]:
-        """Get URL to download a file from Arista server.
-
-        Args:
-            xml_path (str): Path to the file in the XML
-
-        Returns:
-            str: URL to download the file
-        """
-
-        logging.info(f"Getting URL for {xml_path}.")
-
-        return self.server.get_url(xml_path)
-
-    @property
-    def urls(self) -> Dict[str, Union[str, None]]:
-        """Get URLs to download files from Arista server for given software and version.
-
-        This method will return a dictionary with file type as key and URL as value.
-        It returns URL for the following items: 'image', 'md5sum', and 'sha512sum'.
-
-        Returns:
-            Dict[str, str]: Dictionary with file type as key and URL as value
-        """
-        logging.info(f"Getting URLs for {self.software} package.")
-
-        urls = {}
-
-        if self.filename is None:
-            raise ValueError("Filename not found")
-
-        for role in self.supported_role_types:
-            file_path = None
-            logging.debug(f"working on {role}")
-            hash_filename = self.hash_filename()
-            if hash_filename is None:
-                raise ValueError("Hash file not found")
-            if role == "image":
-                file_path = self.path_from_xml(self.filename)
-            elif role == self.checksum_file_extension:
-                file_path = self.path_from_xml(hash_filename)
-            if file_path is not None:
-                logging.info(f"Adding {role} with {file_path} to urls dict")
-                urls[role] = self._url(file_path)
-        logging.debug(f"URLs dict contains: {urls}")
-        return urls
-
-
-class EosXmlObject(AristaXmlObject):
-    """Class to query Arista XML data for EOS versions."""
-
-    software: ClassVar[AristaMapping] = "EOS"
-    base_xpath_active_version: ClassVar[
-        str
-    ] = './/dir[@label="Active Releases"]/dir/dir/[@label]'
-    base_xpath_filepath: ClassVar[str] = './/file[.="{}"]'
-
-    # File extensions supported to be downloaded from arista server.
-    # Should cover: image file (image) and has files (md5sum and/or sha512sum)
-    supported_role_types: ClassVar[List[str]] = ["image", "md5sum", "sha512sum"]
-    checksum_file_extension: ClassVar[str] = "sha512sum"
-
-    def __init__(
-        self,
-        searched_version: str,
-        image_type: str,
-        token: Union[str, None] = None,
-        xml_path: Union[str, None] = None,
-    ) -> None:
-        """Initialize an instance of the EosXmlObject class.
-
-        Args:
-            searched_version (str): The version of the software to search for.
-            image_type (str): The type of image to download.
-            token (Union[str, None], optional): The authentication token. Defaults to None.
-            xml_path (Union[str, None], optional): The path to the XML file. Defaults to None.
-
-        Returns:
-            None
-        """
-
-        self.search_version = searched_version
-        self.image_type = image_type
-        self.version = eos_downloader.models.version.EosVersion().from_str(
-            searched_version
-        )
-
-        super().__init__(
-            searched_version=searched_version,
-            image_type=image_type,
-            token=token,
-            xml_path=xml_path,
-        )
-
-
-class CvpXmlObject(AristaXmlObject):
-    """Class to query Arista XML data for CVP versions."""
-
-    software: ClassVar[AristaMapping] = "CloudVision"
-    base_xpath_active_version: ClassVar[
-        str
-    ] = './/dir[@label="Active Releases"]/dir/dir/[@label]'
-    base_xpath_filepath: ClassVar[str] = './/file[.="{}"]'
-
-    # File extensions supported to be downloaded from arista server.
-    # Should cover: image file (image) and has files (md5sum and/or sha512sum)
-    supported_role_types: ClassVar[List[str]] = ["image", "md5"]
-    checksum_file_extension: ClassVar[str] = "md5"
-
-    def __init__(
-        self,
-        searched_version: str,
-        image_type: str,
-        token: Union[str, None] = None,
-        xml_path: Union[str, None] = None,
-    ) -> None:
-        """Initialize an instance of the CvpXmlObject class.
-
-        Args:
-            searched_version (str): The version of the software to search for.
-            image_type (str): The type of image to download.
-            token (Union[str, None], optional): The authentication token. Defaults to None.
-            xml_path (Union[str, None], optional): The path to the XML file. Defaults to None.
-
-        Returns:
-            None
-        """
-
-        self.search_version = searched_version
-        self.image_type = image_type
-        self.version = eos_downloader.models.version.CvpVersion().from_str(
-            searched_version
-        )
-
-        super().__init__(
-            searched_version=searched_version,
-            image_type=image_type,
-            token=token,
-            xml_path=xml_path,
-        )
-
-
-# Create the custom type
-AristaXmlObjects = Union[CvpXmlObject, EosXmlObject]

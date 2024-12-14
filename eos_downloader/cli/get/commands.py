@@ -15,7 +15,7 @@ from typing import Union
 import click
 from eos_downloader.models.data import RTYPE_FEATURE
 from eos_downloader.logics.download import SoftManager
-from eos_downloader.logics.arista_server import (
+from eos_downloader.logics.arista_xml_server import (
     EosXmlObject,
     AristaXmlQuerier,
     CvpXmlObject,

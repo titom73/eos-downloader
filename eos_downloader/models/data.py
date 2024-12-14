@@ -1,21 +1,27 @@
 # coding: utf-8 -*-
 """This module defines data models and mappings for image types of CloudVision and EOS on Arista.com.
 
-Classes:
-    ImageInfo: A Pydantic model representing image information for a specific image type.
-    DataMapping: A Pydantic model representing data mapping for image types of CloudVision and EOS on Arista.com.
+Classes
+-------
+ImageInfo:
+    A Pydantic model representing image information for a specific image type.
+DataMapping:
+    A Pydantic model representing data mapping for image types of CloudVision and EOS on Arista.com.
 
-Constants:
-    RTYPE_FEATURE (ReleaseType): Represents a feature release type.
-    RTYPE_MAINTENANCE (ReleaseType): Represents a maintenance release type.
-    RTYPES (List[ReleaseType]): A list containing the feature and maintenance release types.
+Methods
+-------
+DataMapping.filename(software: AristaMapping, image_type: str, version: str) -> str:
+    Generates a filename based on the provided software, image type, and version.
 
-Variables:
-    software_mapping (DataMapping): An instance of DataMapping containing the mappings for CloudVision and EOS image types.
+Constants
+-------
+- RTYPE_FEATURE (ReleaseType): Represents a feature release type.
+- RTYPE_MAINTENANCE (ReleaseType): Represents a maintenance release type.
+- RTYPES (List[ReleaseType]): A list containing the feature and maintenance release types.
 
-Methods:
-    DataMapping.filename(software: AristaMapping, image_type: str, version: str) -> str:
-        Generates a filename based on the provided software, image type, and version.
+Variables
+-------
+- software_mapping (DataMapping): An instance of DataMapping containing the mappings for CloudVision and EOS image types.
 """
 
 from typing import Dict, List
@@ -31,14 +37,35 @@ RTYPES: List[ReleaseType] = [RTYPE_FEATURE, RTYPE_MAINTENANCE]
 
 
 class ImageInfo(BaseModel):
-    """Image information for a specific image type."""
+    """Image information for a specific image type.
+
+    Attributes
+    ----------
+    extension : str
+        The file extension for the image type.
+    prepend : str
+        The prefix to prepend to the filename.
+    """
 
     extension: str
     prepend: str
 
 
 class DataMapping(BaseModel):
-    """Data mapping for image types of CloudVision and EOS on Arista.com."""
+    """Data mapping for image types of CloudVision and EOS on Arista.com.
+
+    Attributes
+    ----------
+    CloudVision : Dict[str, ImageInfo]
+        Mapping of image types to their information for CloudVision.
+    EOS : Dict[str, ImageInfo]
+        Mapping of image types to their information for EOS.
+
+    Methods
+    -------
+    filename(software: AristaMapping, image_type: str, version: str) -> str
+        Generates a filename based on the provided software, image type, and version.
+    """
 
     CloudVision: Dict[str, ImageInfo]
     EOS: Dict[str, ImageInfo]
@@ -46,17 +73,26 @@ class DataMapping(BaseModel):
     def filename(self, software: AristaMapping, image_type: str, version: str) -> str:
         """Generates a filename based on the provided software, image type, and version.
 
-        Args:
-            software (str): The name of the software for which the filename is being generated.
-            image_type (str): The type of image for which the filename is being generated.
-            version (str): The version of the software or image.
+        Parameters
+        ----------
+        software : AristaMapping
+            The name of the software for which the filename is being generated.
+        image_type : str
+            The type of image for which the filename is being generated.
+        version : str
+            The version of the software or image.
 
-        Returns:
-            str: The generated filename.
+        Returns
+        -------
+        str
+            The generated filename.
 
-        Raises:
-            ValueError: If the software does not have a corresponding mapping.
-            ValueError: If no configuration is found for the given image type and no default configuration is available.
+        Raises
+        ------
+        ValueError
+            If the software does not have a corresponding mapping.
+        ValueError
+            If no configuration is found for the given image type and no default configuration is available.
         """
 
         if hasattr(self, software):
