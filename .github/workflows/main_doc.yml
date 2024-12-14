@@ -1,0 +1,37 @@
+---
+# This is deploying the latest commits on main to main documentation
+name: Mkdocs
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # Run only if any of the following paths are changed when pushing to main
+      - "docs/**"
+      - "mkdocs.yml"
+      - "eos_downloader/**"
+  workflow_dispatch:
+
+jobs:
+  'build_latest_doc':
+    name: 'Update Public main documentation'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 'Setup Python 3 on runner'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Setup Git config
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: 'Build mkdocs content and deploy to gh-pages to main'
+        run: |
+            pip install .[doc]
+            mike deploy --push main

@@ -114,3 +114,25 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+
+  release-doc:
+    name: "Publish documentation for release ${{github.ref_name}}"
+    runs-on: ubuntu-latest
+    needs: [docker-in-docker]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 'Setup Python 3 on runner'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Setup Git config
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: 'Build mkdocs content to site folder'
+        run: |
+          pip install .[doc]
+          mike deploy --update-alias --push  ${{github.ref_name}} stable
