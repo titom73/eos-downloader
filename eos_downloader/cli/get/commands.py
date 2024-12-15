@@ -32,24 +32,28 @@ from .utils import initialize, search_version, download_files, handle_docker_imp
     help="Path to save image",
     type=click.Path(),
     show_default=True,
+    show_envvar=True,
 )
 @click.option(
     "--latest",
     is_flag=True,
     help="Get latest version. If --branch is not use, get the latest branch with specific release type",
     default=False,
+    show_envvar=True,
 )
 @click.option(
     "--eve-ng",
     is_flag=True,
     help="Run EVE-NG vEOS provisioning (only if CLI runs on an EVE-NG server)",
     default=False,
+    show_envvar=True,
 )
 @click.option(
     "--import-docker",
     is_flag=True,
     help="Import docker image to local docker",
     default=False,
+    show_envvar=True,
 )
 @click.option(
     "--skip-download",
@@ -58,19 +62,40 @@ from .utils import initialize, search_version, download_files, handle_docker_imp
     default=False,
 )
 @click.option(
-    "--docker-name", default="arista/ceos", help="Docker image name", show_default=True
+    "--docker-name",
+    default="arista/ceos",
+    help="Docker image name",
+    show_default=True,
+    show_envvar=True,
 )
-@click.option("--docker-tag", default=None, help="Docker image tag", show_default=True)
 @click.option(
-    "--version", default=None, help="EOS version to download", show_default=True
+    "--docker-tag",
+    default=None,
+    help="Docker image tag",
+    show_default=True,
+    show_envvar=True,
+)
+@click.option(
+    "--version",
+    default=None,
+    help="EOS version to download",
+    show_default=True,
+    show_envvar=True,
 )
 @click.option(
     "--release-type",
     default=RTYPE_FEATURE,
     help="Release type (M for Maintenance, F for Feature)",
     show_default=True,
+    show_envvar=True,
 )
-@click.option("--branch", default=None, help="Branch to download", show_default=True)
+@click.option(
+    "--branch",
+    default=None,
+    help="Branch to download",
+    show_default=True,
+    show_envvar=True,
+)
 @click.option(
     "--dry-run",
     is_flag=True,
@@ -135,24 +160,42 @@ def eos(
 
 
 @click.command()
-@click.option("--format", default="ova", help="Image format", show_default=True)
+@click.option(
+    "--format",
+    default="ova",
+    help="Image format",
+    show_default=True,
+    show_envvar=True,
+)
 @click.option(
     "--output",
     default=str(os.path.relpath(os.getcwd(), start=os.curdir)),
     help="Path to save image",
     type=click.Path(),
     show_default=True,
+    show_envvar=True,
 )
 @click.option(
     "--latest",
     is_flag=True,
     help="Get latest version. If --branch is not use, get the latest branch with specific release type",
     default=False,
+    show_envvar=True,
 )
 @click.option(
-    "--version", default=None, help="EOS version to download", show_default=True
+    "--version",
+    default=None,
+    help="EOS version to download",
+    show_default=True,
+    show_envvar=True,
 )
-@click.option("--branch", default=None, help="Branch to download", show_default=True)
+@click.option(
+    "--branch",
+    default=None,
+    help="Branch to download",
+    show_default=True,
+    show_envvar=True,
+)
 @click.option(
     "--dry-run",
     is_flag=True,
