@@ -21,18 +21,7 @@ pip install eos-downloader
 ardl --token <your-token> get eos --format 64 --latest --release-type M
 ```
 
-> [!NOTE]
-> The main branch is not the stable branch and can be broken between releases. It is safe to consider using tags for stable versions. All versions on pypi servers are considered stable.
-
-## FAQ
-
-On EVE-NG, you may have to install/upgrade __pyOpenSSL__ in version `23.0.0`:
-
-```bash
-# Error when running ardl: AttributeError: module 'lib' has no attribute 'X509_V_FLAG_CB_ISSUER_CHECK'
-
-$ pip install pyopenssl --upgrade
-```
+<img src='imgs/readme.webp' width="800" height="600" class="center" />
 
 ## Author
 

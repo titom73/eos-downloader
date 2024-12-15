@@ -163,7 +163,9 @@ nav:
   - Home: README.md
   - Usage:
       - Get EOS package: usage/eos.md
+      - Get CVP package: usage/cvp.md
       - Version information: usage/info.md
+      - Software mapping: usage/mapping.md
   - Code documentation:
     - Models:
       - Version: api/models/version.md
@@ -174,4 +176,6 @@ nav:
       - Arista XML API: api/logics/arista_xml_server.md
       - Download Management: api/logics/download.md
     - Helpers: api/helpers.md
+    - Defaults: api/defaults.md
+  - FAQ: faq.md
 
