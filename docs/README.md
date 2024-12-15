@@ -10,6 +10,8 @@
 
 A project to download Arista softwares to local folder, Cloudvision or EVE-NG. It comes in 2 way: a framework with object to automate Arista software download and a CLI for human activities.
 
+<img src='imgs/readme-7.png' class="center" />
+
 > [!CAUTION]
 > This script should not be deployed on EOS device. If you do that, there is no support to expect from Arista TAC team.
 
@@ -20,8 +22,6 @@ pip install eos-downloader
 # download EOS swi for EOS 64bits
 ardl --token <your-token> get eos --format 64 --latest --release-type M
 ```
-
-<img src='imgs/readme.webp' width="800" height="600" class="center" />
 
 ## Author
 
