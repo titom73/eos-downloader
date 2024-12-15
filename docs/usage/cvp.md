@@ -21,14 +21,16 @@ Usage: ardl get cvp [OPTIONS]
   Download CVP image from Arista server.
 
 Options:
-  --format TEXT   Image format  [default: ova]
-  --output PATH   Path to save image  [default: .]
+  --format TEXT   Image format  [env var: ARISTA_GET_CVP_FORMAT; default: ova]
+  --output PATH   Path to save image  [env var: ARISTA_GET_CVP_OUTPUT;
+                  default: .]
   --latest        Get latest version. If --branch is not use, get the latest
-                  branch with specific release type
-  --version TEXT  EOS version to download
-  --branch TEXT   Branch to download
+                  branch with specific release type  [env var:
+                  ARISTA_GET_CVP_LATEST]
+  --version TEXT  EOS version to download  [env var: ARISTA_GET_CVP_VERSION]
+  --branch TEXT   Branch to download  [env var: ARISTA_GET_CVP_BRANCH]
   --dry-run       Enable dry-run mode: only run code without system changes
-  --help          Show this message and exit.
+  --help
 ```
 
 !!! info
