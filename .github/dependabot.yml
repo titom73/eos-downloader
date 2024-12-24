@@ -21,7 +21,8 @@ updates:
     pull-request-branch-name:
       separator: "/"
     commit-message:
-      prefix: "bump: "
+      prefix: "bump(requirements): "
+      prefix-development: "bump(dev): "
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -32,4 +33,4 @@ updates:
     labels:
       - 'CI'
     commit-message:
-      prefix: "ci: "
+      prefix: "ci(actions): "
