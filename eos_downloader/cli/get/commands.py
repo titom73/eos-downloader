@@ -15,6 +15,7 @@ from typing import Union
 import click
 from eos_downloader.models.data import RTYPE_FEATURE
 from eos_downloader.logics.download import SoftManager
+from eos_downloader.logics.arista_server import AristaServer
 from eos_downloader.logics.arista_xml_server import (
     EosXmlObject,
     AristaXmlQuerier,
@@ -266,4 +267,63 @@ def cvp(
     )
 
     console.print(f"CVP file is saved under: {output}")
+    return 0
+
+
+@click.command()
+@click.option(
+    "--source",
+    "-s",
+    help="Image path to download from Arista Website",
+    type=str,
+    show_default=False,
+    show_envvar=False,
+)
+@click.option(
+    "--output",
+    "-o",
+    default=str(os.path.relpath(os.getcwd(), start=os.curdir)),
+    help="Path to save downloaded package",
+    type=click.Path(),
+    show_default=True,
+    show_envvar=True,
+)
+@click.pass_context
+def path(ctx: click.Context, output: str, source: str) -> int:
+    """Download image from Arista server using direct path."""
+    console, token, debug, log_level = initialize(ctx)
+
+    if source is None:
+        console.print("[red]Source is not set correctly ![/red]")
+        return 1
+
+    filename = os.path.basename(source)
+
+    console.print(f"Downloading file {filename} from source: {source}")
+    console.print(f"Saving file to: {output}")
+
+    ar_server = AristaServer(token=token)
+
+    try:
+        file_url = ar_server.get_url(source)
+        if log_level == "debug":
+            console.print(f"URL to download file is: {file_url}")
+    except Exception as e:
+        if debug:
+            console.print_exception(show_locals=True)
+        else:
+            console.print(f"\n[red]Exception raised: {e}[/red]")
+        return 1
+
+    cli = SoftManager(dry_run=False)
+
+    try:
+        cli.download_file(file_url, output, filename=filename)
+    except Exception as e:
+        if debug:
+            console.print_exception(show_locals=True)
+        else:
+            console.print(f"\n[red]Exception raised: {e}[/red]")
+        return 1
+
     return 0
