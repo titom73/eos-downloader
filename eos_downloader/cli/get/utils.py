@@ -106,7 +106,7 @@ def download_files(
     """
 
     console.print(
-        f"Starting download for EOS version [green]{arista_dl_obj}[/green] for [blue]{format}[/blue] format."
+        f"Starting download for EOS version [green]{arista_dl_obj.version}[/green] for [blue]{arista_dl_obj.image_type}[/blue] format."
     )
     cli.downloads(arista_dl_obj, file_path=output, rich_interface=rich_interface)
     try:

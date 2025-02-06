@@ -83,6 +83,7 @@ def cli() -> None:
     # Load group commands for get
     get.add_command(get_commands.eos)
     get.add_command(get_commands.cvp)
+    get.add_command(get_commands.path)
 
     # Debug
     debug.add_command(debug_commands.xml)

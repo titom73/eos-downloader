@@ -15,6 +15,7 @@ from typing import Union
 import click
 from eos_downloader.models.data import RTYPE_FEATURE
 from eos_downloader.logics.download import SoftManager
+from eos_downloader.logics.arista_server import AristaServer
 from eos_downloader.logics.arista_xml_server import (
     EosXmlObject,
     AristaXmlQuerier,
@@ -266,4 +267,120 @@ def cvp(
     )
 
     console.print(f"CVP file is saved under: {output}")
+    return 0
+
+
+@click.command()
+@click.option(
+    "--source",
+    "-s",
+    help="Image path to download from Arista Website",
+    type=str,
+    show_default=False,
+    show_envvar=False,
+)
+@click.option(
+    "--output",
+    "-o",
+    default=str(os.path.relpath(os.getcwd(), start=os.curdir)),
+    help="Path to save downloaded package",
+    type=click.Path(),
+    show_default=True,
+    show_envvar=True,
+)
+@click.option(
+    "--import-docker",
+    is_flag=True,
+    help="Import docker image to local docker",
+    default=False,
+    show_envvar=True,
+)
+@click.option(
+    "--docker-name",
+    default="arista/ceos:raw",
+    help="Docker image name",
+    show_default=True,
+    show_envvar=True,
+)
+@click.option(
+    "--docker-tag",
+    default="dev",
+    help="Docker image tag",
+    show_default=True,
+    show_envvar=True,
+)
+@click.pass_context
+# pylint: disable=too-many-branches
+def path(
+    ctx: click.Context,
+    output: str,
+    source: str,
+    import_docker: bool,
+    docker_name: str,
+    docker_tag: str,
+) -> int:
+    """Download image from Arista server using direct path."""
+    console, token, debug, log_level = initialize(ctx)
+
+    if source is None:
+        console.print("[red]Source is not set correctly ![/red]")
+        return 1
+
+    filename = os.path.basename(source)
+
+    console.print(f"Downloading file {filename} from source: {source}")
+    console.print(f"Saving file to: {output}")
+
+    ar_server = AristaServer(token=token)
+
+    try:
+        file_url = ar_server.get_url(source)
+        if log_level == "debug":
+            console.print(f"URL to download file is: {file_url}")
+    except Exception as e:
+        if debug:
+            console.print_exception(show_locals=True)
+        else:
+            console.print(f"\n[red]Exception raised: {e}[/red]")
+        return 1
+
+    if file_url is None:
+        console.print("File URL is set to None when we expect a string")
+        return 1
+
+    cli = SoftManager(dry_run=False)
+
+    try:
+        cli.download_file(file_url, output, filename=filename)
+    except Exception as e:
+        if debug:
+            console.print_exception(show_locals=True)
+        else:
+            console.print(f"\n[red]Exception raised: {e}[/red]")
+        return 1
+
+    if import_docker:
+        console.print(
+            f"Importing docker image [green]{docker_name}:{docker_tag}[/green] from [blue]{os.path.join(output, filename)}[/blue]..."
+        )
+
+        try:
+            cli.import_docker(
+                local_file_path=os.path.join(output, filename),
+                docker_name=docker_name,
+                docker_tag=docker_tag,
+            )
+        except FileNotFoundError:
+            if debug:
+                console.print_exception(show_locals=True)
+            else:
+                console.print(
+                    f"\n[red]File not found: {os.path.join(output, filename)}[/red]"
+                )
+            return 1
+
+        console.print(
+            f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"
+        )
+
     return 0
