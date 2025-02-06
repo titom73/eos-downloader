@@ -310,6 +310,7 @@ def cvp(
     show_envvar=True,
 )
 @click.pass_context
+# pylint: disable=too-many-branches
 def path(
     ctx: click.Context,
     output: str,
@@ -341,6 +342,10 @@ def path(
             console.print_exception(show_locals=True)
         else:
             console.print(f"\n[red]Exception raised: {e}[/red]")
+        return 1
+
+    if file_url is None:
+        console.print("File URL is set to None when we expect a string")
         return 1
 
     cli = SoftManager(dry_run=False)
