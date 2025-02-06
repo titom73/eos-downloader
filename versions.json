@@ -3,5 +3,12 @@
     "version": "main",
     "title": "main",
     "aliases": []
+  },
+  {
+    "version": "04f20f2",
+    "title": "04f20f2",
+    "aliases": [
+      "stable"
+    ]
   }
 ]
