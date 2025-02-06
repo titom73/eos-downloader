@@ -210,7 +210,7 @@ class AristaServer:
 
         logging.info(f"Getting XML data from server {self._session_server}")
         if self._session_id is None:
-            logger.debug("Not authenticated to server, start authentication process")
+            logging.debug("Not authenticated to server, start authentication process")
             self.authenticate()
         jsonpost = {"sessionCode": self._session_id}
         result = requests.post(
@@ -255,7 +255,7 @@ class AristaServer:
 
         logging.info(f"Getting download URL for {remote_file_path}")
         if self._session_id is None:
-            logger.debug("Not authenticated to server, start authentication process")
+            logging.debug("Not authenticated to server, start authentication process")
             self.authenticate()
         jsonpost = {"sessionCode": self._session_id, "filePath": remote_file_path}
         result = requests.post(

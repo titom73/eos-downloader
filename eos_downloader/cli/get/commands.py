@@ -288,8 +288,36 @@ def cvp(
     show_default=True,
     show_envvar=True,
 )
+@click.option(
+    "--import-docker",
+    is_flag=True,
+    help="Import docker image to local docker",
+    default=False,
+    show_envvar=True,
+)
+@click.option(
+    "--docker-name",
+    default="arista/ceos:raw",
+    help="Docker image name",
+    show_default=True,
+    show_envvar=True,
+)
+@click.option(
+    "--docker-tag",
+    default="dev",
+    help="Docker image tag",
+    show_default=True,
+    show_envvar=True,
+)
 @click.pass_context
-def path(ctx: click.Context, output: str, source: str) -> int:
+def path(
+    ctx: click.Context,
+    output: str,
+    source: str,
+    import_docker: bool,
+    docker_name: str,
+    docker_tag: str,
+) -> int:
     """Download image from Arista server using direct path."""
     console, token, debug, log_level = initialize(ctx)
 
@@ -325,5 +353,29 @@ def path(ctx: click.Context, output: str, source: str) -> int:
         else:
             console.print(f"\n[red]Exception raised: {e}[/red]")
         return 1
+
+    if import_docker:
+        console.print(
+            f"Importing docker image [green]{docker_name}:{docker_tag}[/green] from [blue]{os.path.join(output, filename)}[/blue]..."
+        )
+
+        try:
+            cli.import_docker(
+                local_file_path=os.path.join(output, filename),
+                docker_name=docker_name,
+                docker_tag=docker_tag,
+            )
+        except FileNotFoundError:
+            if debug:
+                console.print_exception(show_locals=True)
+            else:
+                console.print(
+                    f"\n[red]File not found: {os.path.join(output, filename)}[/red]"
+                )
+            return 1
+
+        console.print(
+            f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"
+        )
 
     return 0
