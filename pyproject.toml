@@ -103,7 +103,7 @@ doc = [
 ]
 
 [project.urls]
-Homepage = "https://www.github.com/titom73/eos-downloader"
+Homepage = "https://titom73.github.io/eos-downloader/"
 "Bug Tracker" = "https://www.github.com/titom73/eos-downloader/issues"
 Contributing = "https://www.github.com/titom73/eos-downloader"
 
