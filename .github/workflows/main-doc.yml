@@ -1,6 +1,6 @@
 ---
 # This is deploying the latest commits on main to main documentation
-name: Mkdocs
+name: Mkdocs Deploy for main
 on:
   push:
     branches:
