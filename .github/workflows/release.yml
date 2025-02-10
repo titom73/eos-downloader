@@ -6,7 +6,7 @@ on:
     - 'v[0-9]+.[0-9]+.[0-9]+$' # Push events to matching v*, i.e. v1.0, v20.15.10
 jobs:
   pypi:
-    name: Publish version to Pypi servers
+    name: Publish Python 🐍 distribution 📦 to PyPI
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -26,7 +26,7 @@ jobs:
         run: |
           python -m build
 
-      - name: Publish package to Pypi server
+      - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
