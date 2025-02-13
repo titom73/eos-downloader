@@ -10,10 +10,40 @@
 
 A project to download Arista softwares to local folder, Cloudvision or EVE-NG. It comes in 2 way: a framework with object to automate Arista software download and a CLI for human activities.
 
-<img src='imgs/readme-7.png' class="center" />
+<img src='imgs/logo.jpg' class="center" width="800px" />
 
 > [!CAUTION]
 > This script should not be deployed on EOS device. If you do that, there is no support to expect from Arista TAC team.
+
+## Key Features
+
+- **Download** EOS images locally with various options based on image type.
+- **Import** your `cEOS` container into your local Docker registry.
+- Import specific versions into **Docker or EVE-NG**.
+
+## Example Commands
+
+```bash
+# Install eos-downloader from PyPI
+pip install eos-downloader
+
+# Download EOS software for EOS 64-bit
+ardl --token <your-token> get eos --format 64 --latest --release-type M
+
+# Get the latest version of EOS using Docker format
+ardl get eos --latest --format cEOS
+
+# Get the latest maintenance type version in branch 4.29
+ardl get eos --branch 4.29 --format cEOS --release-type M
+
+# Get a specific version
+ardl get eos --version 4.29.4M
+
+# Get a specific version and import to Docker
+ardl get eos --version 4.29.4M --import-docker
+
+# Get a specific version and import to EVE-NG
+ardl get eos --version 4.33.0F --eve-ng
 
 ```bash
 # install eos-downloader from pypi
