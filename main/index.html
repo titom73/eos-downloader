@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="imgs/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.3">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.4">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.d7758b05.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.8608ea7d.min.css">
       
         
         <link rel="stylesheet" href="assets/stylesheets/palette.06af60db.min.css">
@@ -322,6 +322,24 @@
   
     <nav class="md-nav" aria-label="Arista Software Downloader">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Commands
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#author" class="md-nav__link">
@@ -932,6 +950,24 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Commands
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#author" class="md-nav__link">
     <span class="md-ellipsis">
       Author
@@ -985,12 +1021,41 @@
 
 <h2 id="arista-software-downloader">Arista Software Downloader<a class="headerlink" href="#arista-software-downloader" title="Permanent link">&para;</a></h2>
 <p>A project to download Arista softwares to local folder, Cloudvision or EVE-NG. It comes in 2 way: a framework with object to automate Arista software download and a CLI for human activities.</p>
-<p><a class="glightbox" href="imgs/readme-7.png" data-type="image" data-width="90vw" data-height="auto" data-desc-position="bottom"><img src='imgs/readme-7.png' class="center" /></a></p>
+<p><a class="glightbox" href="imgs/logo.jpg" data-type="image" data-width="90vw" data-height="auto" data-desc-position="bottom"><img src='imgs/logo.jpg' class="center" width="800px" /></a></p>
 <div class="admonition danger">
 <p class="admonition-title">Caution</p>
 <p>This script should not be deployed on EOS device. If you do that, there is no support to expect from Arista TAC team.</p>
 </div>
-<div class="highlight"><pre><span></span><code><span class="c1"># install eos-downloader from pypi</span>
+<h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Download</strong> EOS images locally with various options based on image type.</li>
+<li><strong>Import</strong> your <code>cEOS</code> container into your local Docker registry.</li>
+<li>Import specific versions into <strong>Docker or EVE-NG</strong>.</li>
+</ul>
+<h3 id="example-commands">Example Commands<a class="headerlink" href="#example-commands" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install eos-downloader from PyPI</span>
+pip<span class="w"> </span>install<span class="w"> </span>eos-downloader
+
+<span class="c1"># Download EOS software for EOS 64-bit</span>
+ardl<span class="w"> </span>--token<span class="w"> </span>&lt;your-token&gt;<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--format<span class="w"> </span><span class="m">64</span><span class="w"> </span>--latest<span class="w"> </span>--release-type<span class="w"> </span>M
+
+<span class="c1"># Get the latest version of EOS using Docker format</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--latest<span class="w"> </span>--format<span class="w"> </span>cEOS
+
+<span class="c1"># Get the latest maintenance type version in branch 4.29</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--branch<span class="w"> </span><span class="m">4</span>.29<span class="w"> </span>--format<span class="w"> </span>cEOS<span class="w"> </span>--release-type<span class="w"> </span>M
+
+<span class="c1"># Get a specific version</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.29.4M
+
+<span class="c1"># Get a specific version and import to Docker</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.29.4M<span class="w"> </span>--import-docker
+
+<span class="c1"># Get a specific version and import to EVE-NG</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.33.0F<span class="w"> </span>--eve-ng
+
+<span class="sb">```</span>bash
+<span class="c1"># install eos-downloader from pypi</span>
 pip<span class="w"> </span>install<span class="w"> </span>eos-downloader
 
 <span class="c1"># download EOS swi for EOS 64bits</span>
@@ -1020,7 +1085,7 @@ ardl<span class="w"> </span>--token<span class="w"> </span>&lt;your-token&gt;<sp
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 15, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 13, 2025</span>
   </span>
 
     
