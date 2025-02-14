@@ -45,7 +45,6 @@ ardl get eos --version 4.29.4M --import-docker
 # Get a specific version and import to EVE-NG
 ardl get eos --version 4.33.0F --eve-ng
 
-```bash
 # install eos-downloader from pypi
 pip install eos-downloader
 
