@@ -12,6 +12,8 @@
 
 A project to download Arista softwares to local folder, Cloudvision or EVE-NG. It comes in 2 way: a framework with object to automate Arista software download and a CLI for human activities.
 
+<img src='imgs/logo.jpg' class="center" width="800px" />
+
 > [!CAUTION]
 > This script should not be deployed on EOS device. If you do that, there is no support to expect from Arista TAC team.
 
