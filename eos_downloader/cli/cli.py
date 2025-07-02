@@ -20,7 +20,7 @@ from eos_downloader.cli.get import commands as get_commands
 from eos_downloader.cli.utils import AliasedGroup
 
 
-@click.group(cls=AliasedGroup)
+@click.group(cls=AliasedGroup, no_args_is_help=True)
 @click.version_option(__version__)
 @click.pass_context
 @click.option(
