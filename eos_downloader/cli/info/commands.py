@@ -204,7 +204,7 @@ def mapping(
     console.print(f"Log Level is: {log_level}")
     cli_logging(log_level)
 
-    if mapping_pkg_name in software_mapping.model_fields:
+    if mapping_pkg_name in software_mapping.model_fields:  # pylint: disable = unsupported-membership-test
         mapping_entries = getattr(software_mapping, mapping_pkg_name, None)
         if format == "text":
             console.print(

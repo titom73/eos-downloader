@@ -20,7 +20,9 @@ from eos_downloader.cli.get import commands as get_commands
 from eos_downloader.cli.utils import AliasedGroup
 
 
-@click.group(cls=AliasedGroup)
+@click.group(
+    cls=AliasedGroup, no_args_is_help=True, invoke_without_command=True
+)
 @click.version_option(__version__)
 @click.pass_context
 @click.option(
@@ -46,12 +48,19 @@ from eos_downloader.cli.utils import AliasedGroup
     help="Activate debug mode for ardl cli",
     default=False,
 )
-def ardl(ctx: click.Context, token: str, log_level: str, debug_enabled: bool) -> None:
+def ardl(
+    ctx: click.Context, token: str, log_level: str, debug_enabled: bool
+) -> None:
     """Arista Network Download CLI"""
     ctx.ensure_object(dict)
     ctx.obj["token"] = token
     ctx.obj["log_level"] = log_level
     ctx.obj["debug"] = debug_enabled
+
+    # If no command is provided, show help and exit with code 0
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+        ctx.exit(0)
 
 
 @ardl.group(cls=AliasedGroup, no_args_is_help=True)
@@ -75,24 +84,24 @@ def debug(ctx: click.Context, cls: click.Group = AliasedGroup) -> None:
     """Debug commands to work with ardl"""
 
 
+# Load commands at module import time
+# Load group commands for get
+get.add_command(get_commands.eos)
+get.add_command(get_commands.cvp)
+get.add_command(get_commands.path)
+
+# Debug
+debug.add_command(debug_commands.xml)
+
+# Get info commands
+info.add_command(info_commands.versions)
+info.add_command(info_commands.latest)
+info.add_command(info_commands.mapping)
+
+
 # ANTA CLI Execution
-
-
 def cli() -> None:
     """Load ANTA CLI"""
-    # Load group commands for get
-    get.add_command(get_commands.eos)
-    get.add_command(get_commands.cvp)
-    get.add_command(get_commands.path)
-
-    # Debug
-    debug.add_command(debug_commands.xml)
-
-    # Get info commands
-    info.add_command(info_commands.versions)
-    info.add_command(info_commands.latest)
-    info.add_command(info_commands.mapping)
-
     # Load CLI
     ardl(obj={}, auto_envvar_prefix="arista")
 

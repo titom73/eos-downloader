@@ -78,6 +78,10 @@ def xml(ctx: click.Context, output: str, log_level: str) -> None:
     xml_object: ET.ElementTree = xml_data  # pylint: disable=protected-access
     xml_content = xml_object.getroot()
 
+    if xml_content is None:
+        log.error("XML root element is None")
+        return
+
     xmlstr = minidom.parseString(ET.tostring(xml_content)).toprettyxml(
         indent="    ", newl=""
     )

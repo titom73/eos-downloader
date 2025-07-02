@@ -222,9 +222,16 @@ class AristaServer:
         try:
             folder_tree = result.json()["data"]["xml"]
             logging.debug("XML data received from Arista server")
-            return ET.ElementTree(ET.fromstring(folder_tree))
+            root_element = ET.fromstring(folder_tree)
+            if root_element is None:
+                logger.error("Failed to parse XML data from server response")
+                return None
+            return ET.ElementTree(root_element)
         except KeyError as error:
             logger.error(f"Unkown key in server response: {error}")
+            return None
+        except ET.ParseError as error:
+            logger.error(f"Failed to parse XML from server response: {error}")
             return None
 
     def get_url(self, remote_file_path: str) -> Union[str, None]:

@@ -59,7 +59,12 @@ class AristaXmlBase:
                 if data is None:
                     logging.error("Unable to get XML data from Arista server")
                     raise ValueError("Unable to get XML data from Arista server")
-                self.xml_data = data
+                # Ensure the XML data has a valid root element
+                if data.getroot() is None:
+                    logging.error("XML data has no root element")
+                    raise ValueError("XML data has no root element")
+                # At this point, we've validated that data has a valid root
+                self.xml_data = data  # type: ignore[assignment]
             else:
                 logging.error("Unable to authenticate to Arista server")
                 raise ValueError("Unable to authenticate to Arista server")
