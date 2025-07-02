@@ -34,6 +34,7 @@ Log Level is: error
 │    * Flavor: 2GB-INT                              │
 │    * Flavor: cEOS                                 │
 │    * Flavor: cEOS64                               │
+│    * Flavor: cEOSarm                              │
 │    * Flavor: vEOS                                 │
 │    * Flavor: vEOS-lab                             │
 │    * Flavor: EOS-2GB                              │
@@ -44,7 +45,7 @@ Log Level is: error
 ╰───────────────────────────────────────────────────╯
 
 # Get list of supported packages for EOS with filename information
-$ ardl info mapping --package eos
+$ ardl info mapping --package eos --details
 Log Level is: error
 
 ╭─────────────────────────────────────────────────── Flavors ─────────╮
@@ -59,6 +60,8 @@ Log Level is: error
 │      - Information: extension='.tar.xz' prepend='cEOS-lab'          │
 │    * Flavor: cEOS64                                                 │
 │      - Information: extension='.tar.xz' prepend='cEOS64-lab'        │
+│    * Flavor: cEOSarm                                                │
+│      - Information: extension='.tar.xz' prepend='cEOSarm-lab'       │
 │    * Flavor: vEOS                                                   │
 │      - Information: extension='.vmdk' prepend='vEOS'                │
 │    * Flavor: vEOS-lab                                               │
