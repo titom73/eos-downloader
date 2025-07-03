@@ -20,8 +20,7 @@ LABEL   "org.opencontainers.image.title"="eos-downloader" \
         "org.opencontainers.image.authors"="Thomas Grimonet <tom@inetsix.net>" \
         "org.opencontainers.image.base.name"="python" \
         "org.opencontainers.image.revision"="dev" \
-        "org.opencontainers.image.version"="dev" \
-        "annotation": {"org.opencontainers.image.description"="eos-downloader container"}
+        "org.opencontainers.image.version"="dev" 
 
 ENV PYTHONPATH=/local
 RUN pip --no-cache-dir install .
