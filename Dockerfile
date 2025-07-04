@@ -1,6 +1,7 @@
 ARG PYTHON_VER=3
+ARG BUILDPLATFORM=linux/amd64
 
-FROM python:${PYTHON_VER}-slim
+FROM --platform=$BUILDPLATFORM python:${PYTHON_VER}-slim
 
 RUN pip install --upgrade pip
 
