@@ -116,6 +116,7 @@ software_mapping = DataMapping(
         "ova": {"extension": ".ova", "prepend": "cvp"},
         "rpm": {"extension": "", "prepend": "cvp-rpm-installer"},
         "kvm": {"extension": "-kvm.tgz", "prepend": "cvp"},
+        "atswi": {"extension": ".atswi", "prepend": "cvp"},
         "upgrade": {"extension": ".tgz", "prepend": "cvp-upgrade"},
     },
     EOS={
