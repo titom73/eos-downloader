@@ -117,3 +117,41 @@ jobs:
       - name: "Run tox for ${{ matrix.python }}"
         # run: tox -e testenv
         run: tox
+
+  # Update README with coverage badge (only on main branch for Python 3.10)
+  update-coverage-badge:
+    name: Update coverage badge in README
+    runs-on: ubuntu-latest
+    needs: [pytest]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install tox coverage
+
+      - name: Run tests and generate coverage
+        run: tox -e py310
+
+      - name: Update coverage badge
+        run: |
+          coverage erase
+          pytest --cov=eos_downloader --cov-report=term-missing tests/ -q
+          python .github/scripts/update_coverage_badge.py
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git diff --staged --quiet || git commit -m "Update coverage badge [skip ci]"
+          git push
