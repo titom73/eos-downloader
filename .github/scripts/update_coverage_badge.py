@@ -66,12 +66,20 @@ def generate_coverage_badge_url(percentage):
     return f"https://img.shields.io/badge/coverage-{percentage}%25-{color}"
 
 
-def update_readme_badge(coverage_percentage):
-    """Update the coverage badge in README.md."""
-    readme_path = Path(__file__).parent.parent / "README.md"
+def update_readme_badge(coverage_percentage, readme_path=None):
+    """Update the coverage badge in README.md.
+
+    Args:
+        coverage_percentage: The coverage percentage to display
+        readme_path: Path to README.md file (optional, defaults to repository root)
+    """
+    if readme_path is None:
+        readme_path = Path(__file__).parent.parent / "README.md"
+    else:
+        readme_path = Path(readme_path)
 
     if not readme_path.exists():
-        print("README.md not found")
+        print(f"README.md not found at {readme_path}")
         return False
 
     # Read current README
@@ -115,11 +123,15 @@ def main():
     print(f"Current coverage: {coverage}%")
 
     # Update README
-    if update_readme_badge(coverage):
-        print("Successfully updated README.md")
+    # Define path to README at repository root
+    readme_path = Path(__file__).parent.parent.parent / "README.md"
+
+    # Update README with the explicit path
+    if update_readme_badge(coverage, readme_path):
+        print(f"Successfully updated README.md at {readme_path}")
         sys.exit(0)
     else:
-        print("Failed to update README.md")
+        print(f"Failed to update README.md at {readme_path}")
         sys.exit(1)
 
 

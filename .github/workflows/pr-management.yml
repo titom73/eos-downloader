@@ -118,6 +118,7 @@ jobs:
         # run: tox -e testenv
         run: tox
 
+
   # Update README with coverage badge (only on main branch for Python 3.10)
   update-coverage-badge:
     name: Update coverage badge in README
@@ -144,8 +145,6 @@ jobs:
 
       - name: Update coverage badge
         run: |
-          coverage erase
-          pytest --cov=eos_downloader --cov-report=term-missing tests/ -q
           python .github/scripts/update_coverage_badge.py
 
       - name: Commit changes
