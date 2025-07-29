@@ -153,5 +153,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add README.md
-          git diff --staged --quiet || git commit -m "Update coverage badge [skip ci]"
+          git diff --staged --quiet || git commit -m "Update coverage badge [ci skip]"
           git push
