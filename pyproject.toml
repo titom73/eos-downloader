@@ -82,6 +82,7 @@ dev = [
   "flake8>=4.0.1",
   "pyflakes>=2.4.0",
   "bumpver>=2023.1126",
+  "coverage-badge>=1.1.0",
 ]
 
 doc = [
@@ -195,7 +196,7 @@ python =
 description = run the test driver with {basepython}
 extras = dev
 commands =
-   pytest -rA -q --cov-report term:skip-covered --cov-report term:skip-covered --html=report.html --self-contained-html --cov-report=html --color yes --cov=eos_downloader
+   pytest -rA -q --cov-report term-missing --cov-report html --cov-report xml --color yes --cov=eos_downloader tests/
 
 [testenv:lint]
 description = check the code style
@@ -229,7 +230,25 @@ log_cli = "True"
 
 [tool.coverage.run]
 source = ['eos_downloader']
-# omit = []
+omit = [
+    "*/test*",
+    "tests/*",
+    "*/__main__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
 
 [tool.isort]
 profile = "black"
