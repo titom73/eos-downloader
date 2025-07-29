@@ -1,0 +1,6 @@
+# This owner will be the default owner for everything in
+# the repo. Unless a later match takes precedence,
+# @titom73 will be requested for
+# review when someone opens a pull request.
+*       @titom73
+
