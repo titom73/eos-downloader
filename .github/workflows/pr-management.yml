@@ -1,5 +1,10 @@
 ---
 name: code-testing
+
+# Permissions required for this workflow
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -125,6 +130,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [pytest]
     if: github.ref == 'refs/heads/main'
+    
+    # Specific permissions for this job
+    permissions:
+      contents: write  # Required to push changes to README
 
     steps:
       - uses: actions/checkout@v4
@@ -145,6 +154,8 @@ jobs:
 
       - name: Update coverage badge
         run: |
+          coverage erase
+          pytest --cov=eos_downloader --cov-report=term-missing tests/ -q
           python .github/scripts/update_coverage_badge.py
 
       - name: Commit changes
