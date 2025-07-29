@@ -138,7 +138,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0
 
       - name: Setup Python
@@ -166,4 +166,6 @@ jobs:
           git config --local user.name "GitHub Action"
           git add README.md
           git diff --staged --quiet || git commit -m "Update coverage badge [ci skip]"
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git
           git push
+
