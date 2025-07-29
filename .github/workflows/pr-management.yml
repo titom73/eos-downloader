@@ -130,7 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [pytest]
     if: github.ref == 'refs/heads/main'
-    
+
     # Specific permissions for this job
     permissions:
       contents: write  # Required to push changes to README
@@ -147,7 +147,9 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
-        run: pip install tox coverage
+        run: |
+          pip install '.[dev]'
+          pip install tox coverage
 
       - name: Run tests and generate coverage
         run: tox -e py310
