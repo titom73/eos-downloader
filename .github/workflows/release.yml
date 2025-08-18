@@ -15,7 +15,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install dependencies
         run: |
@@ -38,7 +38,7 @@ jobs:
     needs: [pypi]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Docker meta for TAG
         id: meta
@@ -80,7 +80,7 @@ jobs:
     needs: [docker]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Docker meta for TAG
         id: meta
@@ -122,7 +122,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [docker_in_docker]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: 'Setup Python 3 on runner'
