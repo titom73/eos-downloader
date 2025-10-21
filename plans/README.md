@@ -66,7 +66,7 @@ Use the GitHub Copilot prompt to generate plans:
 /create-implementation-plan
 ```
 
-Or manually use the template from: `.github/promtps/create-implementation-plan.prompt.md`
+Or manually use the template from: `.github/prompts/create-implementation-plan.prompt.md`
 
 ## Current Plans
 
