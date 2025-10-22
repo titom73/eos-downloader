@@ -31,6 +31,7 @@ Example
 import os
 import shutil
 import hashlib
+import subprocess
 from typing import Union, Literal, Dict, Optional
 from pathlib import Path
 
@@ -83,14 +84,14 @@ class SoftManager:
         logging.info(
             "SoftManager initialized%s%s",
             " in dry-run mode" if dry_run else "",
-            " with force download" if force_download else ""
+            " with force download" if force_download else "",
         )
 
     def _file_exists_and_valid(
         self,
         file_path: Path,
         checksum_file: Optional[Path] = None,
-        check_type: Literal["md5sum", "sha512sum", "skip"] = "skip"
+        check_type: Literal["md5sum", "sha512sum", "skip"] = "skip",
     ) -> bool:
         """
         Check if file exists and optionally validate its checksum.
@@ -122,9 +123,7 @@ class SoftManager:
 
         # If no checksum validation requested, file is valid
         if check_type == "skip" or checksum_file is None:
-            logging.info(
-                f"File found in cache (no validation): {file_path}"
-            )
+            logging.info(f"File found in cache (no validation): {file_path}")
             return True
 
         # Validate checksum if requested
@@ -146,16 +145,12 @@ class SoftManager:
                 self.file[check_type] = original_checksum
 
             if is_valid:
-                logging.info(
-                    f"File found in cache (checksum valid): {file_path}"
-                )
+                logging.info(f"File found in cache (checksum valid): {file_path}")
                 return True
-            else:
-                logging.warning(
-                    f"Cached file checksum invalid: {file_path}"
-                )
-                return False
-        except Exception as e:
+
+            logging.warning(f"Cached file checksum invalid: {file_path}")
+            return False
+        except (ValueError, FileNotFoundError, OSError) as e:
             logging.warning(f"Checksum validation failed: {e}")
             return False
 
@@ -337,8 +332,9 @@ class SoftManager:
         url: str,
         file_path: str,
         filename: str,
+        *,
         rich_interface: bool = True,
-        force: bool = False
+        force: bool = False,
     ) -> Union[None, str]:
         """
         Downloads a file from a URL with caching support.
@@ -406,7 +402,7 @@ class SoftManager:
         object_arista: eos_downloader.logics.arista_xml_server.AristaXmlObjects,
         file_path: str,
         rich_interface: bool = True,
-    ) -> Union[None, str]:
+    ) -> tuple[str, bool]:
         """
         Downloads files from Arista EOS server with caching support.
 
@@ -426,22 +422,26 @@ class SoftManager:
 
         Returns
         -------
-        Union[None, str]
-            The file path where files were downloaded/cached, or None if failed.
+        tuple[str, bool]
+            A tuple containing:
+            - The file path where files were downloaded/cached
+            - Boolean indicating if files were retrieved from cache (True) or downloaded (False)
 
         Examples
         --------
         Download new files or use cache:
 
         >>> client = SoftManager()
-        >>> client.downloads(eos_obj, "/tmp/downloads")
-        '/tmp/downloads'
+        >>> path, cached = client.downloads(eos_obj, "/tmp/downloads")
+        >>> if cached:
+        ...     print("Files retrieved from cache")
 
         Force re-download even if cached:
 
         >>> client = SoftManager(force_download=True)
-        >>> client.downloads(eos_obj, "/tmp/downloads")
-        '/tmp/downloads'
+        >>> path, cached = client.downloads(eos_obj, "/tmp/downloads")
+        >>> cached  # Will be False
+        False
         """
         logging.info(
             f"Processing files for {object_arista.version} "
@@ -451,6 +451,9 @@ class SoftManager:
         if len(object_arista.urls) == 0:
             logging.error("No URLs found for download")
             raise ValueError("No URLs found for download")
+
+        # Track if all files were retrieved from cache
+        all_files_cached = True
 
         for file_type, url in sorted(object_arista.urls.items(), reverse=True):
             logging.debug(f"Processing {file_type} from {url}")
@@ -467,28 +470,35 @@ class SoftManager:
                 logging.error(f"Filename not found for {file_type}")
                 raise ValueError(f"Filename not found for {file_type}")
             if not self.dry_run:
+                # Check if file is already cached before download
+                full_path = Path(file_path) / filename
+                file_was_cached = full_path.exists() and not self.force_download
+
                 # download_file will check cache automatically
                 # unless self.force_download is True
                 self.download_file(
                     url,
                     file_path,
                     filename,
-                    rich_interface,
-                    force=self.force_download
+                    rich_interface=rich_interface,
+                    force=self.force_download,
                 )
+
+                # Update cache tracking
+                if not file_was_cached:
+                    all_files_cached = False
             else:
                 full_path = Path(file_path) / filename
                 if full_path.exists() and not self.force_download:
-                    logging.info(
-                        f"[DRY-RUN] Would use cached file: {filename}"
-                    )
+                    logging.info(f"[DRY-RUN] Would use cached file: {filename}")
                 else:
                     logging.info(
                         f"[DRY-RUN] Would download file {filename} "
                         f"for version {object_arista.version}"
                     )
+                    all_files_cached = False
 
-        return file_path
+        return file_path, all_files_cached
 
     @staticmethod
     def _docker_image_exists(image_name: str, image_tag: str) -> bool:
@@ -517,10 +527,8 @@ class SoftManager:
         This method tries both 'docker' and 'podman' commands in order.
         It uses 'docker images -q' to check for image existence.
         """
-        import subprocess
-
         # Try docker first, then podman
-        for cmd in ['docker', 'podman']:
+        for cmd in ["docker", "podman"]:
             # Check if command is available
             if not shutil.which(cmd):
                 logging.debug(f"{cmd} command not found in PATH")
@@ -529,11 +537,11 @@ class SoftManager:
             try:
                 # Query for specific image:tag
                 result = subprocess.run(
-                    [cmd, 'images', '-q', f'{image_name}:{image_tag}'],
+                    [cmd, "images", "-q", f"{image_name}:{image_tag}"],
                     capture_output=True,
                     text=True,
                     timeout=5,
-                    check=False
+                    check=False,
                 )
 
                 # If output is not empty, image exists
@@ -543,25 +551,23 @@ class SoftManager:
                         f"found in local registry"
                     )
                     return True
-                else:
-                    logging.debug(
-                        f"Docker image {image_name}:{image_tag} "
-                        f"not found in local registry"
-                    )
-                    return False
+
+                logging.debug(
+                    f"Docker image {image_name}:{image_tag} "
+                    f"not found in local registry"
+                )
+                return False
 
             except subprocess.TimeoutExpired:
                 logging.warning(f"{cmd} command timed out after 5 seconds")
                 continue
 
-            except Exception as e:
+            except (subprocess.SubprocessError, OSError) as e:
                 logging.debug(f"Error checking {cmd} images: {e}")
                 continue
 
         # If we get here, neither docker nor podman worked
-        logging.warning(
-            "Unable to check Docker images (docker/podman not available)"
-        )
+        logging.warning("Unable to check Docker images (docker/podman not available)")
         return False
 
     def import_docker(
@@ -569,8 +575,8 @@ class SoftManager:
         local_file_path: str,
         docker_name: str = "arista/ceos",
         docker_tag: str = "latest",
-        force: bool = False
-    ) -> None:
+        force: bool = False,
+    ) -> bool:
         """
         Import local file into Docker with caching support.
 
@@ -586,6 +592,12 @@ class SoftManager:
             If True, import even if image:tag already exists.
             Defaults to False.
 
+        Returns
+        -------
+        bool
+            True if image was retrieved from cache (already exists),
+            False if image was imported
+
         Raises
         ------
         FileNotFoundError
@@ -594,11 +606,13 @@ class SoftManager:
         Examples
         --------
         >>> manager = SoftManager()
-        >>> manager.import_docker(
+        >>> was_cached = manager.import_docker(
         ...     local_file_path="/downloads/cEOS-4.29.3M.tar.xz",
         ...     docker_name="arista/ceos",
         ...     docker_tag="4.29.3M"
         ... )
+        >>> if was_cached:
+        ...     print("Image already in cache")
         """
         # Check if file exists
         if not os.path.exists(local_file_path):
@@ -611,7 +625,7 @@ class SoftManager:
                     f"Docker image {docker_name}:{docker_tag} already "
                     f"exists locally. Use --force to re-import."
                 )
-                return
+                return True
 
         # Log import action
         logging.info(
@@ -621,7 +635,7 @@ class SoftManager:
 
         # Handle dry-run mode
         if self.dry_run:
-            return
+            return False
 
         # Check if docker is available
         if not shutil.which("docker"):
@@ -636,9 +650,9 @@ class SoftManager:
             logging.debug(f"Executing: {cmd}")
             os.system(cmd)
             logging.info(
-                f"Docker image {docker_name}:{docker_tag} "
-                f"imported successfully"
+                f"Docker image {docker_name}:{docker_tag} " f"imported successfully"
             )
+            return False  # Image was imported (not from cache)
         except Exception as e:
             logging.error(f"Error importing docker image: {e}")
             raise e

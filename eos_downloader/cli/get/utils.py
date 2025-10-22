@@ -108,7 +108,9 @@ def download_files(
     console.print(
         f"Starting download for EOS version [green]{arista_dl_obj.version}[/green] for [blue]{arista_dl_obj.image_type}[/blue] format."
     )
-    cli.downloads(arista_dl_obj, file_path=output, rich_interface=rich_interface)
+    output_path, was_cached = cli.downloads(
+        arista_dl_obj, file_path=output, rich_interface=rich_interface
+    )
     try:
         cli.checksum(checksum_format)
     except subprocess.CalledProcessError:
@@ -118,9 +120,16 @@ def download_files(
             console.print(
                 f"[red]Checksum error for file {arista_dl_obj.filename}[/red]"
             )
-    console.print(
-        f"Arista file [green]{arista_dl_obj.filename}[/green] downloaded in: [blue]{output}[/blue]"
-    )
+
+    # Display appropriate message based on whether files were cached
+    if was_cached:
+        console.print(
+            f"Arista file [green]{arista_dl_obj.filename}[/green] is already in cache in: [blue]{output_path}[/blue]"
+        )
+    else:
+        console.print(
+            f"Arista file [green]{arista_dl_obj.filename}[/green] downloaded in: [blue]{output_path}[/blue]"
+        )
 
 
 def handle_docker_import(
@@ -168,7 +177,7 @@ def handle_docker_import(
     )
 
     try:
-        cli.import_docker(
+        was_cached = cli.import_docker(
             local_file_path=os.path.join(output, arista_dl_obj.filename),
             docker_name=docker_name,
             docker_tag=docker_tag,
@@ -184,8 +193,15 @@ def handle_docker_import(
             )
         return 1
 
-    console.print(
-        f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"
-    )
+    # Display appropriate message based on whether image was cached or imported
+    if was_cached:
+        console.print(
+            f"Docker image [green]{docker_name}:{docker_tag}[/green] "
+            f"is already in docker"
+        )
+    else:
+        console.print(
+            f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"
+        )
 
     return 0

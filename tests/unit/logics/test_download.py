@@ -123,10 +123,11 @@ def test_download_file(mock_progress_bar, mock_download_raw, soft_manager):
 
 @patch("eos_downloader.logics.download.SoftManager.download_file")
 def test_downloads(mock_download, soft_manager, mock_eos_object):
-    result = soft_manager.downloads(
+    path, was_cached = soft_manager.downloads(
         mock_eos_object, "/tmp/downloads", rich_interface=True
     )
-    assert result == "/tmp/downloads"
+    assert path == "/tmp/downloads"
+    assert isinstance(was_cached, bool)
     assert mock_download.call_count == len(mock_eos_object.urls)
 
 
@@ -137,7 +138,8 @@ def test_import_docker(mock_system, mock_which, soft_manager):
 
     # Test with existing file
     with patch("os.path.exists", return_value=True):
-        soft_manager.import_docker("/tmp/test.swi", "arista/ceos", "latest")
+        was_cached = soft_manager.import_docker("/tmp/test.swi", "arista/ceos", "latest")
+        assert isinstance(was_cached, bool)
         mock_system.assert_called_once()
 
     # Test with non-existing file
@@ -354,10 +356,12 @@ class TestDockerCache:
         mock_docker_exists.return_value = True
 
         manager = SoftManager()
-        manager.import_docker("/tmp/test.tar", "arista/ceos", "4.29.3M")
+        was_cached = manager.import_docker("/tmp/test.tar", "arista/ceos", "4.29.3M")
 
         # Should not call docker import
         mock_system.assert_not_called()
+        # Should return True (was cached)
+        assert was_cached is True
 
     @patch("eos_downloader.logics.download.SoftManager._docker_image_exists")
     @patch("os.path.exists")
@@ -372,7 +376,7 @@ class TestDockerCache:
         mock_docker_exists.return_value = True
 
         manager = SoftManager()
-        manager.import_docker(
+        was_cached = manager.import_docker(
             "/tmp/test.tar",
             "arista/ceos",
             "4.29.3M",
@@ -381,6 +385,8 @@ class TestDockerCache:
 
         # Should call docker import despite cache
         mock_system.assert_called_once()
+        # Should return False (was imported, not cached)
+        assert was_cached is False
 
     @patch("eos_downloader.logics.download.SoftManager._docker_image_exists")
     @patch("os.path.exists")
@@ -395,10 +401,12 @@ class TestDockerCache:
         mock_docker_exists.return_value = True
 
         manager = SoftManager(force_download=True)
-        manager.import_docker("/tmp/test.tar", "arista/ceos", "4.29.3M")
+        was_cached = manager.import_docker("/tmp/test.tar", "arista/ceos", "4.29.3M")
 
         # Should call docker import
         mock_system.assert_called_once()
+        # Should return False (was imported, not cached)
+        assert was_cached is False
 
 
 class TestCacheIntegration:
@@ -414,12 +422,14 @@ class TestCacheIntegration:
         mock_eos.hash_filename = Mock(return_value="test.swi.md5")
 
         manager = SoftManager(force_download=True)
-        manager.downloads(mock_eos, "/tmp")
+        path, was_cached = manager.downloads(mock_eos, "/tmp")
 
         # Verify force was passed to download_file
         mock_download.assert_called()
         call_kwargs = mock_download.call_args[1]
         assert call_kwargs.get("force") is True
+        assert path == "/tmp"
+        assert isinstance(was_cached, bool)
 
     @patch("pathlib.Path.exists")
     def test_dry_run_with_cache(self, mock_exists):
@@ -433,7 +443,8 @@ class TestCacheIntegration:
         mock_eos.hash_filename = Mock(return_value="test.swi.md5")
 
         manager = SoftManager(dry_run=True)
-        result = manager.downloads(mock_eos, "/tmp")
+        path, was_cached = manager.downloads(mock_eos, "/tmp")
 
         # Should complete without actual download
-        assert result == "/tmp"
+        assert path == "/tmp"
+        assert was_cached is True  # File exists and dry-run, so cached
