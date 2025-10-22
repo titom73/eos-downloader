@@ -1,4 +1,5 @@
 import os
+import subprocess
 import pytest
 from unittest.mock import Mock, patch, mock_open
 from pathlib import Path
@@ -338,7 +339,9 @@ class TestDockerCache:
     def test_docker_image_exists_timeout(self, mock_which, mock_run):
         """Test handling of subprocess timeout."""
         mock_which.return_value = "/usr/bin/docker"
-        mock_run.side_effect = Exception("Timeout")
+        mock_run.side_effect = subprocess.TimeoutExpired(
+            cmd="docker images", timeout=5
+        )
 
         result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
         assert result is False
