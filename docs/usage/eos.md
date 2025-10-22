@@ -18,7 +18,64 @@ ardl get eos --version 4.29.4M --import-docker
 
 # Get a specific version and import to EVE-NG
 ardl get eos --version 4.33.0F --eve-ng
+
+# Force re-download even if file is cached
+ardl get eos --version 4.29.4M --force
+
+# Force re-import of Docker image even if it exists
+ardl get eos --version 4.29.4M --import-docker --force
 ```
+
+## Smart Caching
+
+**eos-downloader** includes intelligent caching to avoid redundant downloads and Docker imports:
+
+### File Caching
+
+- By default, if a file already exists in the output directory, it will be **reused** instead of re-downloaded
+- Saves bandwidth and time when running the same command multiple times
+- Use `--force` to bypass the cache and force re-download
+
+```bash
+# First run: downloads the file
+ardl get eos --version 4.29.4M --output /downloads
+
+# Second run: uses cached file (no download)
+ardl get eos --version 4.29.4M --output /downloads
+
+# Force re-download
+ardl get eos --version 4.29.4M --output /downloads --force
+```
+
+### Docker Image Caching
+
+- Before importing a cEOS image, **eos-downloader** checks if the image:tag already exists locally
+- Skips the import if the image is already present
+- Use `--force` to re-import even if the image exists
+
+```bash
+# First run: downloads and imports to Docker
+ardl get eos --version 4.29.4M --format cEOS --import-docker
+
+# Second run: file is cached, Docker image exists (no import)
+ardl get eos --version 4.29.4M --format cEOS --import-docker
+
+# Force re-import
+ardl get eos --version 4.29.4M --format cEOS --import-docker --force
+```
+
+### Benefits
+
+- **Faster iterations**: Subsequent runs complete almost instantly
+- **Bandwidth savings**: No redundant downloads
+- **Disk space optimization**: Reuse existing files
+- **CI/CD friendly**: Safe to run repeatedly without overhead
+
+!!! tip "Podman Support"
+    The Docker cache checking works with both `docker` and `podman` commands automatically.
+
+!!! warning "Cache Validation"
+    File caching currently uses simple existence checks. For production use, consider using checksums to verify file integrity after download.
 
 ## ardl get eos options
 
@@ -52,6 +109,8 @@ Options:
   --branch TEXT        Branch to download  [env var: ARISTA_GET_EOS_BRANCH]
   --dry-run            Enable dry-run mode: only run code without system
                        changes
+  --force              Force download/import even if cached files or Docker
+                       images exist  [env var: ARISTA_GET_EOS_FORCE]
   --help               Show this message and exit.
 ```
 

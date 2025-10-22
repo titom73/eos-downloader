@@ -131,20 +131,26 @@ def handle_docker_import(
     docker_name: str,
     docker_tag: Optional[str],
     debug: bool,
+    force: bool = False,
 ) -> int:
     """Handles the import of a Docker image using the provided CLI tool.
 
     Args:
         console: The console object used for printing messages.
         cli: The CLI tool object that provides the import_docker method.
-        arista_dl_obj: An object containing information about the EOS download, including version and filename.
+        arista_dl_obj: An object containing information about the EOS download,
+                       including version and filename.
         output: The directory where the Docker image file is located.
         docker_name: The name to assign to the Docker image.
-        docker_tag: The tag to assign to the Docker image. If None, the version from eos_dl_obj is used.
+        docker_tag: The tag to assign to the Docker image. If None, the version
+                    from eos_dl_obj is used.
         debug: A boolean indicating whether to print detailed exception information.
+        force: If True, import even if the Docker image already exists.
+               Defaults to False.
 
     Returns:
-        int: 0 if the Docker image is imported successfully, 1 if a FileNotFoundError occurs.
+        int: 0 if the Docker image is imported successfully or cached,
+             1 if a FileNotFoundError occurs.
     """
 
     console.print("Importing docker image...")
@@ -157,7 +163,8 @@ def handle_docker_import(
         return 1
 
     console.print(
-        f"Importing docker image [green]{docker_name}:{docker_tag}[/green] from [blue]{os.path.join(output, arista_dl_obj.filename)}[/blue]..."
+        f"Importing docker image [green]{docker_name}:{docker_tag}[/green] "
+        f"from [blue]{os.path.join(output, arista_dl_obj.filename)}[/blue]..."
     )
 
     try:
@@ -165,13 +172,15 @@ def handle_docker_import(
             local_file_path=os.path.join(output, arista_dl_obj.filename),
             docker_name=docker_name,
             docker_tag=docker_tag,
+            force=force,
         )
     except FileNotFoundError:
         if debug:
             console.print_exception(show_locals=True)
         else:
             console.print(
-                f"\n[red]File not found: {os.path.join(output, arista_dl_obj.filename)}[/red]"
+                f"\n[red]File not found: "
+                f"{os.path.join(output, arista_dl_obj.filename)}[/red]"
             )
         return 1
 

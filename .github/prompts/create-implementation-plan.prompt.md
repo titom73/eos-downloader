@@ -49,6 +49,7 @@ Plans must consist of discrete, atomic phases containing executable tasks. Each 
 - Purpose prefixes: `upgrade|refactor|feature|data|infrastructure|process|architecture|design`
 - Example: `plans/upgrade-system-command-4.md`, `plans/feature-auth-module-1.md`
 - File must be valid Markdown with proper front matter structure
+- Update List of plans in `plans/README.md` to include the new plan
 
 ## Mandatory Template Structure
 

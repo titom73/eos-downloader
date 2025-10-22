@@ -103,6 +103,13 @@ from .utils import initialize, search_version, download_files, handle_docker_imp
     help="Enable dry-run mode: only run code without system changes",
     default=False,
 )
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Force download/import even if cached files or Docker images exist",
+    default=False,
+    show_envvar=True,
+)
 @click.pass_context
 def eos(
     ctx: click.Context,
@@ -118,6 +125,7 @@ def eos(
     latest: bool,
     branch: Union[str, None],
     dry_run: bool,
+    force: bool,
 ) -> int:
     """Download EOS image from Arista server."""
     # pylint: disable=unused-variable
@@ -135,7 +143,7 @@ def eos(
         console.print_exception(show_locals=True)
         ctx.exit(1)
 
-    cli = SoftManager(dry_run=dry_run)
+    cli = SoftManager(dry_run=dry_run, force_download=force)
 
     if not skip_download:
         if not eve_ng:
@@ -154,7 +162,7 @@ def eos(
 
     if import_docker:
         return handle_docker_import(
-            console, cli, eos_dl_obj, output, docker_name, docker_tag, debug
+            console, cli, eos_dl_obj, output, docker_name, docker_tag, debug, force
         )
 
     return 0
@@ -203,6 +211,13 @@ def eos(
     help="Enable dry-run mode: only run code without system changes",
     default=False,
 )
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Force download even if cached files exist",
+    default=False,
+    show_envvar=True,
+)
 @click.pass_context
 def cvp(
     ctx: click.Context,
@@ -212,6 +227,7 @@ def cvp(
     version: Union[str, None],
     branch: Union[str, None],
     dry_run: bool = False,
+    force: bool = False,
 ) -> int:
     """Download CVP image from Arista server."""
     # pylint: disable=unused-variable
@@ -255,7 +271,7 @@ def cvp(
             console.print(f"\n[red]Exception raised: {e}[/red]")
         ctx.exit(1)
 
-    cli = SoftManager(dry_run=dry_run)
+    cli = SoftManager(dry_run=dry_run, force_download=force)
     download_files(
         console,
         cli,
@@ -309,6 +325,13 @@ def cvp(
     show_default=True,
     show_envvar=True,
 )
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Force download/import even if cached files or Docker images exist",
+    default=False,
+    show_envvar=True,
+)
 @click.pass_context
 # pylint: disable=too-many-branches
 def path(
@@ -318,6 +341,7 @@ def path(
     import_docker: bool,
     docker_name: str,
     docker_tag: str,
+    force: bool,
 ) -> int:
     """Download image from Arista server using direct path."""
     console, token, debug, log_level = initialize(ctx)
@@ -351,10 +375,10 @@ def path(
     # At this point, mypy knows file_url is not None due to the check above
     assert file_url is not None  # Type assertion for mypy
 
-    cli = SoftManager(dry_run=False)
+    cli = SoftManager(dry_run=False, force_download=force)
 
     try:
-        cli.download_file(file_url, output, filename=filename)
+        cli.download_file(file_url, output, filename=filename, force=force)
     except Exception as e:
         if debug:
             console.print_exception(show_locals=True)
@@ -364,7 +388,8 @@ def path(
 
     if import_docker:
         console.print(
-            f"Importing docker image [green]{docker_name}:{docker_tag}[/green] from [blue]{os.path.join(output, filename)}[/blue]..."
+            f"Importing docker image [green]{docker_name}:{docker_tag}[/green] "
+            f"from [blue]{os.path.join(output, filename)}[/blue]..."
         )
 
         try:
@@ -372,6 +397,7 @@ def path(
                 local_file_path=os.path.join(output, filename),
                 docker_name=docker_name,
                 docker_tag=docker_tag,
+                force=force,
             )
         except FileNotFoundError:
             if debug:

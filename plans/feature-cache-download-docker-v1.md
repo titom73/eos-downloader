@@ -97,7 +97,7 @@ def _file_exists_and_valid(
 ) -> bool:
     """
     Check if file exists and optionally validate its checksum.
-    
+
     Parameters
     ----------
     file_path : Path
@@ -106,12 +106,12 @@ def _file_exists_and_valid(
         Path to checksum file for validation
     check_type : Literal["md5sum", "sha512sum", "skip"]
         Type of checksum validation to perform
-        
+
     Returns
     -------
     bool
         True if file exists and passes validation, False otherwise
-        
+
     Examples
     --------
     >>> manager = SoftManager()
@@ -119,17 +119,17 @@ def _file_exists_and_valid(
     True
     """
     import logging
-    
+
     # Check if file exists
     if not file_path.exists():
         logging.debug(f"File not found in cache: {file_path}")
         return False
-    
+
     # If no checksum validation requested, file is valid
     if check_type == "skip" or checksum_file is None:
         logging.info(f"File found in cache (no validation): {file_path}")
         return True
-    
+
     # Validate checksum if requested
     try:
         is_valid = self.checksum(
@@ -154,7 +154,7 @@ def _file_exists_and_valid(
 def __init__(self, dry_run: bool = False, force_download: bool = False) -> None:
     """
     Initialize SoftManager.
-    
+
     Parameters
     ----------
     dry_run : bool, optional
@@ -171,16 +171,16 @@ def __init__(self, dry_run: bool = False, force_download: bool = False) -> None:
 
 ```python
 def download_file(
-    self, 
-    url: str, 
-    file_path: str, 
-    filename: str, 
+    self,
+    url: str,
+    file_path: str,
+    filename: str,
     rich_interface: bool = True,
     force: bool = False
 ) -> Union[None, str]:
     """
     Downloads a file from URL with caching support.
-    
+
     Parameters
     ----------
     url : str
@@ -193,12 +193,12 @@ def download_file(
         Use rich progress interface, by default True
     force : bool, optional
         If True, download even if file exists locally. Defaults to False.
-        
+
     Returns
     -------
     Union[None, str]
         Path to the downloaded or cached file, or None on error
-        
+
     Examples
     --------
     >>> manager = SoftManager()
@@ -210,31 +210,31 @@ def download_file(
     '/downloads/EOS-4.29.3M.swi'
     """
     full_path = Path(file_path) / filename
-    
+
     # Check cache unless force flag is set
     if not force and not self.force_download:
         if full_path.exists():
             logging.info(f"Using cached file: {full_path}")
             return str(full_path)
-    
+
     # Log download action
     logging.info(
         f"{'[DRY-RUN] Would download' if self.dry_run else 'Downloading'} {filename}"
     )
-    
+
     # Handle dry-run mode
     if self.dry_run:
         return str(full_path)
-    
+
     # Proceed with download
     if url is not False:
         if not rich_interface:
             return self._download_file_raw(url, str(full_path))
-        
+
         rich_downloader = eos_downloader.helpers.DownloadProgressBar()
         rich_downloader.download(urls=[url], dest_dir=file_path)
         return str(full_path)
-    
+
     return None
 ```
 
@@ -258,24 +258,24 @@ def download_file(
 def _docker_image_exists(image_name: str, image_tag: str) -> bool:
     """
     Check if Docker image with specified tag exists locally.
-    
+
     Parameters
     ----------
     image_name : str
         Docker image name (e.g., 'arista/ceos')
     image_tag : str
         Docker image tag (e.g., '4.29.3M')
-        
+
     Returns
     -------
     bool
         True if image:tag exists in local registry, False otherwise
-        
+
     Examples
     --------
     >>> SoftManager._docker_image_exists('arista/ceos', '4.29.3M')
     True
-    
+
     Notes
     -----
     This method tries both 'docker' and 'podman' commands in order.
@@ -284,14 +284,14 @@ def _docker_image_exists(image_name: str, image_tag: str) -> bool:
     import subprocess
     import shutil
     import logging
-    
+
     # Try docker first, then podman
     for cmd in ['docker', 'podman']:
         # Check if command is available
         if not shutil.which(cmd):
             logging.debug(f"{cmd} command not found in PATH")
             continue
-        
+
         try:
             # Query for specific image:tag
             result = subprocess.run(
@@ -300,7 +300,7 @@ def _docker_image_exists(image_name: str, image_tag: str) -> bool:
                 text=True,
                 timeout=5
             )
-            
+
             # If output is not empty, image exists
             if result.stdout.strip():
                 logging.info(
@@ -312,15 +312,15 @@ def _docker_image_exists(image_name: str, image_tag: str) -> bool:
                     f"Docker image {image_name}:{image_tag} not found in local registry"
                 )
                 return False
-                
+
         except subprocess.TimeoutExpired:
             logging.warning(f"{cmd} command timed out after 5 seconds")
             continue
-            
+
         except Exception as e:
             logging.debug(f"Error checking {cmd} images: {e}")
             continue
-    
+
     # If we get here, neither docker nor podman worked
     logging.warning("Unable to check Docker images (docker/podman not available)")
     return False
@@ -338,7 +338,7 @@ def import_docker(
 ) -> None:
     """
     Import local file into Docker with caching support.
-    
+
     Parameters
     ----------
     local_file_path : str
@@ -349,12 +349,12 @@ def import_docker(
         Docker image tag, by default "latest"
     force : bool, optional
         If True, import even if image:tag already exists. Defaults to False.
-        
+
     Raises
     ------
     FileNotFoundError
         If the local file does not exist
-        
+
     Examples
     --------
     >>> manager = SoftManager()
@@ -365,11 +365,11 @@ def import_docker(
     ... )
     """
     import logging
-    
+
     # Check if file exists
     if not os.path.exists(local_file_path):
         raise FileNotFoundError(f"File {local_file_path} not found")
-    
+
     # Check cache unless force flag is set
     if not force and not self.force_download:
         if self._docker_image_exists(docker_name, docker_tag):
@@ -378,17 +378,17 @@ def import_docker(
                 f"Use --force to re-import."
             )
             return
-    
+
     # Log import action
     logging.info(
         f"{'[DRY-RUN] Would import' if self.dry_run else 'Importing'} "
         f"{docker_name}:{docker_tag}"
     )
-    
+
     # Handle dry-run mode
     if self.dry_run:
         return
-    
+
     # Proceed with import
     cmd = f"$(which docker) import {local_file_path} {docker_name}:{docker_tag}"
     logging.debug(f"Executing: {cmd}")
@@ -448,30 +448,30 @@ def eos(
 ) -> int:
     """
     Download EOS image from Arista server.
-    
+
     This command downloads Arista EOS images with intelligent caching.
     By default, if a file already exists in the output directory, it will
     be reused. Use --force to bypass the cache and re-download.
-    
+
     Examples:
-    
+
         # Download with caching (default)
         $ ardl get eos --version 4.29.3M --format cEOS
-        
+
         # Force re-download
         $ ardl get eos --version 4.29.3M --format cEOS --force
-        
+
         # Use custom cache directory
         $ ardl get eos --version 4.29.3M --cache-dir ~/.eos-cache
     """
     console, token, debug, log_level = initialize(ctx)
-    
+
     # Determine cache directory
     effective_cache_dir = cache_dir if cache_dir else output
-    
+
     # Initialize SoftManager with force flag
     cli = SoftManager(dry_run=dry_run, force_download=force)
-    
+
     # Rest of implementation...
 ```
 
@@ -500,7 +500,7 @@ def download_files(
 ) -> None:
     """
     Downloads files with cache awareness.
-    
+
     Parameters
     ----------
     console : Console
@@ -519,7 +519,7 @@ def download_files(
         Checksum format to use, by default "sha512sum"
     """
     file_path = Path(output) / arista_dl_obj.filename
-    
+
     # Check cache
     if file_path.exists() and not cli.force_download:
         console.print(
@@ -533,18 +533,18 @@ def download_files(
     else:
         # Download file
         console.print(f"Downloading [cyan]{arista_dl_obj.filename}[/cyan]...")
-        
+
         cli.download_file(
             url=arista_dl_obj.url,
             file_path=output,
             filename=arista_dl_obj.filename,
             rich_interface=rich_interface,
         )
-        
+
         console.print(
             f"[green]✓[/green] Downloaded: [cyan]{arista_dl_obj.filename}[/cyan]"
         )
-    
+
     # Download and verify checksum
     if checksum_format != "skip":
         console.print(f"Verifying checksum ({checksum_format})...")
@@ -565,7 +565,7 @@ def handle_docker_import(
 ) -> int:
     """
     Handle Docker import with cache checking.
-    
+
     Parameters
     ----------
     console : Console
@@ -582,7 +582,7 @@ def handle_docker_import(
         Docker image tag
     debug : bool
         Enable debug output
-        
+
     Returns
     -------
     int
@@ -593,7 +593,7 @@ def handle_docker_import(
 
     # Build path to local file
     image_path = Path(output) / arista_dl_obj.filename
-    
+
     # Check if image already exists in Docker
     if cli._docker_image_exists(docker_name, docker_tag) and not cli.force_download:
         console.print(
@@ -604,12 +604,12 @@ def handle_docker_import(
             "   [dim]Use --force to re-import[/dim]"
         )
         return 0
-    
+
     # Proceed with import
     console.print(
         f"Importing docker image [cyan]{docker_name}:{docker_tag}[/cyan]..."
     )
-    
+
     try:
         cli.import_docker(
             local_file_path=str(image_path),
@@ -657,32 +657,32 @@ from eos_downloader.logics.download import SoftManager
 
 class TestFileCache:
     """Test suite for file caching functionality."""
-    
+
     def test_file_exists_and_valid_with_existing_file(self, tmp_path: Path):
         """Test cache hit when file exists."""
         # Arrange
         manager = SoftManager()
         test_file = tmp_path / "test.swi"
         test_file.write_text("test content")
-        
+
         # Act
         result = manager._file_exists_and_valid(test_file, check_type="skip")
-        
+
         # Assert
         assert result is True
-        
+
     def test_file_exists_and_valid_with_missing_file(self, tmp_path: Path):
         """Test cache miss when file doesn't exist."""
         # Arrange
         manager = SoftManager()
         test_file = tmp_path / "nonexistent.swi"
-        
+
         # Act
         result = manager._file_exists_and_valid(test_file)
-        
+
         # Assert
         assert result is False
-        
+
     def test_file_exists_with_checksum_validation(self, tmp_path: Path):
         """Test cache validation with checksum."""
         # Arrange
@@ -690,7 +690,7 @@ class TestFileCache:
         test_file = tmp_path / "test.swi"
         test_file.write_text("test content")
         checksum_file = tmp_path / "test.swi.sha512sum"
-        
+
         with patch.object(manager, 'checksum', return_value=True):
             # Act
             result = manager._file_exists_and_valid(
@@ -698,10 +698,10 @@ class TestFileCache:
                 checksum_file=checksum_file,
                 check_type="sha512sum"
             )
-            
+
             # Assert
             assert result is True
-        
+
     def test_file_exists_with_invalid_checksum(self, tmp_path: Path):
         """Test cache invalidation on checksum mismatch."""
         # Arrange
@@ -709,7 +709,7 @@ class TestFileCache:
         test_file = tmp_path / "test.swi"
         test_file.write_text("test content")
         checksum_file = tmp_path / "test.swi.sha512sum"
-        
+
         with patch.object(manager, 'checksum', return_value=False):
             # Act
             result = manager._file_exists_and_valid(
@@ -717,14 +717,14 @@ class TestFileCache:
                 checksum_file=checksum_file,
                 check_type="sha512sum"
             )
-            
+
             # Assert
             assert result is False
 
 
 class TestDockerCache:
     """Test suite for Docker image caching."""
-    
+
     @patch('subprocess.run')
     @patch('shutil.which')
     def test_docker_image_exists_returns_true(self, mock_which, mock_run):
@@ -732,14 +732,14 @@ class TestDockerCache:
         # Arrange
         mock_which.return_value = '/usr/bin/docker'
         mock_run.return_value = Mock(stdout='abc123def456\n')
-        
+
         # Act
         result = SoftManager._docker_image_exists('arista/ceos', '4.29.3M')
-        
+
         # Assert
         assert result is True
         mock_run.assert_called_once()
-        
+
     @patch('subprocess.run')
     @patch('shutil.which')
     def test_docker_image_exists_returns_false(self, mock_which, mock_run):
@@ -747,13 +747,13 @@ class TestDockerCache:
         # Arrange
         mock_which.return_value = '/usr/bin/docker'
         mock_run.return_value = Mock(stdout='')
-        
+
         # Act
         result = SoftManager._docker_image_exists('arista/ceos', '4.29.3M')
-        
+
         # Assert
         assert result is False
-        
+
     @patch('subprocess.run')
     @patch('shutil.which')
     def test_docker_image_exists_timeout(self, mock_which, mock_run):
@@ -762,29 +762,29 @@ class TestDockerCache:
         import subprocess
         mock_which.return_value = '/usr/bin/docker'
         mock_run.side_effect = subprocess.TimeoutExpired('docker', 5)
-        
+
         # Act
         result = SoftManager._docker_image_exists('arista/ceos', '4.29.3M')
-        
+
         # Assert
         assert result is False
-        
+
     @patch('shutil.which')
     def test_docker_image_exists_no_docker(self, mock_which):
         """Test behavior when Docker is not installed."""
         # Arrange
         mock_which.return_value = None
-        
+
         # Act
         result = SoftManager._docker_image_exists('arista/ceos', '4.29.3M')
-        
+
         # Assert
         assert result is False
 
 
 class TestCacheIntegration:
     """Integration tests for cache workflow."""
-    
+
     @patch('eos_downloader.logics.download.SoftManager._download_file_raw')
     def test_download_with_cache_hit(self, mock_download, tmp_path: Path):
         """Test full download workflow with cache hit."""
@@ -794,7 +794,7 @@ class TestCacheIntegration:
         output_dir.mkdir()
         cached_file = output_dir / "test.swi"
         cached_file.write_text("cached content")
-        
+
         # Act
         result = manager.download_file(
             url="https://example.com/test.swi",
@@ -802,11 +802,11 @@ class TestCacheIntegration:
             filename="test.swi",
             rich_interface=False
         )
-        
+
         # Assert
         assert result == str(cached_file)
         mock_download.assert_not_called()
-        
+
     @patch('eos_downloader.logics.download.SoftManager._download_file_raw')
     def test_download_with_force_flag(self, mock_download, tmp_path: Path):
         """Test cache bypass with --force flag."""
@@ -817,7 +817,7 @@ class TestCacheIntegration:
         cached_file = output_dir / "test.swi"
         cached_file.write_text("cached content")
         mock_download.return_value = str(cached_file)
-        
+
         # Act
         result = manager.download_file(
             url="https://example.com/test.swi",
@@ -825,10 +825,10 @@ class TestCacheIntegration:
             filename="test.swi",
             rich_interface=False
         )
-        
+
         # Assert
         mock_download.assert_called_once()
-        
+
     @patch('eos_downloader.logics.download.SoftManager._docker_image_exists')
     @patch('os.system')
     def test_docker_import_with_cache_hit(self, mock_system, mock_exists, tmp_path):
@@ -838,18 +838,18 @@ class TestCacheIntegration:
         test_file = tmp_path / "test.tar"
         test_file.write_text("test content")
         mock_exists.return_value = True
-        
+
         # Act
         manager.import_docker(
             local_file_path=str(test_file),
             docker_name="arista/ceos",
             docker_tag="4.29.3M"
         )
-        
+
         # Assert
         mock_exists.assert_called_once_with("arista/ceos", "4.29.3M")
         mock_system.assert_not_called()
-        
+
     @patch('eos_downloader.logics.download.SoftManager._docker_image_exists')
     @patch('os.system')
     def test_docker_import_with_force_flag(self, mock_system, mock_exists, tmp_path):
@@ -859,14 +859,14 @@ class TestCacheIntegration:
         test_file = tmp_path / "test.tar"
         test_file.write_text("test content")
         mock_exists.return_value = True
-        
+
         # Act
         manager.import_docker(
             local_file_path=str(test_file),
             docker_name="arista/ceos",
             docker_tag="4.29.3M"
         )
-        
+
         # Assert
         mock_system.assert_called_once()
 ```

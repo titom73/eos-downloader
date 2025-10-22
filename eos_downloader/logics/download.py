@@ -31,7 +31,8 @@ Example
 import os
 import shutil
 import hashlib
-from typing import Union, Literal, Dict
+from typing import Union, Literal, Dict, Optional
+from pathlib import Path
 
 import logging
 import requests
@@ -62,13 +63,101 @@ class SoftManager:
     '/tmp/file.txt'
     """
 
-    def __init__(self, dry_run: bool = False) -> None:
+    def __init__(self, dry_run: bool = False, force_download: bool = False) -> None:
+        """
+        Initialize SoftManager.
+
+        Parameters
+        ----------
+        dry_run : bool, optional
+            If True, simulate operations without executing them, by default False
+        force_download : bool, optional
+            If True, bypass cache and force download/import, by default False
+        """
         self.file: Dict[str, Union[str, None]] = {}
         self.file["name"] = None
         self.file["md5sum"] = None
         self.file["sha512sum"] = None
         self.dry_run = dry_run
-        logging.info("SoftManager initialized%s", " in dry-run mode" if dry_run else "")
+        self.force_download = force_download
+        logging.info(
+            "SoftManager initialized%s%s",
+            " in dry-run mode" if dry_run else "",
+            " with force download" if force_download else ""
+        )
+
+    def _file_exists_and_valid(
+        self,
+        file_path: Path,
+        checksum_file: Optional[Path] = None,
+        check_type: Literal["md5sum", "sha512sum", "skip"] = "skip"
+    ) -> bool:
+        """
+        Check if file exists and optionally validate its checksum.
+
+        Parameters
+        ----------
+        file_path : Path
+            Path to the file to check
+        checksum_file : Optional[Path]
+            Path to checksum file for validation
+        check_type : Literal["md5sum", "sha512sum", "skip"]
+            Type of checksum validation to perform
+
+        Returns
+        -------
+        bool
+            True if file exists and passes validation, False otherwise
+
+        Examples
+        --------
+        >>> manager = SoftManager()
+        >>> manager._file_exists_and_valid(Path("EOS-4.29.3M.swi"))
+        True
+        """
+        # Check if file exists
+        if not file_path.exists():
+            logging.debug(f"File not found in cache: {file_path}")
+            return False
+
+        # If no checksum validation requested, file is valid
+        if check_type == "skip" or checksum_file is None:
+            logging.info(
+                f"File found in cache (no validation): {file_path}"
+            )
+            return True
+
+        # Validate checksum if requested
+        try:
+            # Store current file info
+            original_name = self.file["name"]
+            original_checksum = self.file.get(check_type)
+
+            # Set file info for checksum validation
+            self.file["name"] = str(file_path)
+            self.file[check_type] = str(checksum_file)
+
+            # Perform checksum validation
+            is_valid = self.checksum(check_type=check_type)
+
+            # Restore original file info
+            self.file["name"] = original_name
+            if original_checksum:
+                self.file[check_type] = original_checksum
+
+            if is_valid:
+                logging.info(
+                    f"File found in cache (checksum valid): {file_path}"
+                )
+                return True
+            else:
+                logging.warning(
+                    f"Cached file checksum invalid: {file_path}"
+                )
+                return False
+        except Exception as e:
+            logging.warning(f"Checksum validation failed: {e}")
+            return False
 
     @staticmethod
     def _download_file_raw(url: str, file_path: str) -> str:
@@ -244,10 +333,15 @@ class SoftManager:
         raise ValueError(f"Checksum type {check_type} not yet supported")
 
     def download_file(
-        self, url: str, file_path: str, filename: str, rich_interface: bool = True
+        self,
+        url: str,
+        file_path: str,
+        filename: str,
+        rich_interface: bool = True,
+        force: bool = False
     ) -> Union[None, str]:
         """
-        Downloads a file from a given URL to a specified location.
+        Downloads a file from a URL with caching support.
 
         Parameters
         ----------
@@ -259,18 +353,42 @@ class SoftManager:
             The name to be given to the downloaded file.
         rich_interface : bool, optional
             Whether to use rich progress bar interface. Defaults to True.
+        force : bool, optional
+            If True, download even if file exists locally. Defaults to False.
 
         Returns
         -------
         Union[None, str]
-            The full path to the downloaded file if successful, None if download fails.
+            Path to the downloaded or cached file, or None on error.
+
+        Examples
+        --------
+        >>> manager = SoftManager()
+        >>> manager.download_file(
+        ...     url="https://example.com/file.swi",
+        ...     file_path="/downloads",
+        ...     filename="EOS-4.29.3M.swi"
+        ... )
+        '/downloads/EOS-4.29.3M.swi'
         """
+        full_path = Path(file_path) / filename
+
+        # Check cache unless force flag is set
+        if not force and not self.force_download:
+            if full_path.exists():
+                logging.info(f"Using cached file: {full_path}")
+                return str(full_path)
+
+        # Log download action
         logging.info(
             f"{'[DRY-RUN] Would download' if self.dry_run else 'Downloading'} {filename} from {url}"
         )
+
+        # Handle dry-run mode
         if self.dry_run:
             return os.path.join(file_path, filename)
 
+        # Proceed with download
         if url is not False:
             if not rich_interface:
                 return self._download_file_raw(
@@ -279,6 +397,7 @@ class SoftManager:
             rich_downloader = eos_downloader.helpers.DownloadProgressBar()
             rich_downloader.download(urls=[url], dest_dir=file_path)
             return os.path.join(file_path, filename)
+
         logging.error(f"Cannot download file {file_path}")
         return None
 
@@ -289,10 +408,12 @@ class SoftManager:
         rich_interface: bool = True,
     ) -> Union[None, str]:
         """
-        Downloads files from Arista EOS server.
+        Downloads files from Arista EOS server with caching support.
 
-        Downloads the EOS image and optional md5/sha512 files based on the provided EOS XML object.
-        Each file is downloaded to the specified path with appropriate filenames.
+        Downloads the EOS image and optional md5/sha512 files based on the
+        provided EOS XML object. Each file is downloaded to the specified path
+        with appropriate filenames. Uses cache to skip already downloaded files
+        unless force_download is enabled.
 
         Parameters
         ----------
@@ -306,21 +427,33 @@ class SoftManager:
         Returns
         -------
         Union[None, str]
-            The file path where files were downloaded, or None if download failed.
+            The file path where files were downloaded/cached, or None if failed.
 
         Examples
         --------
+        Download new files or use cache:
+
+        >>> client = SoftManager()
+        >>> client.downloads(eos_obj, "/tmp/downloads")
+        '/tmp/downloads'
+
+        Force re-download even if cached:
+
+        >>> client = SoftManager(force_download=True)
         >>> client.downloads(eos_obj, "/tmp/downloads")
         '/tmp/downloads'
         """
-        logging.info(f"Downloading files from {object_arista.version}")
+        logging.info(
+            f"Processing files for {object_arista.version} "
+            f"(force_download={self.force_download})"
+        )
 
         if len(object_arista.urls) == 0:
             logging.error("No URLs found for download")
             raise ValueError("No URLs found for download")
 
         for file_type, url in sorted(object_arista.urls.items(), reverse=True):
-            logging.debug(f"Downloading {file_type} from {url}")
+            logging.debug(f"Processing {file_type} from {url}")
             if file_type == "image":
                 filename = object_arista.filename
                 self.file["name"] = filename
@@ -334,66 +467,178 @@ class SoftManager:
                 logging.error(f"Filename not found for {file_type}")
                 raise ValueError(f"Filename not found for {file_type}")
             if not self.dry_run:
-                logging.info(
-                    f"downloading file {filename} for version {object_arista.version}"
+                # download_file will check cache automatically
+                # unless self.force_download is True
+                self.download_file(
+                    url,
+                    file_path,
+                    filename,
+                    rich_interface,
+                    force=self.force_download
                 )
-                self.download_file(url, file_path, filename, rich_interface)
             else:
-                logging.info(
-                    f"[DRY-RUN] - downloading file {filename} for version {object_arista.version}"
-                )
+                full_path = Path(file_path) / filename
+                if full_path.exists() and not self.force_download:
+                    logging.info(
+                        f"[DRY-RUN] Would use cached file: {filename}"
+                    )
+                else:
+                    logging.info(
+                        f"[DRY-RUN] Would download file {filename} "
+                        f"for version {object_arista.version}"
+                    )
 
         return file_path
+
+    @staticmethod
+    def _docker_image_exists(image_name: str, image_tag: str) -> bool:
+        """
+        Check if Docker image with specified tag exists locally.
+
+        Parameters
+        ----------
+        image_name : str
+            Docker image name (e.g., 'arista/ceos')
+        image_tag : str
+            Docker image tag (e.g., '4.29.3M')
+
+        Returns
+        -------
+        bool
+            True if image:tag exists in local registry, False otherwise
+
+        Examples
+        --------
+        >>> SoftManager._docker_image_exists('arista/ceos', '4.29.3M')
+        True
+
+        Notes
+        -----
+        This method tries both 'docker' and 'podman' commands in order.
+        It uses 'docker images -q' to check for image existence.
+        """
+        import subprocess
+
+        # Try docker first, then podman
+        for cmd in ['docker', 'podman']:
+            # Check if command is available
+            if not shutil.which(cmd):
+                logging.debug(f"{cmd} command not found in PATH")
+                continue
+
+            try:
+                # Query for specific image:tag
+                result = subprocess.run(
+                    [cmd, 'images', '-q', f'{image_name}:{image_tag}'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                    check=False
+                )
+
+                # If output is not empty, image exists
+                if result.stdout.strip():
+                    logging.info(
+                        f"Docker image {image_name}:{image_tag} "
+                        f"found in local registry"
+                    )
+                    return True
+                else:
+                    logging.debug(
+                        f"Docker image {image_name}:{image_tag} "
+                        f"not found in local registry"
+                    )
+                    return False
+
+            except subprocess.TimeoutExpired:
+                logging.warning(f"{cmd} command timed out after 5 seconds")
+                continue
+
+            except Exception as e:
+                logging.debug(f"Error checking {cmd} images: {e}")
+                continue
+
+        # If we get here, neither docker nor podman worked
+        logging.warning(
+            "Unable to check Docker images (docker/podman not available)"
+        )
+        return False
 
     def import_docker(
         self,
         local_file_path: str,
         docker_name: str = "arista/ceos",
         docker_tag: str = "latest",
+        force: bool = False
     ) -> None:
         """
-        Import a local file into a Docker image.
-
-        This method imports a local file into Docker with a specified image name and tag.
-        It checks for the existence of both the local file and docker binary before proceeding.
+        Import local file into Docker with caching support.
 
         Parameters
         ----------
         local_file_path : str
-            Path to the local file to import.
+            Path to the local file to import
         docker_name : str, optional
-            Name for the Docker image. Defaults to 'arista/ceos'.
+            Docker image name, by default "arista/ceos"
         docker_tag : str, optional
-            Tag for the Docker image. Defaults to 'latest'.
+            Docker image tag, by default "latest"
+        force : bool, optional
+            If True, import even if image:tag already exists.
+            Defaults to False.
 
         Raises
         ------
         FileNotFoundError
-            If the local file doesn't exist or docker binary is not found.
-        Exception
-            If the docker import operation fails.
+            If the local file does not exist
 
-        Returns
-        -------
-        None
+        Examples
+        --------
+        >>> manager = SoftManager()
+        >>> manager.import_docker(
+        ...     local_file_path="/downloads/cEOS-4.29.3M.tar.xz",
+        ...     docker_name="arista/ceos",
+        ...     docker_tag="4.29.3M"
+        ... )
         """
+        # Check if file exists
+        if not os.path.exists(local_file_path):
+            raise FileNotFoundError(f"File {local_file_path} not found")
 
+        # Check cache unless force flag is set
+        if not force and not self.force_download:
+            if self._docker_image_exists(docker_name, docker_tag):
+                logging.info(
+                    f"Docker image {docker_name}:{docker_tag} already "
+                    f"exists locally. Use --force to re-import."
+                )
+                return
+
+        # Log import action
         logging.info(
-            f"Importing {local_file_path} to {docker_name}:{docker_tag} in local docker enginge"
+            f"{'[DRY-RUN] Would import' if self.dry_run else 'Importing'} "
+            f"{docker_name}:{docker_tag}"
         )
 
-        if os.path.exists(local_file_path) is False:
-            raise FileNotFoundError(f"File {local_file_path} not found")
-        if not shutil.which("docker"):
-            raise FileNotFoundError(f"File {local_file_path} not found")
+        # Handle dry-run mode
+        if self.dry_run:
+            return
 
+        # Check if docker is available
+        if not shutil.which("docker"):
+            raise FileNotFoundError("Docker binary not found in PATH")
+
+        # Proceed with import
         try:
-            cmd = f"$(which docker) import {local_file_path} {docker_name}:{docker_tag}"
-            if self.dry_run:
-                logging.info(f"[DRY-RUN] Would execute: {cmd}")
-            else:
-                logging.debug("running docker import process")
-                os.system(cmd)
+            cmd = (
+                f"$(which docker) import {local_file_path} "
+                f"{docker_name}:{docker_tag}"
+            )
+            logging.debug(f"Executing: {cmd}")
+            os.system(cmd)
+            logging.info(
+                f"Docker image {docker_name}:{docker_tag} "
+                f"imported successfully"
+            )
         except Exception as e:
             logging.error(f"Error importing docker image: {e}")
             raise e
