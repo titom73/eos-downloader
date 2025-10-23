@@ -349,7 +349,6 @@ def path(
         ctx.exit(1)
 
     # At this point, mypy knows file_url is not None due to the check above
-    assert file_url is not None  # Type assertion for mypy
 
     cli = SoftManager(dry_run=False)
 
