@@ -147,25 +147,54 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=eos_downloader --cov-report=term-missing --cov-report=json --cov-branch
+          python -m pytest --cov=eos_downloader --cov-report=term-missing --cov-report=json --cov-branch tests/
+
+      - name: Debug coverage file
+        run: |
+          echo "Checking if coverage.json exists..."
+          ls -la coverage.json || echo "coverage.json not found"
+          if [ -f coverage.json ]; then
+            echo "Coverage file content:"
+            cat coverage.json
+          fi
 
       - name: Extract coverage percentage
         id: coverage
         run: |
-          COVERAGE=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
-          echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
-          echo "Coverage: $COVERAGE%"
+          if [ -f coverage.json ]; then
+            COVERAGE=$(python -c "import json; data=json.load(open('coverage.json')); print(data['totals']['percent_covered_display'] if 'totals' in data and 'percent_covered_display' in data['totals'] else '0')")
+            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+            echo "Coverage: $COVERAGE%"
+          else
+            echo "coverage.json not found, setting coverage to 0"
+            echo "percentage=0" >> $GITHUB_OUTPUT
+          fi
 
       - name: Comment PR with coverage
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const coverage = JSON.parse(fs.readFileSync('coverage.json', 'utf8'));
-            const percentage = coverage.totals.percent_covered_display;
-            const numStatements = coverage.totals.num_statements;
-            const coveredStatements = coverage.totals.covered_lines;
-            const missingStatements = coverage.totals.missing_lines;
+            
+            let coverage, percentage, numStatements, coveredStatements, missingStatements;
+            
+            try {
+              if (fs.existsSync('coverage.json')) {
+                coverage = JSON.parse(fs.readFileSync('coverage.json', 'utf8'));
+                percentage = coverage.totals.percent_covered_display || 0;
+                numStatements = coverage.totals.num_statements || 0;
+                coveredStatements = coverage.totals.covered_lines || 0;
+                missingStatements = coverage.totals.missing_lines || numStatements;
+              } else {
+                throw new Error('coverage.json not found');
+              }
+            } catch (error) {
+              console.log('Error reading coverage file:', error);
+              percentage = 0;
+              numStatements = 0;
+              coveredStatements = 0;
+              missingStatements = 0;
+            }
 
             const coverageEmoji = percentage >= 80 ? '✅' : percentage >= 60 ? '⚠️' : '❌';
 
@@ -178,11 +207,13 @@ jobs:
             | Total Statements | ${numStatements} |
             | Covered | ${coveredStatements} |
             | Missing | ${missingStatements} |
-            | Branch Coverage | ${coverage.totals.percent_covered_display}% |
+            | Branch Coverage | ${percentage}% |
 
             ${percentage >= 80 ? '✅ Great job! Coverage meets the 80% target.' : ''}
             ${percentage >= 60 && percentage < 80 ? '⚠️ Coverage is acceptable but below the 80% target.' : ''}
             ${percentage < 60 ? '❌ Coverage is below 60%. Please add more tests.' : ''}
+            
+            ${percentage === 0 ? '⚠️ **Note**: Coverage appears to be 0% which may indicate a configuration issue or test discovery problem.' : ''}
             `;
 
             github.rest.issues.createComment({
@@ -191,6 +222,3 @@ jobs:
               repo: context.repo.repo,
               body: message
             });
-
-
-# (Commented-out block removed entirely to clean up the workflow file.)
