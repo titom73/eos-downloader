@@ -123,5 +123,74 @@ jobs:
         # run: tox -e testenv
         run: tox
 
+  coverage:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: [pytest]
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dev]
+
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=eos_downloader --cov-report=term-missing --cov-report=json --cov-branch
+
+      - name: Extract coverage percentage
+        id: coverage
+        run: |
+          COVERAGE=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
+          echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "Coverage: $COVERAGE%"
+
+      - name: Comment PR with coverage
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const coverage = JSON.parse(fs.readFileSync('coverage.json', 'utf8'));
+            const percentage = coverage.totals.percent_covered_display;
+            const numStatements = coverage.totals.num_statements;
+            const coveredStatements = coverage.totals.covered_lines;
+            const missingStatements = coverage.totals.missing_lines;
+
+            const coverageEmoji = percentage >= 80 ? '✅' : percentage >= 60 ? '⚠️' : '❌';
+
+            const message = `## ${coverageEmoji} Test Coverage Report
+
+            **Overall Coverage**: **${percentage}%**
+
+            | Metric | Value |
+            |--------|-------|
+            | Total Statements | ${numStatements} |
+            | Covered | ${coveredStatements} |
+            | Missing | ${missingStatements} |
+            | Branch Coverage | ${coverage.totals.percent_covered_display}% |
+
+            ${percentage >= 80 ? '✅ Great job! Coverage meets the 80% target.' : ''}
+            ${percentage >= 60 && percentage < 80 ? '⚠️ Coverage is acceptable but below the 80% target.' : ''}
+            ${percentage < 60 ? '❌ Coverage is below 60%. Please add more tests.' : ''}
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
+
 
 # (Commented-out block removed entirely to clean up the workflow file.)
