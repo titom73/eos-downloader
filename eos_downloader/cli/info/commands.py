@@ -253,6 +253,7 @@ def mapping(
     cli_logging(log_level)
 
     if not hasattr(software_mapping, mapping_pkg_name):
+        console.print(f"[red]Unknown package type: {mapping_pkg_name}[/red]")
         return
 
     mapping_entries = getattr(software_mapping, mapping_pkg_name, None)
