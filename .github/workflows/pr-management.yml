@@ -175,9 +175,9 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            
+
             let coverage, percentage, numStatements, coveredStatements, missingStatements;
-            
+
             try {
               if (fs.existsSync('coverage.json')) {
                 coverage = JSON.parse(fs.readFileSync('coverage.json', 'utf8'));
@@ -212,7 +212,7 @@ jobs:
             ${percentage >= 80 ? '✅ Great job! Coverage meets the 80% target.' : ''}
             ${percentage >= 60 && percentage < 80 ? '⚠️ Coverage is acceptable but below the 80% target.' : ''}
             ${percentage < 60 ? '❌ Coverage is below 60%. Please add more tests.' : ''}
-            
+
             ${percentage === 0 ? '⚠️ **Note**: Coverage appears to be 0% which may indicate a configuration issue or test discovery problem.' : ''}
             `;
 
