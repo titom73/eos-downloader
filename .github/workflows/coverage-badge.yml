@@ -34,15 +34,30 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=eos_downloader --cov-report=term-missing --cov-report=json --cov-branch
+          python -m pytest --cov=eos_downloader --cov-report=term-missing --cov-report=json --cov-branch tests/
+
+      - name: Debug coverage file
+        run: |
+          echo "Checking if coverage.json exists..."
+          ls -la coverage.json || echo "coverage.json not found"
+          if [ -f coverage.json ]; then
+            echo "Coverage file content:"
+            cat coverage.json
+          fi
 
       - name: Extract coverage percentage
         id: coverage
         run: |
-          COVERAGE=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
-          echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
-          echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
-          echo "Coverage: $COVERAGE%"
+          if [ -f coverage.json ]; then
+            COVERAGE=$(python -c "import json; data=json.load(open('coverage.json')); print(data['totals']['percent_covered_display'] if 'totals' in data and 'percent_covered_display' in data['totals'] else '0')")
+            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+            echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
+            echo "Coverage: $COVERAGE%"
+          else
+            echo "coverage.json not found, setting coverage to 0"
+            echo "percentage=0" >> $GITHUB_OUTPUT
+            echo "COVERAGE=0" >> $GITHUB_ENV
+          fi
 
       - name: Update Coverage Badge
         uses: schneegans/dynamic-badges-action@v1.7.0
