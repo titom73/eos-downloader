@@ -108,11 +108,19 @@ def download_files(
     console.print(
         f"Starting download for EOS version [green]{arista_dl_obj.version}[/green] for [blue]{arista_dl_obj.image_type}[/blue] format."
     )
-    output_path, was_cached = cli.downloads(
-        arista_dl_obj, file_path=output, rich_interface=rich_interface
-    )
     try:
+        cli.downloads(arista_dl_obj, file_path=output, rich_interface=rich_interface)
         cli.checksum(checksum_format)
+
+        console.print(
+            f"Arista file [green]{arista_dl_obj.filename}[/green] downloaded in: [blue]{output}[/blue]"
+        )
+    except ValueError as e:
+        if debug:
+            console.print_exception(show_locals=True)
+        else:
+            console.print(f"[red]{e}")
+
     except subprocess.CalledProcessError:
         if debug:
             console.print_exception(show_locals=True)
@@ -120,16 +128,6 @@ def download_files(
             console.print(
                 f"[red]Checksum error for file {arista_dl_obj.filename}[/red]"
             )
-
-    # Display appropriate message based on whether files were cached
-    if was_cached:
-        console.print(
-            f"Arista file [green]{arista_dl_obj.filename}[/green] is already in cache in: [blue]{output_path}[/blue]"
-        )
-    else:
-        console.print(
-            f"Arista file [green]{arista_dl_obj.filename}[/green] downloaded in: [blue]{output_path}[/blue]"
-        )
 
 
 def handle_docker_import(
