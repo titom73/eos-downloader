@@ -27,6 +27,7 @@ Dependencies:
 """
 
 import json
+from typing import Any
 
 import click
 from rich import print_json
@@ -34,7 +35,7 @@ from rich.panel import Panel
 
 from eos_downloader.models.data import software_mapping
 from eos_downloader.models.types import AristaPackage, ReleaseType, AristaMapping
-import eos_downloader.logics.arista_xml_server
+from eos_downloader.logics.arista_xml_server import AristaXmlQuerier
 from eos_downloader.cli.utils import console_configuration
 from eos_downloader.cli.utils import cli_logging
 
@@ -71,7 +72,7 @@ def versions(
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
 
-    querier = eos_downloader.logics.arista_xml_server.AristaXmlQuerier(token=token)
+    querier = AristaXmlQuerier(token=token)
 
     received_versions = None
     try:
@@ -144,7 +145,7 @@ def latest(
     debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
-    querier = eos_downloader.logics.arista_xml_server.AristaXmlQuerier(token=token)
+    querier = AristaXmlQuerier(token=token)
     received_version = None
     try:
         received_version = querier.latest(
@@ -171,6 +172,54 @@ def latest(
         print_json(json.dumps({"version": str(received_version)}))
 
 
+def _get_mapping_name(package: AristaPackage) -> AristaMapping:
+    """Get the mapping name for the given package."""
+    return "EOS" if package == "eos" else "CloudVision"
+
+
+def _print_text_mapping(
+    console: Any,
+    package: str,
+    mapping_pkg_name: str,
+    mapping_entries: Any,
+    details: bool,
+) -> None:
+    """Print mapping in text format."""
+    console.print(
+        f"Following flavors for [red]{package}/{mapping_pkg_name}[/red] have been found:"
+    )
+    if mapping_entries is None:
+        console.print("[red]No flavors found[/red]")
+        return
+
+    for mapping_entry in mapping_entries:
+        console.print(f"   * Flavor: [blue]{mapping_entry}[/blue]")
+        if details:
+            console.print(
+                f"     - Information: [black]{mapping_entries[mapping_entry]}[/black]"
+            )
+    console.print("\n")
+
+
+def _print_fancy_mapping(console: Any, mapping_entries: Any, details: bool) -> None:
+    """Print mapping in fancy format."""
+    lines_output = []
+    if mapping_entries is None:
+        lines_output.append("[red]No flavors found[/red]")
+        console.print("\n".join(lines_output))
+        return
+
+    for mapping_entry in mapping_entries:
+        lines_output.append(f"   * Flavor: [blue]{mapping_entry}[/blue]")
+        if details:
+            lines_output.append(
+                f"     - Information: [black]{mapping_entries[mapping_entry]}[/black]"
+            )
+    console.print("")
+    console.print(Panel("\n".join(lines_output), title="Flavors", padding=1))
+    console.print("\n")
+
+
 @click.command()
 @click.option(
     "--package", type=click.Choice(["eos", "cvp"]), default="eos", required=False
@@ -194,47 +243,28 @@ def mapping(
 ) -> None:
     """List available flavors of Arista packages (eos or CVP) packages."""
 
-    mapping_pkg_name: AristaMapping = "EOS"
-    if package == "eos":
-        mapping_pkg_name = "EOS"
-    elif package == "cvp":
-        mapping_pkg_name = "CloudVision"
+    mapping_pkg_name = _get_mapping_name(package)
     console = console_configuration()
     log_level = ctx.obj["log_level"]
-    console.print(f"Log Level is: {log_level}")
+
+    # Only print log level for non-JSON formats to avoid contaminating JSON output
+    if format != "json":
+        console.print(f"Log Level is: {log_level}")
     cli_logging(log_level)
 
-    if mapping_pkg_name in software_mapping.model_fields:  # pylint: disable = unsupported-membership-test
-        mapping_entries = getattr(software_mapping, mapping_pkg_name, None)
-        if format == "text":
-            console.print(
-                f"Following flavors for [red]{package}/{mapping_pkg_name}[/red] have been found:"
-            )
-            if mapping_entries is None:
-                console.print("[red]No flavors found[/red]")
-                return
-            for mapping_entry in mapping_entries:
-                console.print(f"   * Flavor: [blue]{mapping_entry}[/blue]")
-                if details:
-                    console.print(
-                        f"     - Information: [black]{mapping_entries[mapping_entry]}[/black]"
-                    )
-            console.print("\n")
-        elif format == "fancy":
-            lines_output = []
-            if mapping_entries is None:
-                lines_output.append("[red]No flavors found[/red]")
-                console.print("\n".join(lines_output))
-                return
-            for mapping_entry in mapping_entries:
-                lines_output.append(f"   * Flavor: [blue]{mapping_entry}[/blue]")
-                if details:
-                    lines_output.append(
-                        f"     - Information: [black]{mapping_entries[mapping_entry]}[/black]"
-                    )
-            console.print("")
-            console.print(Panel("\n".join(lines_output), title="Flavors", padding=1))
-            console.print("\n")
-        elif format == "json":
-            mapping_json = software_mapping.model_dump()[package.upper()]
-            print_json(json.dumps(mapping_json))
+    if (
+        mapping_pkg_name not in software_mapping.model_fields
+    ):  # pylint: disable = unsupported-membership-test
+        return
+
+    mapping_entries = getattr(software_mapping, mapping_pkg_name, None)
+
+    if format == "text":
+        _print_text_mapping(
+            console, package, mapping_pkg_name, mapping_entries, details
+        )
+    elif format == "fancy":
+        _print_fancy_mapping(console, mapping_entries, details)
+    elif format == "json":
+        mapping_json = software_mapping.model_dump()[package.upper()]
+        print_json(data=mapping_json)

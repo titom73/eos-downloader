@@ -133,7 +133,7 @@ def eos(
         )
     except Exception:
         console.print_exception(show_locals=True)
-        return 1
+        ctx.exit(1)
 
     cli = SoftManager(dry_run=dry_run)
 
@@ -150,7 +150,7 @@ def eos(
                     console.print_exception(show_locals=True)
                 else:
                     console.print(f"\n[red]Exception raised: {e}[/red]")
-                return 1
+                ctx.exit(1)
 
     if import_docker:
         return handle_docker_import(
@@ -238,7 +238,7 @@ def cvp(
         except Exception as e:
             console.print(f"Token is set to: {token}")
             console.print_exception(show_locals=True)
-            return 1
+            ctx.exit(1)
 
     console.print(f"version to download is {version}")
 
@@ -253,7 +253,7 @@ def cvp(
             console.print_exception(show_locals=True)
         else:
             console.print(f"\n[red]Exception raised: {e}[/red]")
-        return 1
+        ctx.exit(1)
 
     cli = SoftManager(dry_run=dry_run)
     download_files(
@@ -324,7 +324,7 @@ def path(
 
     if source is None:
         console.print("[red]Source is not set correctly ![/red]")
-        return 1
+        ctx.exit(1)
 
     filename = os.path.basename(source)
 
@@ -342,11 +342,11 @@ def path(
             console.print_exception(show_locals=True)
         else:
             console.print(f"\n[red]Exception raised: {e}[/red]")
-        return 1
+        ctx.exit(1)
 
     if file_url is None:
         console.print("File URL is set to None when we expect a string")
-        return 1
+        ctx.exit(1)
 
     cli = SoftManager(dry_run=False)
 
@@ -357,7 +357,7 @@ def path(
             console.print_exception(show_locals=True)
         else:
             console.print(f"\n[red]Exception raised: {e}[/red]")
-        return 1
+        ctx.exit(1)
 
     if import_docker:
         console.print(
@@ -377,7 +377,7 @@ def path(
                 console.print(
                     f"\n[red]File not found: {os.path.join(output, filename)}[/red]"
                 )
-            return 1
+            ctx.exit(1)
 
         console.print(
             f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"

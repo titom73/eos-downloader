@@ -1,7 +1,5 @@
 [![tests](https://github.com/titom73/eos-downloader/actions/workflows/pr-management.yml/badge.svg?event=push)](https://github.com/titom73/eos-downloader/actions/workflows/pr-management.yml)
-
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/titom73/17c473b44b23f1a4c92d3d100644368c/raw/eos-downloader-coverage.json)](https://github.com/titom73/eos-downloader/actions/workflows/coverage-badge.yml)
-
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/eos-downloader)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)
