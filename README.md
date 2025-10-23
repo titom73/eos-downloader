@@ -3,7 +3,6 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/eos-downloader)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)
-<!-- ![GitHub release](https://img.shields.io/github/v/release/titom73/arista-downloader) -->
 ![PyPI - Downloads/month](https://img.shields.io/pypi/dm/eos-downloader)
 
 # Arista Software Downloader
