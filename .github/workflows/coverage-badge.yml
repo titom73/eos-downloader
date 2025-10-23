@@ -41,19 +41,20 @@ jobs:
         run: |
           COVERAGE=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
           echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
           echo "Coverage: $COVERAGE%"
 
-      - name: Create coverage badge
+      - name: Update Coverage Badge
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
-          auth: ${{ secrets.GITHUB_TOKEN }}
-          gistID: ${{ secrets.GIST_ID }}  # You'll need to create a secret with your Gist ID
+          auth: ${{ secrets.GIST_TOKEN }}
+          gistID: ${{ secrets.GIST_ID }}
           filename: eos-downloader-coverage.json
           label: coverage
           message: ${{ steps.coverage.outputs.percentage }}%
+          minColorRange: 50
+          maxColorRange: 90
           valColorRange: ${{ steps.coverage.outputs.percentage }}
-          maxColorRange: 100
-          minColorRange: 0
 
       - name: Upload coverage report as artifact
         uses: actions/upload-artifact@v4
