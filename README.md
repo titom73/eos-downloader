@@ -5,7 +5,6 @@
 ![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)
 <!-- ![GitHub release](https://img.shields.io/github/v/release/titom73/arista-downloader) -->
 ![PyPI - Downloads/month](https://img.shields.io/pypi/dm/eos-downloader)
-<!-- [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit) -->
 
 # Arista Software Downloader
 
