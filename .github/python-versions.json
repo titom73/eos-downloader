@@ -1,0 +1,6 @@
+{
+  "versions": ["3.9", "3.10", "3.11", "3.12"],
+  "min_version": "3.9",
+  "max_version": "3.12",
+  "default_version": "3.11"
+}

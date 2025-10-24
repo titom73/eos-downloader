@@ -22,10 +22,17 @@ jobs:
         with:
           fetch-depth: 0  # Full history for better context
 
+      - name: Load default Python version
+        id: python-version
+        run: |
+          DEFAULT_VERSION=$(cat .github/python-versions.json | jq -r '.default_version')
+          echo "version=$DEFAULT_VERSION" >> $GITHUB_OUTPUT
+          echo "Using Python version: $DEFAULT_VERSION"
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.11"  # Use latest supported version
+          python-version: ${{ steps.python-version.outputs.version }}
 
       - name: Install dependencies
         run: |

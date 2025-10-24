@@ -44,10 +44,17 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Load default Python version
+      id: python-version
+      run: |
+        DEFAULT_VERSION=$(cat .github/python-versions.json | jq -r '.default_version')
+        echo "version=$DEFAULT_VERSION" >> $GITHUB_OUTPUT
+        echo "Using Python version: $DEFAULT_VERSION"
+
     - name: Setup Python
       uses: actions/setup-python@v6
       with:
-        python-version: '3.9'
+        python-version: ${{ steps.python-version.outputs.version }}
         cache: 'pip'
 
     - name: Install dependencies
@@ -99,10 +106,17 @@ jobs:
         fetch-depth: 0
         token: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Load default Python version
+      id: python-version
+      run: |
+        DEFAULT_VERSION=$(cat .github/python-versions.json | jq -r '.default_version')
+        echo "version=$DEFAULT_VERSION" >> $GITHUB_OUTPUT
+        echo "Using Python version: $DEFAULT_VERSION"
+
     - name: Setup Python
       uses: actions/setup-python@v6
       with:
-        python-version: '3.9'
+        python-version: ${{ steps.python-version.outputs.version }}
         cache: 'pip'
 
     - name: Setup Git config
