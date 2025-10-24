@@ -111,7 +111,7 @@ list_versions() {
 
         if [ -f versions.json ]; then
             print_success "Versions found in gh-pages branch:"
-            cat versions.json | python -m json.tool
+            python -m json.tool < versions.json
         else
             print_warning "No versions.json found in gh-pages branch"
         fi
