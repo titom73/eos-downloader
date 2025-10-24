@@ -19,10 +19,7 @@ def load_python_versions_from_json(json_path: Path) -> dict:
         return json.load(f)
 
 
-def update_pyproject_classifiers(
-    pyproject_path: Path,
-    versions: List[str]
-) -> None:
+def update_pyproject_classifiers(pyproject_path: Path, versions: List[str]) -> None:
     """Update Python version classifiers in pyproject.toml."""
     content = pyproject_path.read_text(encoding="utf-8")
 
