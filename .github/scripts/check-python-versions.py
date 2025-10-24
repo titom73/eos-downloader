@@ -47,8 +47,8 @@ def main() -> int:
         print(f"❌ Error loading versions: {e}")
         return 1
 
-    # Normalize versions (remove quotes, whitespace)
-    json_versions = [v.strip('"').strip() for v in json_versions]
+    # Normalize versions (no quote stripping needed)
+    # json_versions are already clean strings from JSON
     pyproject_versions = sorted(pyproject_versions)
     json_versions_sorted = sorted(json_versions)
 
