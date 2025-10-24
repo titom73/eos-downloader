@@ -1,0 +1,41 @@
+---
+name: Check Python Versions Sync
+
+on:
+  pull_request:
+    paths:
+      - '.github/python-versions.json'
+      - 'pyproject.toml'
+      - '.github/workflows/*.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/python-versions.json'
+      - 'pyproject.toml'
+
+permissions:
+  contents: read
+
+jobs:
+  check-sync:
+    name: Verify Python versions are synchronized
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Check Python versions synchronization
+        run: |
+          python .github/scripts/check-python-versions.py
+
+      - name: Provide fix instructions if out of sync
+        if: failure()
+        run: |
+          echo "::error::Python versions are out of sync between .github/python-versions.json and pyproject.toml"
+          echo "::notice::To fix this, run: python .github/scripts/sync-python-versions.py"
