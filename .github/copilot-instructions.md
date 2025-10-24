@@ -1082,7 +1082,7 @@ This project follows DevOps best practices with focus on:
 
 ### Dedicated Repository Content
 
-- All custom script for repository management shall be stored in the `.github/scripts/` folder
+- All custom scripts for repository management shall be stored in the `.github/scripts/` folder
 - All documentation related to repository management shall be stored in the `.github/docs/` folder
 
 ### Repository language
