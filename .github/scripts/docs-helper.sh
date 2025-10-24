@@ -145,7 +145,10 @@ deploy_version() {
     fi
 
     print_success "Deployment complete!"
-    print_info "View at: https://$(git config --get remote.origin.url | sed 's/.*github.com[:\/]\(.*\)\.git/\1/' | cut -d'/' -f1).github.io/$(basename $(git rev-parse --show-toplevel))/"
+    # Extract repo owner and name for URL construction
+    local REPO_OWNER=$(git config --get remote.origin.url | sed 's/.*github.com[:\/]\(.*\)\.git/\1/' | cut -d'/' -f1)
+    local REPO_NAME=$(basename $(git rev-parse --show-toplevel))
+    print_info "View at: https://${REPO_OWNER}.github.io/${REPO_NAME}/"
 }
 
 # Delete version
