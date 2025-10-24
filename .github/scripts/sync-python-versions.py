@@ -60,10 +60,7 @@ def update_pyproject_classifiers(pyproject_path: Path, versions: List[str]) -> N
     pyproject_path.write_text(new_content, encoding="utf-8")
 
 
-def update_requires_python(
-    pyproject_path: Path,
-    min_version: str
-) -> None:
+def update_requires_python(pyproject_path: Path, min_version: str) -> None:
     """Update requires-python in pyproject.toml."""
     content = pyproject_path.read_text(encoding="utf-8")
 
