@@ -42,8 +42,8 @@ def update_pyproject_classifiers(pyproject_path: Path, versions: List[str]) -> N
     if end_of_line == -1:
         end_of_line = len(content_cleaned)
 
-    # Sort versions for consistent ordering
-    sorted_versions = sorted(versions)
+    # Sort versions semantically (3.9, 3.10, 3.11, 3.12) not alphabetically
+    sorted_versions = sorted(versions, key=lambda v: tuple(map(int, v.split('.'))))
 
     # Generate new classifier lines with proper indentation
     new_lines = []
