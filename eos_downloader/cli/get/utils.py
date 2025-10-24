@@ -82,6 +82,36 @@ def search_version(
     return version
 
 
+def handle_cli_error(
+    console: Console,
+    debug: bool,
+    error_message: str,
+    exit_code: int = 1,
+    should_exit: bool = True,
+) -> None:
+    """Handles CLI errors with appropriate output based on debug mode.
+
+    Args:
+        console (Console): The console object for printing messages.
+        debug (bool): If True, prints full exception traceback with locals.
+                     If False, prints user-friendly error message.
+        error_message (str): The error message to display in normal mode.
+        exit_code (int): The exit code to use. Defaults to 1.
+        should_exit (bool): If True, exits the program. If False, only prints the error.
+                           Defaults to True.
+
+    Exits:
+        Exits with the specified exit_code if should_exit is True.
+    """
+    if debug:
+        console.print_exception(show_locals=True)
+    else:
+        console.print(f"[red]{error_message}[/red]")
+
+    if should_exit:
+        sys.exit(exit_code)
+
+
 def download_files(
     console: Console,
     cli: Any,
@@ -119,20 +149,12 @@ def download_files(
             f"Arista file [green]{arista_dl_obj.filename}[/green] downloaded in: [blue]{output}[/blue]"
         )
     except ValueError as e:
-        if debug:
-            console.print_exception(show_locals=True)
-        else:
-            console.print(f"[red]Error: {e}[/red]")
-        sys.exit(1)
+        handle_cli_error(console, debug, f"Error: {e}")
 
     except subprocess.CalledProcessError:
-        if debug:
-            console.print_exception(show_locals=True)
-        else:
-            console.print(
-                f"[red]Checksum error for file {arista_dl_obj.filename}[/red]"
-            )
-        sys.exit(1)
+        handle_cli_error(
+            console, debug, f"Checksum error for file {arista_dl_obj.filename}"
+        )
 
 
 def handle_docker_import(
@@ -187,13 +209,13 @@ def handle_docker_import(
             force=force,
         )
     except FileNotFoundError:
-        if debug:
-            console.print_exception(show_locals=True)
-        else:
-            console.print(
-                f"\n[red]File not found: "
-                f"{os.path.join(output, arista_dl_obj.filename)}[/red]"
-            )
+        handle_cli_error(
+            console,
+            debug,
+            f"\nFile not found: {os.path.join(output, arista_dl_obj.filename)}",
+            exit_code=1,
+            should_exit=False,
+        )
         return 1
 
     # Display appropriate message based on whether image was cached or imported
