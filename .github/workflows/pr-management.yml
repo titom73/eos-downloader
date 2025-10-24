@@ -263,15 +263,20 @@ jobs:
             ${percentage === 0 ? '⚠️ **Note**: Coverage appears to be 0% which may indicate a configuration issue or test discovery problem.' : ''}
             `;
 
-            // Find existing coverage comment
+            // Find existing coverage comment (optimized to retrieve only recent comments)
+            // Sort by updated descending to get most recent comments first
+            // Limit to 30 comments to avoid performance issues on large PRs
             const comments = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
+              per_page: 30,
+              sort: 'updated',
+              direction: 'desc'
             });
 
-            const botComment = comments.data.find(comment => 
-              comment.user.type === 'Bot' && 
+            const botComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' &&
               comment.user.login === 'github-actions[bot]' &&
               comment.body.includes('Test Coverage Report')
             );
