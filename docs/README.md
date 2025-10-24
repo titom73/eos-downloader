@@ -1,11 +1,9 @@
 [![tests](https://github.com/titom73/eos-downloader/actions/workflows/pr-management.yml/badge.svg?event=push)](https://github.com/titom73/eos-downloader/actions/workflows/pr-management.yml)
-![Coverage](https://img.shields.io/badge/coverage-60%25-yellow)
+[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/titom73/17c473b44b23f1a4c92d3d100644368c/raw/eos-downloader-coverage.json)](https://github.com/titom73/eos-downloader/actions/workflows/coverage-badge.yml)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/eos-downloader)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)
-![GitHub release](https://img.shields.io/github/v/release/titom73/arista-downloader)
 ![PyPI - Downloads/month](https://img.shields.io/pypi/dm/eos-downloader)
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
 # Arista Software Downloader
 
