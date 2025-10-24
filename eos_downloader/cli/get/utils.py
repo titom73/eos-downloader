@@ -172,12 +172,24 @@ def download_files(
         f"Starting download for EOS version [green]{arista_dl_obj.version}[/green] for [blue]{arista_dl_obj.image_type}[/blue] format."
     )
     try:
-        cli.downloads(arista_dl_obj, file_path=output, rich_interface=rich_interface)
+        # downloads() returns a tuple (path, was_cached)
+        _file_path, was_cached = cli.downloads(
+            arista_dl_obj, file_path=output, rich_interface=rich_interface
+        )
         cli.checksum(checksum_format)
 
-        console.print(
-            f"Arista file [green]{arista_dl_obj.filename}[/green] downloaded in: [blue]{output}[/blue]"
-        )
+        # Display appropriate message based on cache status
+        if was_cached:
+            console.print(
+                f"[green]✓[/green] File [cyan]{arista_dl_obj.filename}[/cyan] "
+                f"found in cache: [blue]{output}[/blue]"
+            )
+            console.print("   [dim]Use --force to re-download[/dim]")
+        else:
+            console.print(
+                f"[green]✓[/green] Arista file [cyan]{arista_dl_obj.filename}[/cyan] "
+                f"downloaded in: [blue]{output}[/blue]"
+            )
     except ValueError as e:
         handle_cli_error(console, debug, f"Error: {e}")
 
