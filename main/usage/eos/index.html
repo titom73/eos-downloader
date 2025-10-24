@@ -405,6 +405,48 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#smart-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Smart Caching
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Smart Caching">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Caching
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-image-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Docker Image Caching
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#ardl-get-eos-options" class="md-nav__link">
     <span class="md-ellipsis">
       ardl get eos options
@@ -953,6 +995,48 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#smart-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Smart Caching
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Smart Caching">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Caching
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-image-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Docker Image Caching
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#ardl-get-eos-options" class="md-nav__link">
     <span class="md-ellipsis">
       ardl get eos options
@@ -1004,7 +1088,60 @@ ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </spa
 
 <span class="c1"># Get a specific version and import to EVE-NG</span>
 ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.33.0F<span class="w"> </span>--eve-ng
+
+<span class="c1"># Force re-download even if file is cached</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.29.4M<span class="w"> </span>--force
+
+<span class="c1"># Force re-import of Docker image even if it exists</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.29.4M<span class="w"> </span>--import-docker<span class="w"> </span>--force
 </code></pre></div>
+<h3 id="smart-caching">Smart Caching<a class="headerlink" href="#smart-caching" title="Permanent link">¶</a></h3>
+<p><strong>eos-downloader</strong> includes intelligent caching to avoid redundant downloads and Docker imports:</p>
+<h4 id="file-caching">File Caching<a class="headerlink" href="#file-caching" title="Permanent link">¶</a></h4>
+<ul>
+<li>By default, if a file already exists in the output directory, it will be <strong>reused</strong> instead of re-downloaded</li>
+<li>Saves bandwidth and time when running the same command multiple times</li>
+<li>Use <code>--force</code> to bypass the cache and force re-download</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># First run: downloads the file</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.29.4M<span class="w"> </span>--output<span class="w"> </span>/downloads
+
+<span class="c1"># Second run: uses cached file (no download)</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.29.4M<span class="w"> </span>--output<span class="w"> </span>/downloads
+
+<span class="c1"># Force re-download</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.29.4M<span class="w"> </span>--output<span class="w"> </span>/downloads<span class="w"> </span>--force
+</code></pre></div>
+<h4 id="docker-image-caching">Docker Image Caching<a class="headerlink" href="#docker-image-caching" title="Permanent link">¶</a></h4>
+<ul>
+<li>Before importing a cEOS image, <strong>eos-downloader</strong> checks if the image:tag already exists locally</li>
+<li>Skips the import if the image is already present</li>
+<li>Use <code>--force</code> to re-import even if the image exists</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># First run: downloads and imports to Docker</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.29.4M<span class="w"> </span>--format<span class="w"> </span>cEOS<span class="w"> </span>--import-docker
+
+<span class="c1"># Second run: file is cached, Docker image exists (no import)</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.29.4M<span class="w"> </span>--format<span class="w"> </span>cEOS<span class="w"> </span>--import-docker
+
+<span class="c1"># Force re-import</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.29.4M<span class="w"> </span>--format<span class="w"> </span>cEOS<span class="w"> </span>--import-docker<span class="w"> </span>--force
+</code></pre></div>
+<h4 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Faster iterations</strong>: Subsequent runs complete almost instantly</li>
+<li><strong>Bandwidth savings</strong>: No redundant downloads</li>
+<li><strong>Disk space optimization</strong>: Reuse existing files</li>
+<li><strong>CI/CD friendly</strong>: Safe to run repeatedly without overhead</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Podman Support</p>
+<p>The Docker cache checking works with both <code>docker</code> and <code>podman</code> commands automatically.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Cache Validation</p>
+<p>File caching currently uses simple existence checks. For production use, consider using checksums to verify file integrity after download.</p>
+</div>
 <h3 id="ardl-get-eos-options">ardl get eos options<a class="headerlink" href="#ardl-get-eos-options" title="Permanent link">¶</a></h3>
 <p>Below are all the options available to get EOS package:</p>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--help
@@ -1034,6 +1171,8 @@ Options:
 <span class="w">  </span>--branch<span class="w"> </span>TEXT<span class="w">        </span>Branch<span class="w"> </span>to<span class="w"> </span>download<span class="w">  </span><span class="o">[</span>env<span class="w"> </span>var:<span class="w"> </span>ARISTA_GET_EOS_BRANCH<span class="o">]</span>
 <span class="w">  </span>--dry-run<span class="w">            </span>Enable<span class="w"> </span>dry-run<span class="w"> </span>mode:<span class="w"> </span>only<span class="w"> </span>run<span class="w"> </span>code<span class="w"> </span>without<span class="w"> </span>system
 <span class="w">                       </span>changes
+<span class="w">  </span>--force<span class="w">              </span>Force<span class="w"> </span>download/import<span class="w"> </span>even<span class="w"> </span><span class="k">if</span><span class="w"> </span>cached<span class="w"> </span>files<span class="w"> </span>or<span class="w"> </span>Docker
+<span class="w">                       </span>images<span class="w"> </span>exist<span class="w">  </span><span class="o">[</span>env<span class="w"> </span>var:<span class="w"> </span>ARISTA_GET_EOS_FORCE<span class="o">]</span>
 <span class="w">  </span>--help<span class="w">               </span>Show<span class="w"> </span>this<span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span>exit.
 </code></pre></div>
 <div class="admonition info">
@@ -1060,7 +1199,7 @@ Options:
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="December 15, 2024 16:13:00 UTC">December 15, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 24, 2025 17:19:05 UTC">October 24, 2025</span>
   </span>
 
     
