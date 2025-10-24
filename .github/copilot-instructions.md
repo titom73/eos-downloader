@@ -1080,7 +1080,7 @@ This project follows DevOps best practices with focus on:
 - Automated releases to PyPI
 - Docker image publishing to GHCR
 
-### Dedicated Repository content
+### Dedicated Repository Content
 
 - All custom script for repository management shall be stored in the `.github/scripts/` folder
 - All documentation related to repository management shall be stored in the `.github/docs/` folder
