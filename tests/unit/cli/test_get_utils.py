@@ -241,6 +241,8 @@ class TestDownloadFiles:
         # Setup
         output_path = tmp_path
         mock_cli = MagicMock()
+        # Mock downloads to return tuple (path, was_cached)
+        mock_cli.downloads.return_value = (str(output_path), False)
 
         # Execute
         download_files(
@@ -268,6 +270,8 @@ class TestDownloadFiles:
         output_path = tmp_path
         checksum = "sha256sum"
         mock_cli = MagicMock()
+        # Mock downloads to return tuple (path, was_cached)
+        mock_cli.downloads.return_value = (str(output_path), False)
 
         # Execute
         download_files(
@@ -289,6 +293,8 @@ class TestDownloadFiles:
         """Test download with checksum verification failure."""
         # Setup
         mock_cli = MagicMock()
+        # Mock downloads to return tuple (path, was_cached)
+        mock_cli.downloads.return_value = (str(tmp_path), False)
         mock_cli.checksum.side_effect = subprocess.CalledProcessError(
             1, "checksum"
         )
@@ -313,19 +319,21 @@ class TestDownloadFiles:
         """Test checksum failure in debug mode prints exception details."""
         # Setup
         mock_cli = MagicMock()
+        # Mock downloads to return tuple (path, was_cached)
+        mock_cli.downloads.return_value = (str(tmp_path), False)
         mock_cli.checksum.side_effect = subprocess.CalledProcessError(
             1, "checksum"
         )
 
-        # Execute - should not raise exception even in debug mode
+        # Execute
         download_files(
             console=mock_console,
             cli=mock_cli,
             arista_dl_obj=mock_arista_dl_obj,
             output=str(tmp_path),
             rich_interface=True,
-            debug=True,  # Debug mode
-            checksum_format="sha512sum"
+            debug=True,  # Enable debug mode
+            checksum_format="sha512sum",
         )
 
         # Assert that print_exception was called in debug mode
@@ -337,6 +345,8 @@ class TestDownloadFiles:
         """Test download without Rich interface."""
         # Setup
         mock_cli = MagicMock()
+        # Mock downloads to return tuple (path, was_cached)
+        mock_cli.downloads.return_value = (str(tmp_path), False)
 
         # Execute
         download_files(
@@ -344,9 +354,9 @@ class TestDownloadFiles:
             cli=mock_cli,
             arista_dl_obj=mock_arista_dl_obj,
             output=str(tmp_path),
-            rich_interface=False,  # No Rich interface
+            rich_interface=False,  # Disable Rich interface
             debug=False,
-            checksum_format="sha512sum"
+            checksum_format="sha512sum",
         )
 
         # Assert - cli.downloads should be called with rich_interface=False
@@ -390,6 +400,7 @@ class TestHandleDockerImport:
             local_file_path=str(tmp_path / "cEOS-lab-4.29.3M.tar.xz"),
             docker_name=docker_name,
             docker_tag=docker_tag,
+            force=False,
         )
 
     def test_docker_import_with_default_tag(
@@ -423,6 +434,7 @@ class TestHandleDockerImport:
             local_file_path=str(tmp_path / "cEOS-lab-4.29.3M.tar.xz"),
             docker_name=docker_name,
             docker_tag="4.29.3M",  # Should use version as default tag
+            force=False,
         )
 
     def test_docker_import_file_not_found(self, mock_console, tmp_path):
@@ -530,4 +542,5 @@ class TestHandleDockerImport:
             local_file_path=expected_path,
             docker_name="arista/ceos",
             docker_tag="4.29.3M",
+            force=False,
         )

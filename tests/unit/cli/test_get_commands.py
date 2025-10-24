@@ -327,7 +327,7 @@ class TestEosCommand:
 
         # Assert
         assert result.exit_code == 0
-        mock_sm.assert_called_once_with(dry_run=True)
+        mock_sm.assert_called_once_with(dry_run=True, force_download=False)
 
     @patch("eos_downloader.cli.get.commands.initialize")
     @patch("eos_downloader.cli.get.commands.search_version")
@@ -661,7 +661,9 @@ class TestCvpCommand:
 
         # Assert
         assert result.exit_code == 0
-        mock_soft_manager.assert_called_once_with(dry_run=True)
+        mock_soft_manager.assert_called_once_with(
+            dry_run=True, force_download=False
+        )
 
     @patch("eos_downloader.cli.get.commands.initialize")
     @patch("eos_downloader.cli.get.commands.AristaXmlQuerier")
