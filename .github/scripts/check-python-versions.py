@@ -34,7 +34,9 @@ def extract_python_versions_from_pyproject(pyproject_path: Path) -> List[str]:
 
 def main() -> int:
     """Main function."""
-    # Script is in .github/scripts/, so go up two levels to repo root
+    # Get paths (script location: .github/scripts/check-python-versions.py)
+    # Path resolution: .github/scripts/ -> .github/ -> repo root
+    # Using parent.parent.parent to navigate from script to repository root
     repo_root = Path(__file__).parent.parent.parent
     json_path = repo_root / ".github" / "python-versions.json"
     pyproject_path = repo_root / "pyproject.toml"

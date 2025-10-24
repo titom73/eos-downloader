@@ -100,6 +100,24 @@ jobs:
 
 ## 🛠️ Available Scripts
 
+### Script Architecture
+
+Both Python scripts in `.github/scripts/` use a consistent path resolution pattern:
+
+```python
+# Path resolution: .github/scripts/ -> .github/ -> repo root
+# Using parent.parent.parent to navigate from script to repository root
+repo_root = Path(__file__).parent.parent.parent
+```
+
+**Path structure explanation**:
+- `Path(__file__)` → `/path/to/repo/.github/scripts/script-name.py`
+- `.parent` → `/path/to/repo/.github/scripts/`
+- `.parent.parent` → `/path/to/repo/.github/`
+- `.parent.parent.parent` → `/path/to/repo/` (repository root)
+
+This triple parent navigation is necessary because scripts are located in a subdirectory (`.github/scripts/`) and need to access files at the repository root (`pyproject.toml`) or in sibling directories (`.github/python-versions.json`).
+
 ### `.github/scripts/sync-python-versions.py`
 
 **Purpose**: Synchronizes versions from JSON to pyproject.toml
@@ -113,9 +131,14 @@ python .github/scripts/sync-python-versions.py
 **Actions performed**:
 
 1. Reads `.github/python-versions.json`
-2. Updates Python classifiers in `pyproject.toml`
+2. Updates Python classifiers in `pyproject.toml` (in **semantic version order**: 3.9, 3.10, 3.11, 3.12)
 3. Updates `requires-python` in `pyproject.toml`
 4. Displays a summary of changes
+
+**Important notes**:
+- ✅ Versions are sorted **semantically** (3.9, 3.10, 3.11, 3.12) not alphabetically (3.10, 3.11, 3.12, 3.9)
+- ✅ This follows standard practice for version progression documentation
+- ✅ Sorting uses `key=lambda v: tuple(map(int, v.split('.')))` to ensure correct ordering
 
 **Example output**:
 

@@ -75,7 +75,9 @@ def update_requires_python(pyproject_path: Path, min_version: str) -> None:
 
 def main():
     """Main function."""
-    # Get paths (script is in .github/scripts/, so go up three levels to repo root)
+    # Get paths (script location: .github/scripts/sync-python-versions.py)
+    # Path resolution: .github/scripts/ -> .github/ -> repo root
+    # Using parent.parent.parent to navigate from script to repository root
     repo_root = Path(__file__).parent.parent.parent
     json_path = repo_root / ".github" / "python-versions.json"
     pyproject_path = repo_root / "pyproject.toml"
