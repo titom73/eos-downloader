@@ -119,7 +119,7 @@ jobs:
       id: version_info
       run: |
         # Determine if this is a tag push or branch push
-        if [[ "${{ github.ref }}" == refs/tags/v*.*.* ]]; then
+        if [[ "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
           # Extract version from tag (e.g., v0.13.0)
           VERSION="${{ github.ref_name }}"
           ALIAS="stable"
