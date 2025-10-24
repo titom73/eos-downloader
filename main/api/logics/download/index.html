@@ -2152,7 +2152,13 @@ unless force_download is enabled.</p>
 <span class="normal">498</span>
 <span class="normal">499</span>
 <span class="normal">500</span>
-<span class="normal">501</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">downloads</span><span class="p">(</span>
+<span class="normal">501</span>
+<span class="normal">502</span>
+<span class="normal">503</span>
+<span class="normal">504</span>
+<span class="normal">505</span>
+<span class="normal">506</span>
+<span class="normal">507</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">downloads</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">object_arista</span><span class="p">:</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">logics</span><span class="o">.</span><span class="n">arista_xml_server</span><span class="o">.</span><span class="n">AristaXmlObjects</span><span class="p">,</span>
     <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -2204,8 +2210,14 @@ unless force_download is enabled.</p>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_arista</span><span class="o">.</span><span class="n">urls</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"No URLs found for download"</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"No URLs found for download"</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"No URLs found for download of version </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="sa">f</span><span class="s2">"The requested version or image type may not exist on Arista servers."</span>
+        <span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Filename not found for version </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="sa">f</span><span class="s2">"Please verify that this version exists and is available for your account."</span>
+        <span class="p">)</span>
 
     <span class="c1"># Track if all files were retrieved from cache</span>
     <span class="n">all_files_cached</span> <span class="o">=</span> <span class="kc">True</span>
@@ -2422,13 +2434,7 @@ False if image was imported</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">573</span>
-<span class="normal">574</span>
-<span class="normal">575</span>
-<span class="normal">576</span>
-<span class="normal">577</span>
-<span class="normal">578</span>
-<span class="normal">579</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">579</span>
 <span class="normal">580</span>
 <span class="normal">581</span>
 <span class="normal">582</span>
@@ -2507,7 +2513,14 @@ False if image was imported</p>
 <span class="normal">655</span>
 <span class="normal">656</span>
 <span class="normal">657</span>
-<span class="normal">658</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">import_docker</span><span class="p">(</span>
+<span class="normal">658</span>
+<span class="normal">659</span>
+<span class="normal">660</span>
+<span class="normal">661</span>
+<span class="normal">662</span>
+<span class="normal">663</span>
+<span class="normal">664</span>
+<span class="normal">665</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">import_docker</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">local_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">docker_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"arista/ceos"</span><span class="p">,</span>
@@ -2559,7 +2572,7 @@ False if image was imported</p>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_download</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_image_exists</span><span class="p">(</span><span class="n">docker_name</span><span class="p">,</span> <span class="n">docker_tag</span><span class="p">):</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"Docker image </span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2"> already "</span>
+                <span class="sa">f</span><span class="s2">"Docker image </span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2"> already "</span>  <span class="c1"># noqa: E231</span>
                 <span class="sa">f</span><span class="s2">"exists locally. Use --force to re-import."</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -2567,7 +2580,7 @@ False if image was imported</p>
     <span class="c1"># Log import action</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'[DRY-RUN] Would import'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'Importing'</span><span class="si">}</span><span class="s2"> "</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2">"</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2">"</span>  <span class="c1"># noqa: E231</span>
     <span class="p">)</span>
 
     <span class="c1"># Handle dry-run mode</span>
@@ -2582,12 +2595,13 @@ False if image was imported</p>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">"$(which docker) import </span><span class="si">{</span><span class="n">local_file_path</span><span class="si">}</span><span class="s2"> "</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2">"</span>  <span class="c1"># noqa: E231</span>
         <span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Executing: </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"Docker image </span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2"> "</span> <span class="sa">f</span><span class="s2">"imported successfully"</span>
+            <span class="sa">f</span><span class="s2">"Docker image </span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2"> "</span>  <span class="c1"># noqa: E231</span>
+            <span class="sa">f</span><span class="s2">"imported successfully"</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># Image was imported (not from cache)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -2712,14 +2726,7 @@ False if image was imported</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">661</span>
-<span class="normal">662</span>
-<span class="normal">663</span>
-<span class="normal">664</span>
-<span class="normal">665</span>
-<span class="normal">666</span>
-<span class="normal">667</span>
-<span class="normal">668</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">668</span>
 <span class="normal">669</span>
 <span class="normal">670</span>
 <span class="normal">671</span>
@@ -2800,7 +2807,20 @@ False if image was imported</p>
 <span class="normal">746</span>
 <span class="normal">747</span>
 <span class="normal">748</span>
-<span class="normal">749</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">provision_eve</span><span class="p">(</span>
+<span class="normal">749</span>
+<span class="normal">750</span>
+<span class="normal">751</span>
+<span class="normal">752</span>
+<span class="normal">753</span>
+<span class="normal">754</span>
+<span class="normal">755</span>
+<span class="normal">756</span>
+<span class="normal">757</span>
+<span class="normal">758</span>
+<span class="normal">759</span>
+<span class="normal">760</span>
+<span class="normal">761</span>
+<span class="normal">762</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">provision_eve</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">object_arista</span><span class="p">:</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">logics</span><span class="o">.</span><span class="n">arista_xml_server</span><span class="o">.</span><span class="n">EosXmlObject</span><span class="p">,</span>
     <span class="n">noztp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -2838,8 +2858,14 @@ False if image was imported</p>
     <span class="n">eos_filename</span> <span class="o">=</span> <span class="n">object_arista</span><span class="o">.</span><span class="n">filename</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_arista</span><span class="o">.</span><span class="n">urls</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"No URLs found for download"</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"No URLs found for download"</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"No URLs found for download of version </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="sa">f</span><span class="s2">"The requested version or image type may not exist on Arista servers."</span>
+        <span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Filename not found for version </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="sa">f</span><span class="s2">"Please verify that this version exists and is available for your account."</span>
+        <span class="p">)</span>
 
     <span class="k">for</span> <span class="n">file_type</span><span class="p">,</span> <span class="n">url</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">object_arista</span><span class="o">.</span><span class="n">urls</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Downloading </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -2864,7 +2890,7 @@ False if image was imported</p>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filename not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"creating folder on eve-ng server : </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"creating folder on eve-ng server: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_create_destination_folder</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">file_path</span><span class="p">)</span>
 
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
