@@ -272,6 +272,7 @@ jobs:
 
             const botComment = comments.data.find(comment => 
               comment.user.type === 'Bot' && 
+              comment.user.login === 'github-actions[bot]' &&
               comment.body.includes('Test Coverage Report')
             );
 
