@@ -294,7 +294,7 @@ The following workflows use this system:
 3. **Documentation**: Update docs if necessary
 4. **Dependencies**: Verify dependency compatibility
 
-## �� References
+## 📚 References
 
 - **Sync script**: `.github/scripts/sync-python-versions.py`
 - **Check script**: `.github/scripts/check-python-versions.py`
