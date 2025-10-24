@@ -119,7 +119,7 @@ def download_files(
         if debug:
             console.print_exception(show_locals=True)
         else:
-            console.print(f"[red]{e}")
+            console.print(f"[red]{e}[/red]")
 
     except subprocess.CalledProcessError:
         if debug:
