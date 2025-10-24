@@ -58,7 +58,7 @@ jobs:
 
   pre-commit:
     runs-on: ubuntu-latest
-    needs: [check-sync]
+    needs: [setup, check-sync]
     strategy:
       matrix:
         python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
