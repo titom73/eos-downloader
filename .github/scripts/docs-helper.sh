@@ -111,7 +111,9 @@ list_versions() {
 
         if [ -f versions.json ]; then
             print_success "Versions found in gh-pages branch:"
-            python -m json.tool < versions.json
+            if ! python3 -m json.tool < versions.json; then
+                print_error "Malformed JSON in versions.json. Please check the file contents."
+            fi
         else
             print_warning "No versions.json found in gh-pages branch"
         fi
