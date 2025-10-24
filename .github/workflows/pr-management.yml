@@ -16,9 +16,7 @@ on:
       - 'pyproject.toml'
       - '.github/workflows/*.yml'
       - eos_downloader/**
-      - eos_downloader/**/*.py
       - tests/**
-      - tests/**/*.py
   workflow_dispatch:
 
 jobs:
