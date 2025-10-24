@@ -97,7 +97,7 @@ def main():
     if not versions:
         print("❌ No Python versions found in the JSON file.")
         sys.exit(1)
-    max_version = versions_data.get("max_version", versions[-1])
+    max_version = versions_data.get("max_version", max(versions, key=lambda v: tuple(map(int, v.split('.')))))
 
     print(f"✅ Found versions: {versions}")
     max_version = versions_data.get("max_version", max(versions, key=lambda v: tuple(map(int, v.split(".")))))
