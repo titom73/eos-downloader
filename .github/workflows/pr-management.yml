@@ -264,9 +264,34 @@ jobs:
             ${percentage === 0 ? '⚠️ **Note**: Coverage appears to be 0% which may indicate a configuration issue or test discovery problem.' : ''}
             `;
 
-            github.rest.issues.createComment({
+            // Find existing coverage comment
+            const comments = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: message
             });
+
+            const botComment = comments.data.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Test Coverage Report')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: message
+              });
+              console.log('Updated existing coverage comment');
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: message
+              });
+              console.log('Created new coverage comment');
+            }
