@@ -3,6 +3,7 @@
 # pylint: disable=too-many-positional-arguments
 
 import os
+import sys
 from typing import cast, Optional, Union, Any
 import subprocess
 
@@ -101,8 +102,10 @@ def download_files(
         debug (bool): Flag to indicate if debug information should be printed.
         checksum_format (str): The checksum format to use for verification.
 
-    Raises:
-        Exception: If there is an error during the checksum verification.
+    Exits:
+        Exits with code 1 if ValueError or CalledProcessError occurs.
+        In debug mode, prints full exception traceback with local variables.
+        In normal mode, prints user-friendly error message without stacktrace.
     """
 
     console.print(
@@ -119,7 +122,8 @@ def download_files(
         if debug:
             console.print_exception(show_locals=True)
         else:
-            console.print(f"[red]{e}[/red]")
+            console.print(f"[red]Error: {e}[/red]")
+        sys.exit(1)
 
     except subprocess.CalledProcessError:
         if debug:
@@ -128,6 +132,7 @@ def download_files(
             console.print(
                 f"[red]Checksum error for file {arista_dl_obj.filename}[/red]"
             )
+        sys.exit(1)
 
 
 def handle_docker_import(
@@ -170,7 +175,7 @@ def handle_docker_import(
         return 1
 
     console.print(
-        f"Importing docker image [green]{docker_name}:{docker_tag}[/green] "
+        f"Importing docker image [green]{docker_name}: {docker_tag}[/green] "
         f"from [blue]{os.path.join(output, arista_dl_obj.filename)}[/blue]..."
     )
 
@@ -194,12 +199,12 @@ def handle_docker_import(
     # Display appropriate message based on whether image was cached or imported
     if was_cached:
         console.print(
-            f"Docker image [green]{docker_name}:{docker_tag}[/green] "
+            f"Docker image [green]{docker_name}: {docker_tag}[/green] "
             f"is already in docker"
         )
     else:
         console.print(
-            f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"
+            f"Docker image imported successfully: [green]{docker_name}: {docker_tag}[/green]"
         )
 
     return 0
