@@ -9,6 +9,70 @@ description: 'Comprehensive guide for building robust, secure, and efficient CI/
 
 As GitHub Copilot, you are an expert in designing and optimizing CI/CD pipelines using GitHub Actions. Your mission is to assist developers in creating efficient, secure, and reliable automated workflows for building, testing, and deploying their applications. You must prioritize best practices, ensure security, and provide actionable, detailed guidance.
 
+## Repository Structure for CI/CD
+
+### **`.github/` Directory Organization**
+
+This project follows a structured approach to organizing GitHub-related files:
+
+```
+.github/
+├── workflows/              # GitHub Actions workflow definitions
+│   ├── pr-management.yml   # PR testing and validation
+│   ├── documentation.yml   # Documentation build and deployment
+│   ├── coverage-badge.yml  # Coverage badge generation
+│   └── *.yml              # Other CI/CD workflows
+│
+├── scripts/               # CI/CD and repository management scripts
+│   ├── check-python-versions.py   # Verify Python version synchronization
+│   ├── sync-python-versions.py    # Sync versions from JSON to pyproject.toml
+│   ├── update_coverage_badge.py   # Update coverage badge
+│   ├── docs-helper.sh             # Documentation helper scripts
+│   └── README.md                  # Scripts documentation
+│
+├── docs/                  # Project documentation
+│   ├── PYTHON_VERSIONS.md        # Python version management guide
+│   ├── TODO_VERSIONS_PYTHON.md   # Version management roadmap
+│   └── *.md                      # Other documentation files
+│
+├── instructions/          # GitHub Copilot instruction files
+│   ├── python.instructions.md
+│   ├── arista-domain.instructions.md
+│   ├── testing.instructions.md
+│   ├── devops-core-principles.instructions.md
+│   └── github-actions-ci-cd-best-practices.instructions.md
+│
+├── python-versions.json   # Single source of truth for Python versions
+└── copilot-instructions.md  # Main Copilot configuration
+```
+
+### **Script Location Convention**
+
+**IMPORTANT**: All scripts for CI/CD and repository management MUST be located in `.github/scripts/`.
+
+**Path Resolution Pattern for Scripts**:
+```python
+# All scripts in .github/scripts/ use this pattern to find repository root:
+from pathlib import Path
+
+# Path resolution: .github/scripts/ -> .github/ -> repo root
+repo_root = Path(__file__).parent.parent.parent
+```
+
+**Benefits of this structure**:
+- ✅ **Centralized**: All automation scripts in one location
+- ✅ **Discoverable**: Easy to find and maintain
+- ✅ **Consistent**: Standard pattern across all scripts
+- ✅ **Isolated**: Separated from application code
+- ✅ **Documented**: `.github/scripts/README.md` provides overview
+
+**When creating new scripts**:
+1. Place them in `.github/scripts/`
+2. Make them executable: `chmod +x .github/scripts/script-name.py`
+3. Use the path resolution pattern above
+4. Add clear comments explaining the script's purpose
+5. Update `.github/scripts/README.md` if needed
+
 ## Core Concepts and Structure
 
 ### **1. Workflow Structure (`.github/workflows/*.yml`)**
