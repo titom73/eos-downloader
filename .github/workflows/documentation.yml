@@ -36,6 +36,8 @@ jobs:
   build-and-validate:
     name: Build and validate documentation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
     - name: Checkout repository
       uses: actions/checkout@v5
