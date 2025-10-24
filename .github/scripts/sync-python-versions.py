@@ -100,7 +100,7 @@ def main():
     max_version = versions_data.get("max_version", versions[-1])
 
     print(f"✅ Found versions: {versions}")
-    print(f"   Min version: {min_version}")
+    max_version = versions_data.get("max_version", max(versions, key=lambda v: tuple(map(int, v.split(".")))))
     print(f"   Max version: {max_version}")
 
     # Update pyproject.toml
