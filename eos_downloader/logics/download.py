@@ -118,7 +118,7 @@ class SoftManager:
         """
         # Check if file exists
         if not file_path.exists():
-            logging.debug(f"File not found in cache: {file_path}")
+            logging.debug(f"File not found in cache: {file_path}")  # noqa: E713
             return False
 
         # If no checksum validation requested, file is valid
@@ -449,8 +449,14 @@ class SoftManager:
         )
 
         if len(object_arista.urls) == 0:
-            logging.error("No URLs found for download")
-            raise ValueError("No URLs found for download")
+            logging.error(
+                f"No URLs found for download of version {object_arista.version}. "
+                f"The requested version or image type may not exist on Arista servers."
+            )
+            raise ValueError(
+                f"Filename not found for version {object_arista.version}. "
+                f"Please verify that this version exists and is available for your account."
+            )
 
         # Track if all files were retrieved from cache
         all_files_cached = True
@@ -531,13 +537,13 @@ class SoftManager:
         for cmd in ["docker", "podman"]:
             # Check if command is available
             if not shutil.which(cmd):
-                logging.debug(f"{cmd} command not found in PATH")
+                logging.debug(f"{cmd} command not found in PATH")  # noqa: E713
                 continue
 
             try:
                 # Query for specific image:tag
                 result = subprocess.run(
-                    [cmd, "images", "-q", f"{image_name}:{image_tag}"],
+                    [cmd, "images", "-q", f"{image_name}:{image_tag}"],  # noqa: E231
                     capture_output=True,
                     text=True,
                     timeout=5,
@@ -547,14 +553,14 @@ class SoftManager:
                 # If output is not empty, image exists
                 if result.stdout.strip():
                     logging.info(
-                        f"Docker image {image_name}:{image_tag} "
+                        f"Docker image {image_name}:{image_tag} "  # noqa: E231
                         f"found in local registry"
                     )
                     return True
 
                 logging.debug(
-                    f"Docker image {image_name}:{image_tag} "
-                    f"not found in local registry"
+                    f"Docker image {image_name}:{image_tag} "  # noqa: E231
+                    f"not found in local registry"  # noqa: E713
                 )
                 return False
 
@@ -622,7 +628,7 @@ class SoftManager:
         if not force and not self.force_download:
             if self._docker_image_exists(docker_name, docker_tag):
                 logging.info(
-                    f"Docker image {docker_name}:{docker_tag} already "
+                    f"Docker image {docker_name}:{docker_tag} already "  # noqa: E231
                     f"exists locally. Use --force to re-import."
                 )
                 return True
@@ -630,7 +636,7 @@ class SoftManager:
         # Log import action
         logging.info(
             f"{'[DRY-RUN] Would import' if self.dry_run else 'Importing'} "
-            f"{docker_name}:{docker_tag}"
+            f"{docker_name}:{docker_tag}"  # noqa: E231
         )
 
         # Handle dry-run mode
@@ -645,12 +651,13 @@ class SoftManager:
         try:
             cmd = (
                 f"$(which docker) import {local_file_path} "
-                f"{docker_name}:{docker_tag}"
+                f"{docker_name}:{docker_tag}"  # noqa: E231
             )
             logging.debug(f"Executing: {cmd}")
             os.system(cmd)
             logging.info(
-                f"Docker image {docker_name}:{docker_tag} " f"imported successfully"
+                f"Docker image {docker_name}:{docker_tag} "  # noqa: E231
+                f"imported successfully"
             )
             return False  # Image was imported (not from cache)
         except Exception as e:
@@ -696,8 +703,14 @@ class SoftManager:
         eos_filename = object_arista.filename
 
         if len(object_arista.urls) == 0:
-            logging.error("No URLs found for download")
-            raise ValueError("No URLs found for download")
+            logging.error(
+                f"No URLs found for download of version {object_arista.version}. "
+                f"The requested version or image type may not exist on Arista servers."
+            )
+            raise ValueError(
+                f"Filename not found for version {object_arista.version}. "
+                f"Please verify that this version exists and is available for your account."
+            )
 
         for file_type, url in sorted(object_arista.urls.items(), reverse=True):
             logging.debug(f"Downloading {file_type} from {url}")
@@ -722,7 +735,7 @@ class SoftManager:
                 raise ValueError(f"Filename not found for {file_type}")
 
             if not os.path.exists(file_path):
-                logging.warning(f"creating folder on eve-ng server : {file_path}")
+                logging.warning(f"creating folder on eve-ng server: {file_path}")
                 self._create_destination_folder(path=file_path)
 
             logging.debug(

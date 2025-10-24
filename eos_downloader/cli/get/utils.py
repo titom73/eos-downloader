@@ -3,6 +3,7 @@
 # pylint: disable=too-many-positional-arguments
 
 import os
+import sys
 from typing import cast, Optional, Union, Any
 import subprocess
 
@@ -18,11 +19,15 @@ from eos_downloader.logics.arista_xml_server import AristaXmlQuerier, AristaXmlO
 def initialize(ctx: click.Context) -> tuple[Console, str, bool, str]:
     """Initializes the CLI context with necessary configurations.
 
-    Args:
-        ctx (click.Context): The Click context object containing command-line parameters.
+    Parameters
+    ----------
+    ctx : click.Context
+        The Click context object containing command-line parameters.
 
-    Returns:
-        tuple: A tuple containing the console configuration, token, debug flag, and log level.
+    Returns
+    -------
+    tuple[Console, str, bool, str]
+        A tuple containing the console configuration, token, debug flag, and log level.
     """
 
     console = console_configuration()
@@ -45,17 +50,27 @@ def search_version(
 ) -> Union[str, None]:
     """Searches for the specified EOS version based on the provided parameters.
 
-    Args:
-        console (Console): The console object used for printing messages.
-        token (str): The authentication token for accessing the EOS API.
-        version (str or None): The specific version of EOS to search for. If None, other parameters are used.
-        latest (bool): If True, search for the latest EOS version.
-        branch (str or None): The branch of EOS to search for. If None, the default branch is used.
-        format (str): The format of the EOS version (e.g., 'tar', 'zip').
-        release_type (str): The type of release (e.g., 'feature', 'maintenance').
+    Parameters
+    ----------
+    console : Console
+        The console object used for printing messages.
+    token : str
+        The authentication token for accessing the EOS API.
+    version : str or None
+        The specific version of EOS to search for. If None, other parameters are used.
+    latest : bool
+        If True, search for the latest EOS version.
+    branch : str or None
+        The branch of EOS to search for. If None, the default branch is used.
+    file_format : str
+        The format of the EOS version (e.g., 'tar', 'zip').
+    release_type : str
+        The type of release (e.g., 'feature', 'maintenance').
 
-    Returns:
-        str: The version of EOS found based on the search criteria.
+    Returns
+    -------
+    str or None
+        The version of EOS found based on the search criteria.
     """
 
     if version is not None:
@@ -81,6 +96,43 @@ def search_version(
     return version
 
 
+def handle_cli_error(
+    console: Console,
+    debug: bool,
+    error_message: str,
+    exit_code: int = 1,
+    should_exit: bool = True,
+) -> None:
+    """Handles CLI errors with appropriate output based on debug mode.
+
+    Parameters
+    ----------
+    console : Console
+        The console object for printing messages.
+    debug : bool
+        If True, prints full exception traceback with locals.
+        If False, prints user-friendly error message.
+    error_message : str
+        The error message to display in normal mode.
+    exit_code : int, optional
+        The exit code to use. Defaults to 1.
+    should_exit : bool, optional
+        If True, exits the program. If False, only prints the error.
+        Defaults to True.
+
+    Notes
+    -----
+    Exits with the specified exit_code if should_exit is True.
+    """
+    if debug:
+        console.print_exception(show_locals=True)
+    else:
+        console.print(f"[red]{error_message}[/red]")
+
+    if should_exit:
+        sys.exit(exit_code)
+
+
 def download_files(
     console: Console,
     cli: Any,
@@ -92,43 +144,58 @@ def download_files(
 ) -> None:
     """Downloads EOS files and verifies their checksums.
 
-    Args:
-        console (Console): The console object for printing messages.
-        cli (CLI): The CLI object used to perform download and checksum operations.
-        arista_dl_obj (AristaPackage): The EOS download object containing version and filename information.
-        output (str): The output directory where the files will be saved.
-        rich_interface (bool): Flag to indicate if rich interface should be used.
-        debug (bool): Flag to indicate if debug information should be printed.
-        checksum_format (str): The checksum format to use for verification.
+    Parameters
+    ----------
+    console : Console
+        The console object for printing messages.
+    cli : Any
+        The CLI object used to perform download and checksum operations.
+    arista_dl_obj : AristaXmlObjects
+        The EOS download object containing version and filename information.
+    output : str
+        The output directory where the files will be saved.
+    rich_interface : bool
+        Flag to indicate if rich interface should be used.
+    debug : bool
+        Flag to indicate if debug information should be printed.
+    checksum_format : str, optional
+        The checksum format to use for verification. Defaults to "sha512sum".
 
-    Raises:
-        Exception: If there is an error during the checksum verification.
+    Notes
+    -----
+    Exits with code 1 if ValueError or CalledProcessError occurs.
+    In debug mode, prints full exception traceback with local variables.
+    In normal mode, prints user-friendly error message without stacktrace.
     """
 
     console.print(
         f"Starting download for EOS version [green]{arista_dl_obj.version}[/green] for [blue]{arista_dl_obj.image_type}[/blue] format."
     )
-    output_path, was_cached = cli.downloads(
-        arista_dl_obj, file_path=output, rich_interface=rich_interface
-    )
     try:
+        # downloads() returns a tuple (path, was_cached)
+        _file_path, was_cached = cli.downloads(
+            arista_dl_obj, file_path=output, rich_interface=rich_interface
+        )
         cli.checksum(checksum_format)
-    except subprocess.CalledProcessError:
-        if debug:
-            console.print_exception(show_locals=True)
+
+        # Display appropriate message based on cache status
+        if was_cached:
+            console.print(
+                f"[green]✓[/green] File [cyan]{arista_dl_obj.filename}[/cyan] "
+                f"found in cache: [blue]{output}[/blue]"
+            )
+            console.print("   [dim]Use --force to re-download[/dim]")
         else:
             console.print(
-                f"[red]Checksum error for file {arista_dl_obj.filename}[/red]"
+                f"[green]✓[/green] Arista file [cyan]{arista_dl_obj.filename}[/cyan] "
+                f"downloaded in: [blue]{output}[/blue]"
             )
+    except ValueError as e:
+        handle_cli_error(console, debug, f"Error: {e}")
 
-    # Display appropriate message based on whether files were cached
-    if was_cached:
-        console.print(
-            f"Arista file [green]{arista_dl_obj.filename}[/green] is already in cache in: [blue]{output_path}[/blue]"
-        )
-    else:
-        console.print(
-            f"Arista file [green]{arista_dl_obj.filename}[/green] downloaded in: [blue]{output_path}[/blue]"
+    except subprocess.CalledProcessError:
+        handle_cli_error(
+            console, debug, f"Checksum error for file {arista_dl_obj.filename}"
         )
 
 
@@ -144,22 +211,33 @@ def handle_docker_import(
 ) -> int:
     """Handles the import of a Docker image using the provided CLI tool.
 
-    Args:
-        console: The console object used for printing messages.
-        cli: The CLI tool object that provides the import_docker method.
-        arista_dl_obj: An object containing information about the EOS download,
-                       including version and filename.
-        output: The directory where the Docker image file is located.
-        docker_name: The name to assign to the Docker image.
-        docker_tag: The tag to assign to the Docker image. If None, the version
-                    from eos_dl_obj is used.
-        debug: A boolean indicating whether to print detailed exception information.
-        force: If True, import even if the Docker image already exists.
-               Defaults to False.
+    Parameters
+    ----------
+    console : Console
+        The console object used for printing messages.
+    cli : Any
+        The CLI tool object that provides the import_docker method.
+    arista_dl_obj : AristaXmlObjects
+        An object containing information about the EOS download,
+        including version and filename.
+    output : str
+        The directory where the Docker image file is located.
+    docker_name : str
+        The name to assign to the Docker image.
+    docker_tag : str or None
+        The tag to assign to the Docker image. If None, the version
+        from arista_dl_obj is used.
+    debug : bool
+        A boolean indicating whether to print detailed exception information.
+    force : bool, optional
+        If True, import even if the Docker image already exists.
+        Defaults to False.
 
-    Returns:
-        int: 0 if the Docker image is imported successfully or cached,
-             1 if a FileNotFoundError occurs.
+    Returns
+    -------
+    int
+        0 if the Docker image is imported successfully or cached,
+        1 if a FileNotFoundError occurs.
     """
 
     console.print("Importing docker image...")
@@ -172,7 +250,7 @@ def handle_docker_import(
         return 1
 
     console.print(
-        f"Importing docker image [green]{docker_name}:{docker_tag}[/green] "
+        f"Importing docker image [green]{docker_name}: {docker_tag}[/green] "
         f"from [blue]{os.path.join(output, arista_dl_obj.filename)}[/blue]..."
     )
 
@@ -184,24 +262,24 @@ def handle_docker_import(
             force=force,
         )
     except FileNotFoundError:
-        if debug:
-            console.print_exception(show_locals=True)
-        else:
-            console.print(
-                f"\n[red]File not found: "
-                f"{os.path.join(output, arista_dl_obj.filename)}[/red]"
-            )
+        handle_cli_error(
+            console,
+            debug,
+            f"\nFile not found: {os.path.join(output, arista_dl_obj.filename)}",
+            exit_code=1,
+            should_exit=False,
+        )
         return 1
 
     # Display appropriate message based on whether image was cached or imported
     if was_cached:
         console.print(
-            f"Docker image [green]{docker_name}:{docker_tag}[/green] "
+            f"Docker image [green]{docker_name}: {docker_tag}[/green] "
             f"is already in docker"
         )
     else:
         console.print(
-            f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"
+            f"Docker image imported successfully: [green]{docker_name}: {docker_tag}[/green]"
         )
 
     return 0

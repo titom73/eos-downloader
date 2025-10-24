@@ -287,6 +287,37 @@ class TestDownloadFiles:
         # Assert
         mock_cli.checksum.assert_called_once_with(checksum)
 
+    def test_download_files_with_cached_file(
+        self, mock_arista_dl_obj, mock_console, tmp_path
+    ):
+        """Test download with file already in cache."""
+        # Setup
+        output_path = tmp_path
+        mock_cli = MagicMock()
+        # Mock downloads to return tuple (path, was_cached=True)
+        mock_cli.downloads.return_value = (str(output_path), True)
+
+        # Execute
+        download_files(
+            console=mock_console,
+            cli=mock_cli,
+            arista_dl_obj=mock_arista_dl_obj,
+            output=str(output_path),
+            rich_interface=True,
+            debug=False,
+            checksum_format="sha512sum",
+        )
+
+        # Assert - Should display cache message
+        assert mock_console.print.call_count >= 2
+        # Check that one of the calls mentions cache
+        cache_message_found = False
+        for call in mock_console.print.call_args_list:
+            if "cache" in str(call).lower():
+                cache_message_found = True
+                break
+        assert cache_message_found, "Cache message should be displayed"
+
     def test_download_files_checksum_error(
         self, mock_arista_dl_obj, mock_console, tmp_path
     ):
@@ -299,19 +330,24 @@ class TestDownloadFiles:
             1, "checksum"
         )
 
-        # Execute - should not raise exception
-        download_files(
-            console=mock_console,
-            cli=mock_cli,
-            arista_dl_obj=mock_arista_dl_obj,
-            output=str(tmp_path),
-            rich_interface=True,
-            debug=False,
-            checksum_format="sha512sum",
-        )
+        # Execute - should exit with code 1
+        with pytest.raises(SystemExit) as exc_info:
+            download_files(
+                console=mock_console,
+                cli=mock_cli,
+                arista_dl_obj=mock_arista_dl_obj,
+                output=str(tmp_path),
+                rich_interface=True,
+                debug=False,
+                checksum_format="sha512sum",
+            )
 
-        # Assert that checksum was called despite error
+        # Assert exit code is 1
+        assert exc_info.value.code == 1
+        # Assert that checksum was called
         mock_cli.checksum.assert_called_once_with("sha512sum")
+        # Assert error message was printed
+        mock_console.print.assert_called()
 
     def test_download_files_checksum_error_debug_mode(
         self, mock_arista_dl_obj, mock_console, tmp_path
@@ -325,17 +361,20 @@ class TestDownloadFiles:
             1, "checksum"
         )
 
-        # Execute
-        download_files(
-            console=mock_console,
-            cli=mock_cli,
-            arista_dl_obj=mock_arista_dl_obj,
-            output=str(tmp_path),
-            rich_interface=True,
-            debug=True,  # Enable debug mode
-            checksum_format="sha512sum",
-        )
+        # Execute - should exit with code 1
+        with pytest.raises(SystemExit) as exc_info:
+            download_files(
+                console=mock_console,
+                cli=mock_cli,
+                arista_dl_obj=mock_arista_dl_obj,
+                output=str(tmp_path),
+                rich_interface=True,
+                debug=True,  # Enable debug mode
+                checksum_format="sha512sum",
+            )
 
+        # Assert exit code is 1
+        assert exc_info.value.code == 1
         # Assert that print_exception was called in debug mode
         mock_console.print_exception.assert_called_once_with(show_locals=True)
 
