@@ -299,19 +299,24 @@ class TestDownloadFiles:
             1, "checksum"
         )
 
-        # Execute - should not raise exception
-        download_files(
-            console=mock_console,
-            cli=mock_cli,
-            arista_dl_obj=mock_arista_dl_obj,
-            output=str(tmp_path),
-            rich_interface=True,
-            debug=False,
-            checksum_format="sha512sum",
-        )
+        # Execute - should exit with code 1
+        with pytest.raises(SystemExit) as exc_info:
+            download_files(
+                console=mock_console,
+                cli=mock_cli,
+                arista_dl_obj=mock_arista_dl_obj,
+                output=str(tmp_path),
+                rich_interface=True,
+                debug=False,
+                checksum_format="sha512sum",
+            )
 
-        # Assert that checksum was called despite error
+        # Assert exit code is 1
+        assert exc_info.value.code == 1
+        # Assert that checksum was called
         mock_cli.checksum.assert_called_once_with("sha512sum")
+        # Assert error message was printed
+        mock_console.print.assert_called()
 
     def test_download_files_checksum_error_debug_mode(
         self, mock_arista_dl_obj, mock_console, tmp_path
@@ -325,17 +330,20 @@ class TestDownloadFiles:
             1, "checksum"
         )
 
-        # Execute
-        download_files(
-            console=mock_console,
-            cli=mock_cli,
-            arista_dl_obj=mock_arista_dl_obj,
-            output=str(tmp_path),
-            rich_interface=True,
-            debug=True,  # Enable debug mode
-            checksum_format="sha512sum",
-        )
+        # Execute - should exit with code 1
+        with pytest.raises(SystemExit) as exc_info:
+            download_files(
+                console=mock_console,
+                cli=mock_cli,
+                arista_dl_obj=mock_arista_dl_obj,
+                output=str(tmp_path),
+                rich_interface=True,
+                debug=True,  # Enable debug mode
+                checksum_format="sha512sum",
+            )
 
+        # Assert exit code is 1
+        assert exc_info.value.code == 1
         # Assert that print_exception was called in debug mode
         mock_console.print_exception.assert_called_once_with(show_locals=True)
 
