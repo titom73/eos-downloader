@@ -83,7 +83,7 @@ jobs:
       python-versions: ${{ steps.set-versions.outputs.versions }}
     steps:
       - uses: actions/checkout@v5
-      
+
       - name: Load Python versions
         id: set-versions
         run: |
@@ -303,5 +303,5 @@ The following workflows use this system:
 
 ---
 
-**Maintained by**: @titom73  
+**Maintained by**: @titom73
 **Last updated**: 2025-10-24

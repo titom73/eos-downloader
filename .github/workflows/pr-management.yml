@@ -14,11 +14,26 @@ on:
 
 jobs:
 
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      python-versions: ${{ steps.set-versions.outputs.versions }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Load Python versions from JSON
+        id: set-versions
+        run: |
+          VERSIONS=$(cat .github/python-versions.json | jq -c '.versions')
+          echo "versions=$VERSIONS" >> $GITHUB_OUTPUT
+          echo "Loaded Python versions: $VERSIONS"
+
   pre-commit:
     runs-on: ubuntu-latest
+    needs: [setup]
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
     steps:
     - uses: actions/checkout@v5
     - uses: actions/setup-python@v6
@@ -29,10 +44,10 @@ jobs:
   compiling:
     name: Run installation process and code compilation supported Python versions
     runs-on: ubuntu-latest
-    needs: [pre-commit]
+    needs: [setup, pre-commit]
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
 
     steps:
       - uses: actions/checkout@v5
@@ -56,11 +71,11 @@ jobs:
   linting:
     name: Run flake8, pylint for supported Python versions
     runs-on: ubuntu-latest
-    needs: [compiling]
+    needs: [setup, compiling]
 
     strategy:
       matrix:
-        python: ["3.9", "3.10", "3.11"]
+        python: ${{ fromJson(needs.setup.outputs.python-versions) }}
 
     steps:
       - uses: actions/checkout@v5
@@ -79,11 +94,11 @@ jobs:
   typing:
     name: Run mypy for supported Python versions
     runs-on: ubuntu-latest
-    needs: [compiling]
+    needs: [setup, compiling]
 
     strategy:
       matrix:
-        python: ["3.9", "3.10", "3.11"]
+        python: ${{ fromJson(needs.setup.outputs.python-versions) }}
 
     steps:
       - uses: actions/checkout@v5
@@ -102,11 +117,11 @@ jobs:
   pytest:
     name: Run pytest validation
     runs-on: ubuntu-latest
-    needs: [linting, typing]
+    needs: [setup, linting, typing]
 
     strategy:
       matrix:
-        python: ["3.9", "3.10", "3.11"]
+        python: ${{ fromJson(needs.setup.outputs.python-versions) }}
 
     steps:
       - uses: actions/checkout@v5
@@ -126,7 +141,7 @@ jobs:
   coverage:
     name: Coverage Report
     runs-on: ubuntu-latest
-    needs: [pytest]
+    needs: [setup, pytest]
     if: github.event_name == 'pull_request'
     permissions:
       pull-requests: write
@@ -135,10 +150,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Load default Python version
+        id: python-version
+        run: |
+          DEFAULT_VERSION=$(cat .github/python-versions.json | jq -r '.default_version')
+          echo "version=$DEFAULT_VERSION" >> $GITHUB_OUTPUT
+          echo "Using Python version: $DEFAULT_VERSION"
+
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: ${{ steps.python-version.outputs.version }}
 
       - name: Install dependencies
         run: |

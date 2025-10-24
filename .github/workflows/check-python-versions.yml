@@ -25,10 +25,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Load default Python version
+        id: python-version
+        run: |
+          DEFAULT_VERSION=$(cat .github/python-versions.json | jq -r '.default_version')
+          echo "version=$DEFAULT_VERSION" >> $GITHUB_OUTPUT
+          echo "Using Python version: $DEFAULT_VERSION"
+
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: ${{ steps.python-version.outputs.version }}
 
       - name: Check Python versions synchronization
         run: |
