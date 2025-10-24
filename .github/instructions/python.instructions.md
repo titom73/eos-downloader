@@ -15,6 +15,17 @@ As GitHub Copilot working on Python code in **eos-downloader**, you must follow 
 - **Tested**: Python 3.9, 3.10, 3.11
 - **Use modern Python features**: Type hints, f-strings, pathlib, dataclasses, async/await where appropriate
 
+## Requirements
+
+Code must be valid and pass without errors or warnings through the following tools:
+
+- black
+- mypy
+- flake8
+- pylint
+
+Configuration to follow for these tools is located in the project root with pre-commit configuration file: `.pre-commit-config.yaml`.
+
 ## Code Style
 
 ### PEP 8 Compliance

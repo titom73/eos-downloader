@@ -108,7 +108,9 @@ def download_files(
     console.print(
         f"Starting download for EOS version [green]{arista_dl_obj.version}[/green] for [blue]{arista_dl_obj.image_type}[/blue] format."
     )
-    cli.downloads(arista_dl_obj, file_path=output, rich_interface=rich_interface)
+    output_path, was_cached = cli.downloads(
+        arista_dl_obj, file_path=output, rich_interface=rich_interface
+    )
     try:
         cli.checksum(checksum_format)
     except subprocess.CalledProcessError:
@@ -118,9 +120,16 @@ def download_files(
             console.print(
                 f"[red]Checksum error for file {arista_dl_obj.filename}[/red]"
             )
-    console.print(
-        f"Arista file [green]{arista_dl_obj.filename}[/green] downloaded in: [blue]{output}[/blue]"
-    )
+
+    # Display appropriate message based on whether files were cached
+    if was_cached:
+        console.print(
+            f"Arista file [green]{arista_dl_obj.filename}[/green] is already in cache in: [blue]{output_path}[/blue]"
+        )
+    else:
+        console.print(
+            f"Arista file [green]{arista_dl_obj.filename}[/green] downloaded in: [blue]{output_path}[/blue]"
+        )
 
 
 def handle_docker_import(
@@ -131,20 +140,26 @@ def handle_docker_import(
     docker_name: str,
     docker_tag: Optional[str],
     debug: bool,
+    force: bool = False,
 ) -> int:
     """Handles the import of a Docker image using the provided CLI tool.
 
     Args:
         console: The console object used for printing messages.
         cli: The CLI tool object that provides the import_docker method.
-        arista_dl_obj: An object containing information about the EOS download, including version and filename.
+        arista_dl_obj: An object containing information about the EOS download,
+                       including version and filename.
         output: The directory where the Docker image file is located.
         docker_name: The name to assign to the Docker image.
-        docker_tag: The tag to assign to the Docker image. If None, the version from eos_dl_obj is used.
+        docker_tag: The tag to assign to the Docker image. If None, the version
+                    from eos_dl_obj is used.
         debug: A boolean indicating whether to print detailed exception information.
+        force: If True, import even if the Docker image already exists.
+               Defaults to False.
 
     Returns:
-        int: 0 if the Docker image is imported successfully, 1 if a FileNotFoundError occurs.
+        int: 0 if the Docker image is imported successfully or cached,
+             1 if a FileNotFoundError occurs.
     """
 
     console.print("Importing docker image...")
@@ -157,26 +172,36 @@ def handle_docker_import(
         return 1
 
     console.print(
-        f"Importing docker image [green]{docker_name}:{docker_tag}[/green] from [blue]{os.path.join(output, arista_dl_obj.filename)}[/blue]..."
+        f"Importing docker image [green]{docker_name}:{docker_tag}[/green] "
+        f"from [blue]{os.path.join(output, arista_dl_obj.filename)}[/blue]..."
     )
 
     try:
-        cli.import_docker(
+        was_cached = cli.import_docker(
             local_file_path=os.path.join(output, arista_dl_obj.filename),
             docker_name=docker_name,
             docker_tag=docker_tag,
+            force=force,
         )
     except FileNotFoundError:
         if debug:
             console.print_exception(show_locals=True)
         else:
             console.print(
-                f"\n[red]File not found: {os.path.join(output, arista_dl_obj.filename)}[/red]"
+                f"\n[red]File not found: "
+                f"{os.path.join(output, arista_dl_obj.filename)}[/red]"
             )
         return 1
 
-    console.print(
-        f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"
-    )
+    # Display appropriate message based on whether image was cached or imported
+    if was_cached:
+        console.print(
+            f"Docker image [green]{docker_name}:{docker_tag}[/green] "
+            f"is already in docker"
+        )
+    else:
+        console.print(
+            f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"
+        )
 
     return 0

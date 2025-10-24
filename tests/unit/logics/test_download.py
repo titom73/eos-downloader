@@ -1,6 +1,8 @@
 import os
+import subprocess
 import pytest
 from unittest.mock import Mock, patch, mock_open
+from pathlib import Path
 from eos_downloader.logics.download import SoftManager
 from eos_downloader.logics.arista_xml_server import EosXmlObject
 
@@ -8,6 +10,12 @@ from eos_downloader.logics.arista_xml_server import EosXmlObject
 @pytest.fixture
 def soft_manager():
     return SoftManager()
+
+
+@pytest.fixture
+def soft_manager_force():
+    """SoftManager with force_download enabled."""
+    return SoftManager(force_download=True)
 
 
 @pytest.fixture
@@ -24,10 +32,17 @@ def mock_eos_object():
     return mock
 
 
-@pytest.mark.parametrize("dry_run", [True, False])
-def test_soft_manager_init(dry_run):
-    manager = SoftManager(dry_run=dry_run)
+@pytest.mark.parametrize("dry_run,force_download", [
+    (True, False),
+    (False, False),
+    (False, True),
+    (True, True),
+])
+def test_soft_manager_init(dry_run, force_download):
+    """Test SoftManager initialization with various flags."""
+    manager = SoftManager(dry_run=dry_run, force_download=force_download)
     assert manager.dry_run == dry_run
+    assert manager.force_download == force_download
     assert manager.file == {"name": None, "md5sum": None, "sha512sum": None}
 
 
@@ -109,10 +124,11 @@ def test_download_file(mock_progress_bar, mock_download_raw, soft_manager):
 
 @patch("eos_downloader.logics.download.SoftManager.download_file")
 def test_downloads(mock_download, soft_manager, mock_eos_object):
-    result = soft_manager.downloads(
+    path, was_cached = soft_manager.downloads(
         mock_eos_object, "/tmp/downloads", rich_interface=True
     )
-    assert result == "/tmp/downloads"
+    assert path == "/tmp/downloads"
+    assert isinstance(was_cached, bool)
     assert mock_download.call_count == len(mock_eos_object.urls)
 
 
@@ -123,7 +139,8 @@ def test_import_docker(mock_system, mock_which, soft_manager):
 
     # Test with existing file
     with patch("os.path.exists", return_value=True):
-        soft_manager.import_docker("/tmp/test.swi", "arista/ceos", "latest")
+        was_cached = soft_manager.import_docker("/tmp/test.swi", "arista/ceos", "latest")
+        assert isinstance(was_cached, bool)
         mock_system.assert_called_once()
 
     # Test with non-existing file
@@ -141,3 +158,296 @@ def test_provision_eve(mock_exists, mock_system, soft_manager, mock_eos_object):
         soft_manager.provision_eve(mock_eos_object, noztp=False)
         # Check if qemu-img convert and unl_wrapper commands were called
         assert mock_system.call_count == 2
+
+
+# ============================================================================
+# CACHE TESTS - Phase 5
+# ============================================================================
+
+
+class TestFileCache:
+    """Test suite for file caching functionality."""
+
+    @patch("pathlib.Path.exists")
+    def test_file_exists_and_valid_file_not_found(self, mock_exists):
+        """Test that cache check returns False when file doesn't exist."""
+        mock_exists.return_value = False
+        manager = SoftManager()
+        result = manager._file_exists_and_valid(Path("/tmp/test.swi"))
+        assert result is False
+
+    @patch("pathlib.Path.exists")
+    def test_file_exists_and_valid_skip_checksum(self, mock_exists):
+        """Test cache check with skip checksum returns True if file exists."""
+        mock_exists.return_value = True
+        manager = SoftManager()
+        result = manager._file_exists_and_valid(
+            Path("/tmp/test.swi"),
+            check_type="skip"
+        )
+        assert result is True
+
+    @patch("pathlib.Path.exists")
+    @patch("eos_downloader.logics.download.SoftManager.checksum")
+    def test_file_exists_and_valid_with_checksum(
+        self, mock_checksum, mock_exists
+    ):
+        """Test cache check validates checksum when requested."""
+        mock_exists.return_value = True
+        mock_checksum.return_value = True
+        manager = SoftManager()
+        manager.file = {"name": "test.swi"}
+
+        result = manager._file_exists_and_valid(
+            Path("/tmp/test.swi"),
+            checksum_file=Path("/tmp/test.swi.md5"),
+            check_type="md5sum"
+        )
+        assert result is True
+        mock_checksum.assert_called_once_with(check_type="md5sum")
+
+    @patch("pathlib.Path.exists")
+    @patch("eos_downloader.logics.download.SoftManager.checksum")
+    def test_file_exists_and_valid_checksum_fails(
+        self, mock_checksum, mock_exists
+    ):
+        """Test cache check returns False when checksum validation fails."""
+        mock_exists.return_value = True
+        mock_checksum.side_effect = ValueError("Checksum mismatch")
+        manager = SoftManager()
+        manager.file = {"name": "test.swi"}
+
+        result = manager._file_exists_and_valid(
+            Path("/tmp/test.swi"),
+            checksum_file=Path("/tmp/test.swi.md5"),
+            check_type="md5sum"
+        )
+        assert result is False
+
+    @patch("pathlib.Path.exists")
+    @patch("eos_downloader.logics.download.SoftManager._download_file_raw")
+    def test_download_file_uses_cache(self, mock_download, mock_exists):
+        """Test that download_file uses cached file when available."""
+        mock_exists.return_value = True
+        manager = SoftManager()
+
+        cached_path = manager.download_file(
+            "http://test.com/file.swi",
+            "/tmp",
+            "test.swi",
+            rich_interface=False
+        )
+
+        # Should return cached path without downloading
+        assert cached_path == "/tmp/test.swi"
+        mock_download.assert_not_called()
+
+    @patch("pathlib.Path.exists")
+    @patch("eos_downloader.logics.download.SoftManager._download_file_raw")
+    def test_download_file_bypasses_cache_with_force(
+        self, mock_download, mock_exists
+    ):
+        """Test that force flag bypasses cache."""
+        mock_exists.return_value = True
+        mock_download.return_value = "/tmp/test.swi"
+        manager = SoftManager(force_download=True)
+
+        downloaded_path = manager.download_file(
+            "http://test.com/file.swi",
+            "/tmp",
+            "test.swi",
+            rich_interface=False
+        )
+
+        # Should download despite cache
+        assert downloaded_path is not None
+        mock_download.assert_called_once()
+
+    @patch("pathlib.Path.exists")
+    @patch("eos_downloader.logics.download.SoftManager._download_file_raw")
+    def test_download_file_force_parameter(self, mock_download, mock_exists):
+        """Test that force parameter overrides cache."""
+        mock_exists.return_value = True
+        mock_download.return_value = "/tmp/test.swi"
+        manager = SoftManager()
+
+        forced_path = manager.download_file(
+            "http://test.com/file.swi",
+            "/tmp",
+            "test.swi",
+            rich_interface=False,
+            force=True
+        )
+
+        # Should download despite cache
+        assert forced_path is not None
+        mock_download.assert_called_once()
+
+
+class TestDockerCache:
+    """Test suite for Docker image caching functionality."""
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_docker_image_exists_found(self, mock_which, mock_run):
+        """Test that _docker_image_exists returns True when image found."""
+        mock_which.return_value = "/usr/bin/docker"
+        mock_result = Mock()
+        mock_result.stdout = "abc123def456\n"
+        mock_run.return_value = mock_result
+
+        result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
+        assert result is True
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_docker_image_exists_not_found(self, mock_which, mock_run):
+        """Test that _docker_image_exists returns False when image missing."""
+        mock_which.return_value = "/usr/bin/docker"
+        mock_result = Mock()
+        mock_result.stdout = ""
+        mock_run.return_value = mock_result
+
+        result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
+        assert result is False
+
+    @patch("shutil.which")
+    def test_docker_image_exists_no_docker(self, mock_which):
+        """Test graceful handling when docker/podman not available."""
+        mock_which.return_value = None
+
+        result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
+        assert result is False
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_docker_image_exists_podman_fallback(self, mock_which, mock_run):
+        """Test that podman is tried when docker is unavailable."""
+        # Docker not found, podman found
+        mock_which.side_effect = lambda x: (
+            "/usr/bin/podman" if x == "podman" else None
+        )
+        mock_result = Mock()
+        mock_result.stdout = "image123\n"
+        mock_run.return_value = mock_result
+
+        result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
+        assert result is True
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_docker_image_exists_timeout(self, mock_which, mock_run):
+        """Test handling of subprocess timeout."""
+        mock_which.return_value = "/usr/bin/docker"
+        mock_run.side_effect = subprocess.TimeoutExpired(
+            cmd="docker images", timeout=5
+        )
+
+        result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
+        assert result is False
+
+    @patch("eos_downloader.logics.download.SoftManager._docker_image_exists")
+    @patch("os.path.exists")
+    @patch("os.system")
+    @patch("shutil.which")
+    def test_import_docker_uses_cache(
+        self, mock_which, mock_system, mock_exists, mock_docker_exists
+    ):
+        """Test that import_docker skips import when image exists."""
+        mock_which.return_value = "/usr/bin/docker"
+        mock_exists.return_value = True
+        mock_docker_exists.return_value = True
+
+        manager = SoftManager()
+        was_cached = manager.import_docker("/tmp/test.tar", "arista/ceos", "4.29.3M")
+
+        # Should not call docker import
+        mock_system.assert_not_called()
+        # Should return True (was cached)
+        assert was_cached is True
+
+    @patch("eos_downloader.logics.download.SoftManager._docker_image_exists")
+    @patch("os.path.exists")
+    @patch("os.system")
+    @patch("shutil.which")
+    def test_import_docker_force_reimport(
+        self, mock_which, mock_system, mock_exists, mock_docker_exists
+    ):
+        """Test that force flag causes re-import."""
+        mock_which.return_value = "/usr/bin/docker"
+        mock_exists.return_value = True
+        mock_docker_exists.return_value = True
+
+        manager = SoftManager()
+        was_cached = manager.import_docker(
+            "/tmp/test.tar",
+            "arista/ceos",
+            "4.29.3M",
+            force=True
+        )
+
+        # Should call docker import despite cache
+        mock_system.assert_called_once()
+        # Should return False (was imported, not cached)
+        assert was_cached is False
+
+    @patch("eos_downloader.logics.download.SoftManager._docker_image_exists")
+    @patch("os.path.exists")
+    @patch("os.system")
+    @patch("shutil.which")
+    def test_import_docker_force_download_flag(
+        self, mock_which, mock_system, mock_exists, mock_docker_exists
+    ):
+        """Test that force_download flag causes re-import."""
+        mock_which.return_value = "/usr/bin/docker"
+        mock_exists.return_value = True
+        mock_docker_exists.return_value = True
+
+        manager = SoftManager(force_download=True)
+        was_cached = manager.import_docker("/tmp/test.tar", "arista/ceos", "4.29.3M")
+
+        # Should call docker import
+        mock_system.assert_called_once()
+        # Should return False (was imported, not cached)
+        assert was_cached is False
+
+
+class TestCacheIntegration:
+    """Integration tests for cache functionality."""
+
+    @patch("eos_downloader.logics.download.SoftManager.download_file")
+    def test_downloads_propagates_force_flag(self, mock_download):
+        """Test that downloads() propagates force_download to download_file."""
+        mock_eos = Mock()
+        mock_eos.version = "4.29.3M"
+        mock_eos.filename = "test.swi"
+        mock_eos.urls = {"image": "http://test.com/test.swi"}
+        mock_eos.hash_filename = Mock(return_value="test.swi.md5")
+
+        manager = SoftManager(force_download=True)
+        path, was_cached = manager.downloads(mock_eos, "/tmp")
+
+        # Verify force was passed to download_file
+        mock_download.assert_called()
+        call_kwargs = mock_download.call_args[1]
+        assert call_kwargs.get("force") is True
+        assert path == "/tmp"
+        assert isinstance(was_cached, bool)
+
+    @patch("pathlib.Path.exists")
+    def test_dry_run_with_cache(self, mock_exists):
+        """Test dry-run mode reports cache status correctly."""
+        mock_exists.return_value = True
+
+        mock_eos = Mock()
+        mock_eos.version = "4.29.3M"
+        mock_eos.filename = "test.swi"
+        mock_eos.urls = {"image": "http://test.com/test.swi"}
+        mock_eos.hash_filename = Mock(return_value="test.swi.md5")
+
+        manager = SoftManager(dry_run=True)
+        path, was_cached = manager.downloads(mock_eos, "/tmp")
+
+        # Should complete without actual download
+        assert path == "/tmp"
+        assert was_cached is True  # File exists and dry-run, so cached

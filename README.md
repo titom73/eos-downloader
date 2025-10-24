@@ -11,6 +11,13 @@
 
 A project to download Arista softwares to local folder, Cloudvision or EVE-NG. It comes in 2 way: a framework with object to automate Arista software download and a CLI for human activities.
 
+**Key Features:**
+- 🚀 **Smart Caching**: Automatically caches downloaded files and Docker images to save bandwidth and time
+- 📦 **Multiple Formats**: Support for EOS (64-bit, vEOS, cEOS) and CloudVision Portal
+- 🐳 **Docker Integration**: Direct import to Docker/Podman registries
+- 🔧 **EVE-NG Support**: Automated provisioning for network simulation
+- ⚡ **Fast Iterations**: Subsequent runs complete instantly using cached resources
+
 <img src='docs/imgs/logo.jpg' class="center" width="800px" />
 
 > [!CAUTION]
@@ -20,8 +27,11 @@ A project to download Arista softwares to local folder, Cloudvision or EVE-NG. I
 # install eos-downloader from pypi
 pip install eos-downloader
 
-# download EOS swi for EOS 64bits
+# download EOS swi for EOS 64bits (uses cache on subsequent runs)
 ardl --token <your-token> get eos --format 64 --latest --release-type M
+
+# force re-download even if cached
+ardl --token <your-token> get eos --format 64 --latest --release-type M --force
 ```
 
 Full documentation is available on [our website](https://titom73.github.io/eos-downloader/).
@@ -45,7 +55,20 @@ ardl get eos --version 4.29.4M --import-docker
 
 # Get a specific version and import to EVE-NG
 ardl get eos --version 4.33.0F --eve-ng
+
+# Force re-download/re-import (bypass cache)
+ardl get eos --version 4.29.4M --import-docker --force
 ```
+
+### Smart Caching
+
+**eos-downloader** automatically caches downloads and Docker images:
+
+- **Files**: If a file exists in the output directory, it's reused (no re-download)
+- **Docker Images**: If an image:tag exists locally, import is skipped
+- **Force Mode**: Use `--force` to bypass cache and force fresh download/import
+
+This makes repeated runs **instant** and saves bandwidth! 🚀
 
 ## Author
 
