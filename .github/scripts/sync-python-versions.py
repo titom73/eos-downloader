@@ -100,6 +100,9 @@ def main():
     versions_data = load_python_versions_from_json(json_path)
     versions = versions_data["versions"]
     min_version = versions_data["min_version"]
+    if not versions:
+        print("❌ No Python versions found in the JSON file.")
+        sys.exit(1)
     max_version = versions_data.get("max_version", versions[-1])
 
     print(f"✅ Found versions: {versions}")
