@@ -349,7 +349,7 @@ pytest --pdb tests/unit/models/test_version.py::test_specific_function
 
 ## Code of Conduct
 
-This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). Please read and follow it in all your interactions with the project.
+This project follows the [Contributor Covenant Code of Conduct](./CODE_OF_CONDUCT.md). Please read and follow it in all your interactions with the project.
 
 ## License
 
