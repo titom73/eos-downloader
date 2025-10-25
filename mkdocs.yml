@@ -181,4 +181,5 @@ nav:
     - Download Management: api/logics/download.md
   - Helpers: api/helpers.md
   - Defaults: api/defaults.md
+- Contributing: contributing.md
 - FAQ: faq.md

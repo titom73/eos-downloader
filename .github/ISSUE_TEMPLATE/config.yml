@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://titom73.github.io/eos-downloader/
+    about: Please check the documentation first for usage questions
+  - name: Community Discussions
+    url: https://github.com/titom73/eos-downloader/discussions
+    about: Ask questions and discuss with the community
