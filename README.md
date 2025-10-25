@@ -70,6 +70,10 @@ ardl get eos --version 4.29.4M --import-docker --force
 
 This makes repeated runs **instant** and saves bandwidth! 🚀
 
+## Contributing
+
+A contributing guide is available in [docs folder](./docs/contributing.md)
+
 ## Author
 
 From an original idea of [@Mark Rayson](https://github.com/Sparky-python) in [arista-netdevops-community/eos-scripts](https://github.com/arista-netdevops-community/eos-scripts)
