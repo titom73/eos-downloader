@@ -44,12 +44,12 @@ Plans must consist of discrete, atomic phases containing executable tasks. Each 
 
 ## Output File Specifications
 
-- Save implementation plan files in `plans/` directory at the root of the project
+- Save implementation plan files in `.github/plans/` directory at the root of the project
 - Use naming convention: `[purpose]-[component]-[version].md`
 - Purpose prefixes: `upgrade|refactor|feature|data|infrastructure|process|architecture|design`
-- Example: `plans/upgrade-system-command-4.md`, `plans/feature-auth-module-1.md`
+- Example: `.github/plans/upgrade-system-command-4.md`, `.github/plans/feature-auth-module-1.md`
 - File must be valid Markdown with proper front matter structure
-- Update List of plans in `plans/README.md` to include the new plan
+- Update List of plans in `.github/plans/README.md` to include the new plan
 
 ## Mandatory Template Structure
 
