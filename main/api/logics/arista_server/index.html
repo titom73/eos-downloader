@@ -1729,7 +1729,9 @@ A session ID is retrieved from the server response if authentication is successf
 <span class="normal">184</span>
 <span class="normal">185</span>
 <span class="normal">186</span>
-<span class="normal">187</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Authenticate to the API server using access token.</span>
 
 <span class="sd">    The token is encoded in base64 and sent to the server for authentication.</span>
@@ -1768,10 +1770,12 @@ A session ID is retrieved from the server response if authentication is successf
         <span class="s2">"Access token expired"</span><span class="p">,</span>
         <span class="s2">"Invalid access token"</span><span class="p">,</span>
     <span class="p">]:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"Authentication failed: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">'status'</span><span class="p">][</span><span class="s1">'message'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">'status'</span><span class="p">][</span><span class="s1">'message'</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Authentication failed: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">AuthenticationError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Authentication failed: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="s2">"Please verify your token at https://www.arista.com/en/users/profile"</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">AuthenticationError</span>
         <span class="c1"># return False</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="s2">"data"</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">json</span><span class="p">():</span>
@@ -1907,9 +1911,7 @@ to the server. If not authenticated, it will first authenticate before making th
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/arista_server.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">239</span>
 <span class="normal">240</span>
 <span class="normal">241</span>
 <span class="normal">242</span>
@@ -1949,7 +1951,9 @@ to the server. If not authenticated, it will first authenticate before making th
 <span class="normal">276</span>
 <span class="normal">277</span>
 <span class="normal">278</span>
-<span class="normal">279</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remote_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remote_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Get download URL for a remote file from server.</span>
 
 <span class="sd">    This method retrieves the download URL for a specified remote file by making a POST request</span>
@@ -2070,9 +2074,7 @@ The XML data is expected to be in the response JSON under data.xml path.</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/arista_server.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">191</span>
 <span class="normal">192</span>
 <span class="normal">193</span>
 <span class="normal">194</span>
@@ -2116,7 +2118,9 @@ The XML data is expected to be in the response JSON under data.xml path.</p>
 <span class="normal">232</span>
 <span class="normal">233</span>
 <span class="normal">234</span>
-<span class="normal">235</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_xml_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_xml_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Retrieves XML data from the server.</span>
 
 <span class="sd">    This method fetches XML data by making a POST request to the server's XML endpoint.</span>
