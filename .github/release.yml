@@ -1,69 +1,20 @@
 changelog:
   exclude:
     labels:
-      - kind:test(eos_downloader)
-      - kind:ci(eos_downloader)
-      - kind:test(eos_downloader.cli)
-      - kind:ci(eos_downloader.cli)
-      - kind:test(requirements)
-      - kind:ci(requirements)
-      - kind:test(actions)
-      - kind:ci(actions)
       - kind:test
       - kind:ci
   categories:
     - title: Breaking Changes
       labels:
-        - kind:feat(eos_downloader)!
-        - kind:feat(eos_downloader.cli)!
-        - kind:feat(requirements)!
-        - kind:feat(actions)!
-        - kind:fix(eos_downloader)!
-        - kind:fix(eos_downloader.cli)!
-        - kind:fix(requirements)!
-        - kind:fix(actions)!
-        - kind:cut(eos_downloader)!
-        - kind:cut(eos_downloader.cli)!
-        - kind:cut(requirements)!
-        - kind:cut(actions)!
-        - kind:revert(eos_downloader)!
-        - kind:revert(eos_downloader.cli)!
-        - kind:revert(requirements)!
-        - kind:revert(actions)!
-        - kind:refactor(eos_downloader)!
-        - kind:refactor(eos_downloader.cli)!
-        - kind:refactor(requirements)!
-        - kind:refactor(actions)!
-        - kind:bump(eos_downloader)!
-        - kind:bump(eos_downloader.cli)!
-        - kind:bump(requirements)!
-        - kind:bump(actions)!
-        - kind:feat!
-        - kind:fix!
-        - kind:cut!
-        - kind:revert!
-        - kind:refactor!
-        - kind:bump!
+        - compat:breaking
     - title: New features and enhancements
       labels:
-        - kind:feat(eos_downloader)
-        - kind:feat(eos_downloader.cli)
-        - kind:feat(requirements)
-        - kind:feat(actions)
         - kind:feat
     - title: Fixed issues
       labels:
-        - kind:fix(eos_downloader)
-        - kind:fix(eos_downloader.cli)
-        - kind:fix(requirements)
-        - kind:fix(actions)
         - kind:fix
     - title: Documentation
       labels:
-        - kind:doc(eos_downloader)
-        - kind:doc(eos_downloader.cli)
-        - kind:doc(requirements)
-        - kind:doc(actions)
         - kind:doc
     - title: Other Changes
       labels:

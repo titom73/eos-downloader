@@ -58,6 +58,15 @@ def parse_workflow_types_and_scopes(workflow_path: str):
     return (types or default_types, scopes or default_scopes)
 
 
+# Types that should be excluded from release notes
+EXCLUDED_TYPES = {"ci", "test"}
+
+# Types that can indicate breaking changes when marked with '!'
+# Exclude types that are typically excluded or non-impactful
+BREAKING_CHANGE_TYPES = {
+    "feat", "fix", "cut", "revert", "refactor", "bump"
+}
+
 # CI and Test are excluded from Release Notes
 CATEGORIES = {
     "feat": "Features",
@@ -89,18 +98,17 @@ if __name__ == "__main__":
     workflow_path = os.path.join(os.path.dirname(__file__), "workflows", "pr-triage.yml")
     types_list, SCOPES = parse_workflow_types_and_scopes(workflow_path)
 
-    # Exclude CI and test labels from release notes
-    for scope in SCOPES:
-        exclude_list.append(f"kind:test({scope})")
-        exclude_list.append(f"kind:ci({scope})")
-    exclude_list.extend(["kind:test", "kind:ci"])
+    # Exclude configured types from release notes
+    # Labels are separate: kind:test AND scope:xxx, not kind:test(xxx)
+    for excluded_type in EXCLUDED_TYPES:
+        if excluded_type in types_list:
+            exclude_list.append(f"kind:{excluded_type}")
 
-    # Then add the categories
-    # First add Breaking Changes
-    # Breakings: include common categories that may indicate breaking changes
-    breaking_label_categories = [t for t in ["feat", "fix", "cut", "revert", "refactor", "bump"] if t in types_list]
-    breaking_labels = [f"kind:{cc_type}({scope})!" for cc_type in breaking_label_categories for scope in SCOPES]
-    breaking_labels.extend([f"kind:{cc_type}!" for cc_type in breaking_label_categories])
+    # Build breaking changes labels from parsed types
+    # GitHub release notes matches if ANY label in the list is present
+    # Since we use separate labels (kind: and scope:), we only list kind: labels
+    # Breaking changes are detected by the '!' marker in PR title and labeled with compat:breaking
+    breaking_labels = ["compat:breaking"]
 
     categories_list.append(
         {
@@ -112,7 +120,6 @@ if __name__ == "__main__":
     # Add new features
     feat_labels = []
     if "feat" in types_list:
-        feat_labels = [f"kind:feat({scope})" for scope in SCOPES]
         feat_labels.append("kind:feat")
 
     categories_list.append(
@@ -125,7 +132,6 @@ if __name__ == "__main__":
     # Add fixes
     fixes_labels = []
     if "fix" in types_list:
-        fixes_labels = [f"kind:fix({scope})" for scope in SCOPES]
         fixes_labels.append("kind:fix")
 
     categories_list.append(
@@ -138,7 +144,6 @@ if __name__ == "__main__":
     # Add Documentation
     doc_labels = []
     if "doc" in types_list:
-        doc_labels = [f"kind:doc({scope})" for scope in SCOPES]
         doc_labels.append("kind:doc")
 
     categories_list.append(
