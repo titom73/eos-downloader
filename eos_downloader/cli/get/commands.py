@@ -11,7 +11,6 @@
 """CLI commands for listing Arista package information."""
 
 import os
-import sys
 from typing import Union
 import click
 from eos_downloader.models.data import RTYPE_FEATURE

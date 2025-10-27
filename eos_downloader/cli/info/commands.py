@@ -153,7 +153,7 @@ def latest(
     debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
-    
+
     try:
         querier = AristaXmlQuerier(token=token)
     except AuthenticationError as auth_error:
@@ -161,7 +161,7 @@ def latest(
         if debug:
             console.print_exception(show_locals=True)
         sys.exit(1)
-    
+
     received_version = None
     try:
         received_version = querier.latest(
