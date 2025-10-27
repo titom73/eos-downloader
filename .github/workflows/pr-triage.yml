@@ -6,6 +6,9 @@ on:
       - opened
       - edited
       - synchronize
+permissions:
+  pull-requests: write
+  contents: read
 
 jobs:
   assign_author:
@@ -87,7 +90,7 @@ jobs:
       - name: Parse PR title for type and scope
         id: parse
         env:
-          TITLE: ${{ github.event.pull_request.title }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           # Extract type (feat, fix, etc.)
           TYPE=$(echo "$PR_TITLE" | grep -oE '^(feat|fix|cut|doc|ci|bump|test|refactor|revert|make|chore)' || echo "")
@@ -98,15 +101,14 @@ jobs:
           echo "Parsed SCOPE: $SCOPE"
           echo "type=$TYPE" >> $GITHUB_OUTPUT
           echo "scope=$SCOPE" >> $GITHUB_OUTPUT
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
 
       - name: Create and add kind label
         if: steps.parse.outputs.type != ''
         env:
-          TYPE: ${{ steps.parse.outputs.type }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          KIND_TYPE: ${{ steps.parse.outputs.type }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           # Create label if it doesn't exist
           gh label create "kind:$KIND_TYPE" \
@@ -117,18 +119,14 @@ jobs:
           # Add label to PR
           gh pr edit "$PR_NUMBER" \
             --add-label "kind:$KIND_TYPE"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          KIND_TYPE: ${{ steps.parse.outputs.type }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Create and add scope label
         if: steps.parse.outputs.scope != ''
         env:
-          SCOPE: ${{ steps.parse.outputs.scope }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          SCOPE_NAME: ${{ steps.parse.outputs.scope }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           # Create label if it doesn't exist
           gh label create "scope:$SCOPE_NAME" \
@@ -139,11 +137,6 @@ jobs:
           # Add label to PR
           gh pr edit "$PR_NUMBER" \
             --add-label "scope:$SCOPE_NAME"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          SCOPE_NAME: ${{ steps.parse.outputs.scope }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Summary
         run: |
