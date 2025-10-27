@@ -100,35 +100,37 @@ jobs:
           echo "scope=$SCOPE" >> $GITHUB_OUTPUT
       - name: Create and add kind label
         if: steps.parse.outputs.type != ''
+        env:
+          TYPE: ${{ steps.parse.outputs.type }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           # Create label if it doesn't exist
-          gh label create "kind:${{ steps.parse.outputs.type }}" \
-            --description "PR type: ${{ steps.parse.outputs.type }}" \
+          gh label create "kind:${TYPE}" \
+            --description "PR type: ${TYPE}" \
             --color "0E8A16" \
             --force || true
 
           # Add label to PR
           gh pr edit ${{ github.event.pull_request.number }} \
-            --add-label "kind:${{ steps.parse.outputs.type }}"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
+            --add-label "kind:${TYPE}"
 
       - name: Create and add scope label
         if: steps.parse.outputs.scope != ''
+        env:
+          SCOPE: ${{ steps.parse.outputs.scope }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           # Create label if it doesn't exist
-          gh label create "scope:${{ steps.parse.outputs.scope }}" \
-            --description "Scope: ${{ steps.parse.outputs.scope }}" \
+          gh label create "scope:${SCOPE}" \
+            --description "Scope: ${SCOPE}" \
             --color "1D76DB" \
             --force || true
 
           # Add label to PR
           gh pr edit ${{ github.event.pull_request.number }} \
-            --add-label "scope:${{ steps.parse.outputs.scope }}"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
+            --add-label "scope:${SCOPE}"
 
       - name: Summary
         run: |
