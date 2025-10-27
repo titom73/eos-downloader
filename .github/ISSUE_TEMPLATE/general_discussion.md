@@ -2,7 +2,7 @@
 name: General Discussion
 about: Ask questions, discuss ideas, or start a general conversation
 title: '[DISCUSSION] '
-labels: ['question']
+labels: ['issue:question']
 assignees: ''
 ---
 
