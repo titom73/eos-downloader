@@ -18,6 +18,9 @@ jobs:
     name: "PR was merged"
     if: (github.event.pull_request.merged == true) && ( github.event.action == 'closed' || (github.event.action == 'edited' && github.event.changes.title != null) )
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
