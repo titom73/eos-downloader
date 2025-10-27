@@ -49,6 +49,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v5
 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
     - name: Docker meta for TAG
       id: meta
       uses: docker/metadata-action@v5
@@ -93,6 +96,9 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v5
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
     - name: Docker meta for TAG
       id: meta
