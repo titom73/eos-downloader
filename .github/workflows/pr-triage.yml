@@ -20,6 +20,8 @@ jobs:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
 
   check_pr_semantic:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       # Please look up the latest version from
