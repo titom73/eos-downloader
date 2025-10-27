@@ -27,7 +27,8 @@ Dependencies:
 """
 
 import json
-from typing import Any
+import sys
+from typing import Any, List, Union
 
 import click
 from rich import print_json
@@ -36,8 +37,10 @@ from rich.panel import Panel
 from eos_downloader.models.data import software_mapping
 from eos_downloader.models.types import AristaPackage, ReleaseType, AristaMapping
 from eos_downloader.logics.arista_xml_server import AristaXmlQuerier
+from eos_downloader.models.version import EosVersion, CvpVersion
 from eos_downloader.cli.utils import console_configuration
 from eos_downloader.cli.utils import cli_logging
+from eos_downloader.exceptions import AuthenticationError
 
 # """
 # Commands for ARDL CLI to list data.
@@ -64,17 +67,45 @@ def versions(
     release_type: ReleaseType,
     format: str,
 ) -> None:
-    """List available package versions from Arista server."""
+    """List available package versions from Arista server.
 
+    Parameters
+    ----------
+    ctx : click.Context
+        Click context containing token, debug, and log_level
+    package : AristaPackage
+        Package type ("eos" or "cvp")
+    branch : str
+        Optional branch filter (e.g., "4.29")
+    release_type : ReleaseType
+        Optional release type filter ("M" or "F")
+    format : str
+        Output format ("text", "fancy", or "json")
+
+    Examples
+    --------
+    List all EOS versions:
+
+    >>> ardl info versions --package eos
+
+    List maintenance releases for branch 4.29:
+
+    >>> ardl info versions --package eos --branch 4.29 --release-type M
+    """
     console = console_configuration()
     token = ctx.obj["token"]
     debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
 
-    querier = AristaXmlQuerier(token=token)
+    try:
+        querier = AristaXmlQuerier(token=token)
+    except AuthenticationError as auth_error:
+        console.print(f"[red]Authentication Error:[/red] {str(auth_error)}")
+        if debug:
+            console.print_exception(show_locals=True)
+        sys.exit(1)
 
-    received_versions = None
     try:
         received_versions = querier.available_public_versions(
             package=package, branch=branch, rtype=release_type
@@ -84,38 +115,86 @@ def versions(
             console.print_exception(show_locals=True)
         else:
             console.print("[red]No versions found[/red]")
-            return
+        return
 
+    # Early return if no versions found
+    if not received_versions:
+        console.print("[red]No versions found[/red]")
+        return
+
+    # Format and display output based on format choice
+    _print_versions_output(console, received_versions, format)
+
+
+def _print_versions_output(
+    console: Any, version_list: List[Union[EosVersion, CvpVersion]], format: str
+) -> None:
+    """Print versions in the specified format.
+
+    Parameters
+    ----------
+    console : Console
+        Rich console instance for output
+    version_list : List[Union[EosVersion, CvpVersion]]
+        List of version objects to display
+    format : str
+        Output format ("text", "fancy", or "json")
+    """
     if format == "text":
-        console.print("Listing available versions")
-        if received_versions is None:
-            console.print("[red]No versions found[/red]")
-            return
-        for version in received_versions:
-            console.print(f"  - version: [blue]{version}[/blue]")
+        _print_text_versions(console, version_list)
     elif format == "fancy":
-        lines_output = []
-        if received_versions is None:
-            console.print("[red]No versions found[/red]")
-            return
-        for version in received_versions:
-            lines_output.append(f"  - version: [blue]{version}[/blue]")
-        console.print("")
-        console.print(
-            Panel("\n".join(lines_output), title="Available versions", padding=1)
-        )
+        _print_fancy_versions(console, version_list)
     elif format == "json":
-        response = []
-        if received_versions is None:
-            console.print("[red]No versions found[/red]")
-            return
-        for version in received_versions:
-            out = {}
-            out["version"] = str(version)
-            out["branch"] = str(version.branch)
-            response.append(out)
-        response = json.dumps(response)  # type: ignore
-        print_json(response)
+        _print_json_versions(version_list)
+
+
+def _print_text_versions(
+    console: Any, version_list: List[Union[EosVersion, CvpVersion]]
+) -> None:
+    """Print versions in plain text format.
+
+    Parameters
+    ----------
+    console : Console
+        Rich console instance for output
+    version_list : List[Union[EosVersion, CvpVersion]]
+        List of version objects to display
+    """
+    console.print("Listing available versions")
+    for version in version_list:
+        console.print(f"  - version: [blue]{version}[/blue]")
+
+
+def _print_fancy_versions(
+    console: Any, version_list: List[Union[EosVersion, CvpVersion]]
+) -> None:
+    """Print versions in fancy panel format.
+
+    Parameters
+    ----------
+    console : Console
+        Rich console instance for output
+    version_list : List[Union[EosVersion, CvpVersion]]
+        List of version objects to display
+    """
+    lines_output = [f"  - version: [blue]{version}[/blue]" for version in version_list]
+    console.print("")
+    console.print(Panel("\n".join(lines_output), title="Available versions", padding=1))
+
+
+def _print_json_versions(version_list: List[Union[EosVersion, CvpVersion]]) -> None:
+    """Print versions in JSON format.
+
+    Parameters
+    ----------
+    version_list : List[Union[EosVersion, CvpVersion]]
+        List of version objects to display
+    """
+    response = [
+        {"version": str(version), "branch": str(version.branch)}
+        for version in version_list
+    ]
+    print_json(json.dumps(response))
 
 
 @click.command()
@@ -145,7 +224,15 @@ def latest(
     debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
-    querier = AristaXmlQuerier(token=token)
+
+    try:
+        querier = AristaXmlQuerier(token=token)
+    except AuthenticationError as auth_error:
+        console.print(f"[red]Authentication Error:[/red] {str(auth_error)}")
+        if debug:
+            console.print_exception(show_locals=True)
+        sys.exit(1)
+
     received_version = None
     try:
         received_version = querier.latest(
