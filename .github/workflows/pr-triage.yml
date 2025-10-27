@@ -11,6 +11,8 @@ jobs:
   assign_author:
     name: "Assign Author to PR"
     # https://github.com/marketplace/actions/auto-author-assign
+    permissions:
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - uses: toshimaru/auto-author-assign@v2.1.1
