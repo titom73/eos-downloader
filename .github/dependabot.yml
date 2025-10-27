@@ -7,26 +7,22 @@
 
 version: 2
 updates:
-  # Maintain dependencies for Python
-  # Dependabot supports updates to pyproject.toml files
-  # if they follow the PEP 621 standard.
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    labels:
-      - 'dependencies'
-    pull-request-branch-name:
-      separator: "/"
-    commit-message:
-      prefix: "bump(requirements): "
-      prefix-development: "bump(dev): "
-  # Maintain dependencies for GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    labels:
-      - 'CI'
-    commit-message:
-      prefix: "ci(actions): "
+# Maintain dependencies for Python
+# Dependabot supports updates to pyproject.toml files
+# if they follow the PEP 621 standard.
+- package-ecosystem: "pip"
+  directory: "/"
+  schedule:
+    interval: "daily"
+  pull-request-branch-name:
+    separator: "/"
+  commit-message:
+    prefix: "bump(requirements): "
+    # prefix-development: "bump(dev): "
+    # Maintain dependencies for GitHub Actions
+- package-ecosystem: "github-actions"
+  directory: "/"
+  schedule:
+    interval: "weekly"
+  commit-message:
+    prefix: "bump(actions): "

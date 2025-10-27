@@ -1,0 +1,142 @@
+name: "Pull Request Triage"
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+
+jobs:
+  assign_author:
+    name: "Assign Author to PR"
+    # https://github.com/marketplace/actions/auto-author-assign
+    runs-on: ubuntu-latest
+    steps:
+      - uses: toshimaru/auto-author-assign@v2.1.1
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+
+  check_pr_semantic:
+    runs-on: ubuntu-latest
+    steps:
+      # Please look up the latest version from
+      # https://github.com/amannn/action-semantic-pull-request/releases
+      - uses: amannn/action-semantic-pull-request@v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Configure which types are allowed.
+          # Default: https://github.com/commitizen/conventional-commit-types
+          # Updated as part of PR 1930
+          types: |
+            feat
+            fix
+            cut
+            doc
+            ci
+            bump
+            test
+            refactor
+            revert
+            make
+            chore
+          # Configure which scopes are allowed.
+          scopes: |
+            eos_downloader
+            eos_downloader.cli
+            requirements
+            actions
+          # Configure that a scope must always be provided.
+          requireScope: false
+          # Configure additional validation for the subject based on a regex.
+          # This example ensures the subject doesn't start with an uppercase character.
+          # subjectPattern: ^(?![A-Z]).+$
+          # If `subjectPattern` is configured, you can use this property to override
+          # the default error message that is shown when the pattern doesn't match.
+          # The variables `subject` and `title` can be used within the message.
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern. Please ensure that the subject
+            doesn't start with an uppercase character.
+          # When using "Squash and merge" on a PR with only one commit, GitHub
+          # will suggest using that commit message instead of the PR title for the
+          # merge commit, and it's easy to commit this by mistake. Enable this option
+          # to also validate the commit message for one commit PRs.
+          # Update 13-Jul-2022 CH: GitHub now offers a toggle for this behavior.
+          # We have set that to always use the PR title, so this check is no longer needed.
+          validateSingleCommit: false
+          # Related to `validateSingleCommit` you can opt-in to validate that the PR
+          # title matches a single commit to avoid confusion.
+          validateSingleCommitMatchesPrTitle: true
+          ignoreLabels: |
+            bot
+            ignore-semantic-pull-request
+
+  label_kind_scope:
+    name: "Label PR with kind and scope"
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Parse PR title for type and scope
+        id: parse
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          # Extract type (feat, fix, etc.)
+          TYPE=$(echo "$TITLE" | grep -oE '^(feat|fix|cut|doc|ci|bump|test|refactor|revert|make|chore)' || echo "")
+          # Extract scope (content within parentheses)
+          SCOPE=$(echo "$TITLE" | grep -oE '\(([^)]+)\)' | tr -d '()' || echo "")
+
+          echo "Parsed TYPE: $TYPE"
+          echo "Parsed SCOPE: $SCOPE"
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+          echo "scope=$SCOPE" >> $GITHUB_OUTPUT
+
+      - name: Create and add kind label
+        if: steps.parse.outputs.type != ''
+        run: |
+          # Create label if it doesn't exist
+          gh label create "kind:${{ steps.parse.outputs.type }}" \
+            --description "PR type: ${{ steps.parse.outputs.type }}" \
+            --color "0E8A16" \
+            --force || true
+
+          # Add label to PR
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --add-label "kind:${{ steps.parse.outputs.type }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+      - name: Create and add scope label
+        if: steps.parse.outputs.scope != ''
+        run: |
+          # Create label if it doesn't exist
+          gh label create "scope:${{ steps.parse.outputs.scope }}" \
+            --description "Scope: ${{ steps.parse.outputs.scope }}" \
+            --color "1D76DB" \
+            --force || true
+
+          # Add label to PR
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --add-label "scope:${{ steps.parse.outputs.scope }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+      - name: Summary
+        run: |
+          echo "### 🏷️ PR Labeling Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ steps.parse.outputs.type }}" ]; then
+            echo "- ✅ Added **kind:${{ steps.parse.outputs.type }}** label" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ No type found in PR title" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -n "${{ steps.parse.outputs.scope }}" ]; then
+            echo "- ✅ Added **scope:${{ steps.parse.outputs.scope }}** label" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ℹ️ No scope found in PR title" >> $GITHUB_STEP_SUMMARY
+          fi
