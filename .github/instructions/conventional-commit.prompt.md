@@ -63,6 +63,39 @@ git commit -m "type(scope): description"
 </validation>
 ```
 
+### Pull Request Naming Convention
+
+```xml
+<pull-request-naming>
+	<principle>Pull Request titles MUST follow Conventional Commits specification</principle>
+	<single-commit-rule>
+		<condition>When PR contains only ONE commit</condition>
+		<requirement>PR title MUST match the commit message exactly</requirement>
+		<example>
+			<commit>feat(cache): add specific message when file is found in cache</commit>
+			<pr-title>feat(cache): add specific message when file is found in cache</pr-title>
+		</example>
+	</single-commit-rule>
+	<multi-commit-rule>
+		<condition>When PR contains MULTIPLE commits</condition>
+		<requirement>PR title should summarize the overall change using conventional commit format</requirement>
+		<example>
+			<commits>
+				<commit>fix(download): enhance error messages for missing versions</commit>
+				<commit>feat(cache): add cache status messages</commit>
+				<commit>test: add tests for cache message display</commit>
+			</commits>
+			<pr-title>feat(download): improve user feedback for downloads and cache</pr-title>
+		</example>
+	</multi-commit-rule>
+	<rationale>
+		<reason>Consistent PR titles improve changelog generation and release notes</reason>
+		<reason>Makes PR history more searchable and understandable</reason>
+		<reason>Facilitates automated semantic versioning</reason>
+	</rationale>
+</pull-request-naming>
+```
+
 ### Final Step
 
 ```xml
