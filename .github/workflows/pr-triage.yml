@@ -96,11 +96,19 @@ jobs:
           TYPE=$(echo "$PR_TITLE" | grep -oE '^(feat|fix|cut|doc|ci|bump|test|refactor|revert|make|chore)' || echo "")
           # Extract scope (content within parentheses)
           SCOPE=$(echo "$PR_TITLE" | grep -oE '\(([^)]+)\)' | tr -d '()' || echo "")
+          # Check for breaking change marker (!)
+          if echo "$PR_TITLE" | grep -qE '!:'; then
+            BREAKING="true"
+          else
+            BREAKING="false"
+          fi
 
           echo "Parsed TYPE: $TYPE"
           echo "Parsed SCOPE: $SCOPE"
+          echo "Parsed BREAKING: $BREAKING"
           echo "type=$TYPE" >> $GITHUB_OUTPUT
           echo "scope=$SCOPE" >> $GITHUB_OUTPUT
+          echo "breaking=$BREAKING" >> $GITHUB_OUTPUT
 
       - name: Create and add kind label
         if: steps.parse.outputs.type != ''
@@ -138,7 +146,28 @@ jobs:
           gh pr edit "$PR_NUMBER" \
             --add-label "scope:$SCOPE_NAME"
 
+      - name: Create and add breaking change label
+        if: steps.parse.outputs.breaking == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Create label if it doesn't exist
+          gh label create "compat:breaking" \
+            --description "Breaking change - impacts compatibility" \
+            --color "D93F0B" \
+            --force || true
+
+          # Add label to PR
+          gh pr edit "$PR_NUMBER" \
+            --add-label "compat:breaking"
+
       - name: Summary
+        env:
+          KIND_TYPE: ${{ steps.parse.outputs.type }}
+          SCOPE_NAME: ${{ steps.parse.outputs.scope }}
+          IS_BREAKING: ${{ steps.parse.outputs.breaking }}
         run: |
           echo "### 🏷️ PR Labeling Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -152,6 +181,6 @@ jobs:
           else
             echo "- ℹ️ No scope found in PR title" >> $GITHUB_STEP_SUMMARY
           fi
-        env:
-          KIND_TYPE: ${{ steps.parse.outputs.type }}
-          SCOPE_NAME: ${{ steps.parse.outputs.scope }}
+          if [ "$IS_BREAKING" = "true" ]; then
+            echo "- 🚨 Added **compat:breaking** label (breaking change detected)" >> $GITHUB_STEP_SUMMARY
+          fi

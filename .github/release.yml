@@ -1,40 +1,21 @@
 changelog:
   exclude:
     labels:
-      - 'rn: test'
-      - 'rn: ci'
+      - kind:test
+      - kind:ci
   categories:
     - title: Breaking Changes
       labels:
-        - 'rn: feat!'
-        - 'rn: feat(cli)!'
-        - 'rn: fix!'
-        - 'rn: fix(cli)!'
-        - 'rn: cut!'
-        - 'rn: cut(cli)!'
-        - 'rn: revert!'
-        - 'rn: revert(cli)!'
-        - 'rn: refactor!'
-        - 'rn: refactor(cli)!'
-        - 'rn: bump!'
-        - 'rn: bump(cli)!'
-        - 'rn: feat!'
-        - 'rn: fix!'
-        - 'rn: cut!'
-        - 'rn: revert!'
-        - 'rn: refactor!'
-        - 'rn: bump!'
+        - compat:breaking
     - title: New features and enhancements
       labels:
-        - 'rn: feat'
-        - 'rn: feat(cli)'
+        - kind:feat
     - title: Fixed issues
       labels:
-        - 'rn: fix'
-        - 'rn: fix(cli)'
+        - kind:fix
     - title: Documentation
       labels:
-        - 'rn: doc!'
+        - kind:doc
     - title: Other Changes
       labels:
         - '*'
