@@ -86,8 +86,9 @@ jobs:
     steps:
       - name: Parse PR title for type and scope
         id: parse
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
         run: |
-          TITLE="${{ github.event.pull_request.title }}"
           # Extract type (feat, fix, etc.)
           TYPE=$(echo "$TITLE" | grep -oE '^(feat|fix|cut|doc|ci|bump|test|refactor|revert|make|chore)' || echo "")
           # Extract scope (content within parentheses)
@@ -97,7 +98,6 @@ jobs:
           echo "Parsed SCOPE: $SCOPE"
           echo "type=$TYPE" >> $GITHUB_OUTPUT
           echo "scope=$SCOPE" >> $GITHUB_OUTPUT
-
       - name: Create and add kind label
         if: steps.parse.outputs.type != ''
         run: |
