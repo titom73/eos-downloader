@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eos_downloader"
-version = "v0.13.0"
+version = "v0.14.0"
 readme = "README.md"
 authors = [{ name = "Thomas Grimonet", email = "thomas.grimonet@gmail.com" }]
 maintainers = [
@@ -125,7 +125,7 @@ namespaces = false
 # Version
 ################################
 [tool.bumpver]
-current_version = "0.13.0"
+current_version = "0.14.0"
 version_pattern = "MAJOR.MINOR.PATCH[TAGNUM]"
 commit_message = "bump: Version {old_version} -> {new_version}"
 commit = true
