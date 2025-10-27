@@ -16,6 +16,7 @@ from click.testing import CliRunner
 
 from eos_downloader.cli.cli import ardl
 from eos_downloader.models.version import EosVersion, CvpVersion
+from eos_downloader.exceptions import AuthenticationError
 
 
 @pytest.fixture
@@ -269,6 +270,57 @@ class TestInfoVersionsCommand:
         assert result.exit_code == 0
         # With debug, console.print_exception is called
 
+    @patch("eos_downloader.cli.info.commands.AristaXmlQuerier")
+    def test_versions_authentication_error(self, mock_querier_class, runner):
+        """Test versions command with authentication error."""
+        # Setup mock to raise AuthenticationError
+        mock_querier_class.side_effect = AuthenticationError(
+            "Authentication failed: Invalid access token. "
+            "Please verify your token at https://www.arista.com/en/users/profile"
+        )
+
+        # Execute
+        result = runner.invoke(
+            ardl,
+            [
+                "--token",
+                "invalid-token",
+                "info",
+                "versions",
+            ],
+        )
+
+        # Verify
+        assert result.exit_code == 1
+        assert "Authentication Error" in result.output
+        assert "Invalid access token" in result.output
+
+    @patch("eos_downloader.cli.info.commands.AristaXmlQuerier")
+    def test_versions_authentication_error_with_debug(self, mock_querier_class, runner):
+        """Test versions command with authentication error in debug mode."""
+        # Setup mock to raise AuthenticationError
+        mock_querier_class.side_effect = AuthenticationError(
+            "Authentication failed: Access token expired. "
+            "Please verify your token at https://www.arista.com/en/users/profile"
+        )
+
+        # Execute with debug
+        result = runner.invoke(
+            ardl,
+            [
+                "--token",
+                "expired-token",
+                "--debug",
+                "info",
+                "versions",
+            ],
+        )
+
+        # Verify
+        assert result.exit_code == 1
+        assert "Authentication Error" in result.output
+        assert "Access token expired" in result.output
+
 
 # =============================================================================
 # Test: latest command
@@ -473,6 +525,57 @@ class TestInfoLatestCommand:
         # Verify
         assert result.exit_code == 0
         assert "No versions found" in result.output
+
+    @patch("eos_downloader.cli.info.commands.AristaXmlQuerier")
+    def test_latest_authentication_error(self, mock_querier_class, runner):
+        """Test latest command with authentication error."""
+        # Setup mock to raise AuthenticationError
+        mock_querier_class.side_effect = AuthenticationError(
+            "Authentication failed: Invalid access token. "
+            "Please verify your token at https://www.arista.com/en/users/profile"
+        )
+
+        # Execute
+        result = runner.invoke(
+            ardl,
+            [
+                "--token",
+                "invalid-token",
+                "info",
+                "latest",
+            ],
+        )
+
+        # Verify
+        assert result.exit_code == 1
+        assert "Authentication Error" in result.output
+        assert "Invalid access token" in result.output
+
+    @patch("eos_downloader.cli.info.commands.AristaXmlQuerier")
+    def test_latest_authentication_error_with_debug(self, mock_querier_class, runner):
+        """Test latest command with authentication error in debug mode."""
+        # Setup mock to raise AuthenticationError
+        mock_querier_class.side_effect = AuthenticationError(
+            "Authentication failed: Access token expired. "
+            "Please verify your token at https://www.arista.com/en/users/profile"
+        )
+
+        # Execute with debug
+        result = runner.invoke(
+            ardl,
+            [
+                "--token",
+                "expired-token",
+                "--debug",
+                "info",
+                "latest",
+            ],
+        )
+
+        # Verify
+        assert result.exit_code == 1
+        assert "Authentication Error" in result.output
+        assert "Access token expired" in result.output
 
 
 # =============================================================================

@@ -14,6 +14,7 @@ from eos_downloader.cli.utils import cli_logging, console_configuration
 from eos_downloader.models.data import RTYPE_FEATURE, RTYPES
 from eos_downloader.models.types import ReleaseType
 from eos_downloader.logics.arista_xml_server import AristaXmlQuerier, AristaXmlObjects
+from eos_downloader.exceptions import AuthenticationError
 
 
 def initialize(ctx: click.Context) -> tuple[Console, str, bool, str]:
@@ -87,12 +88,16 @@ def search_version(
         )
 
     if branch is not None or latest:
-        querier = AristaXmlQuerier(token=token)
-        rtype: ReleaseType = cast(
-            ReleaseType, release_type if release_type in RTYPES else RTYPE_FEATURE
-        )
-        version_obj = querier.latest(package="eos", branch=branch, rtype=rtype)
-        version = str(version_obj)
+        try:
+            querier = AristaXmlQuerier(token=token)
+            rtype: ReleaseType = cast(
+                ReleaseType, release_type if release_type in RTYPES else RTYPE_FEATURE
+            )
+            version_obj = querier.latest(package="eos", branch=branch, rtype=rtype)
+            version = str(version_obj)
+        except AuthenticationError as auth_error:
+            console.print(f"[red]Authentication Error:[/red] {str(auth_error)}")
+            sys.exit(1)
     return version
 
 

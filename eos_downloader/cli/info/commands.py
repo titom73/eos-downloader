@@ -27,6 +27,7 @@ Dependencies:
 """
 
 import json
+import sys
 from typing import Any
 
 import click
@@ -38,6 +39,7 @@ from eos_downloader.models.types import AristaPackage, ReleaseType, AristaMappin
 from eos_downloader.logics.arista_xml_server import AristaXmlQuerier
 from eos_downloader.cli.utils import console_configuration
 from eos_downloader.cli.utils import cli_logging
+from eos_downloader.exceptions import AuthenticationError
 
 # """
 # Commands for ARDL CLI to list data.
@@ -72,7 +74,13 @@ def versions(
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
 
-    querier = AristaXmlQuerier(token=token)
+    try:
+        querier = AristaXmlQuerier(token=token)
+    except AuthenticationError as auth_error:
+        console.print(f"[red]Authentication Error:[/red] {str(auth_error)}")
+        if debug:
+            console.print_exception(show_locals=True)
+        sys.exit(1)
 
     received_versions = None
     try:
@@ -145,7 +153,15 @@ def latest(
     debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
     cli_logging(log_level)
-    querier = AristaXmlQuerier(token=token)
+    
+    try:
+        querier = AristaXmlQuerier(token=token)
+    except AuthenticationError as auth_error:
+        console.print(f"[red]Authentication Error:[/red] {str(auth_error)}")
+        if debug:
+            console.print_exception(show_locals=True)
+        sys.exit(1)
+    
     received_version = None
     try:
         received_version = querier.latest(

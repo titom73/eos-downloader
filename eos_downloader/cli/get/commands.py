@@ -11,6 +11,7 @@
 """CLI commands for listing Arista package information."""
 
 import os
+import sys
 from typing import Union
 import click
 from eos_downloader.models.data import RTYPE_FEATURE
@@ -21,6 +22,7 @@ from eos_downloader.logics.arista_xml_server import (
     AristaXmlQuerier,
     CvpXmlObject,
 )
+from eos_downloader.exceptions import AuthenticationError
 
 from .utils import initialize, search_version, download_files, handle_docker_import
 
@@ -251,6 +253,9 @@ def cvp(
             querier = AristaXmlQuerier(token=token)
             version_obj = querier.latest(package="cvp", branch=branch)
             version = str(version_obj)
+        except AuthenticationError as auth_error:
+            console.print(f"[red]Authentication Error:[/red] {str(auth_error)}")
+            ctx.exit(1)
         except Exception as e:
             console.print(f"Token is set to: {token}")
             console.print_exception(show_locals=True)
