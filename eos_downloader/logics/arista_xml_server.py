@@ -433,9 +433,9 @@ class EosXmlObject(AristaXmlObject):
     """Class to query Arista XML data for EOS versions."""
 
     software: ClassVar[AristaMapping] = "EOS"
-    base_xpath_active_version: ClassVar[
-        str
-    ] = './/dir[@label="Active Releases"]/dir/dir/[@label]'
+    base_xpath_active_version: ClassVar[str] = (
+        './/dir[@label="Active Releases"]/dir/dir/[@label]'
+    )
     base_xpath_filepath: ClassVar[str] = './/file[.="{}"]'
 
     # File extensions supported to be downloaded from arista server.
@@ -487,9 +487,9 @@ class CvpXmlObject(AristaXmlObject):
     """Class to query Arista XML data for CVP versions."""
 
     software: ClassVar[AristaMapping] = "CloudVision"
-    base_xpath_active_version: ClassVar[
-        str
-    ] = './/dir[@label="Active Releases"]/dir/dir/[@label]'
+    base_xpath_active_version: ClassVar[str] = (
+        './/dir[@label="Active Releases"]/dir/dir/[@label]'
+    )
     base_xpath_filepath: ClassVar[str] = './/file[.="{}"]'
 
     # File extensions supported to be downloaded from arista server.
