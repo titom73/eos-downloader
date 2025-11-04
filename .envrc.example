@@ -1,0 +1,5 @@
+# Unset pyenv VIRTUAL_ENV to avoid conflict with UV's .venv
+unset VIRTUAL_ENV
+
+# Export your Arista token here
+export ARISTA_TOKEN="your-token-here"
