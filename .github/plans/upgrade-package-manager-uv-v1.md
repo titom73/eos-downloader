@@ -1,19 +1,19 @@
 ---
 goal: Migrate eos-downloader project from pip/setuptools to UV package manager
-version: 1.2
+version: 1.4
 date_created: 2025-11-04
 last_updated: 2025-11-04
 owner: Thomas Grimonet
 status: In progress
 tags: ['upgrade', 'infrastructure', 'tooling', 'uv', 'package-manager', 'devops']
-progress: Phase 1 & 2 Complete (25/99 tasks, 25%)
+progress: Phase 1-5 Complete (44/99 tasks, 44%)
 ---
 
 # Implementation Plan: Migration to UV Package Manager
 
 ![Status: In progress](https://img.shields.io/badge/status-In%20progress-yellow)
-![Progress: 25%](https://img.shields.io/badge/progress-25%25-yellow)
-![Phase: 2/8 Complete](https://img.shields.io/badge/phase-2%2F8%20complete-green)
+![Progress: 44%](https://img.shields.io/badge/progress-44%25-yellow)
+![Phase: 5/8 Complete](https://img.shields.io/badge/phase-5%2F8%20complete-green)
 
 ## Introduction
 
@@ -181,25 +181,25 @@ This migration will modernize the development workflow while maintaining backwar
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-038 | Identify all workflows using pip/venv: pr-management.yml (5 jobs), release.yml (1 job), documentation.yml (2 jobs), on_demand.yml (2 jobs), coverage-badge.yml (1 job) | | |
-| TASK-039 | Add UV installation step using official action: `astral-sh/setup-uv@v3` in all workflows that build/test code | | |
-| TASK-040 | Update pr-management.yml - check-sync job: replace `python .github/scripts/check-python-versions.py` with `uv run python .github/scripts/check-python-versions.py` | | |
-| TASK-041 | Update pr-management.yml - compiling job: replace `pip install .` and `pip install .[dev]` with `uv sync --all-extras` | | |
-| TASK-042 | Update pr-management.yml - linting job: replace `pip install tox tox-gh-actions` + `tox -e lint` with `uv sync --extra dev` + `make lint` (or direct UV commands) | | |
-| TASK-043 | Update pr-management.yml - typing job: replace `pip install tox tox-gh-actions` + `tox -e type` with `uv sync --extra dev` + `make type` (or direct UV commands) | | |
-| TASK-044 | Update pr-management.yml - pytest job: replace `pip install tox tox-gh-actions` + `tox` with `uv sync --extra dev` + `make test` (or direct UV commands) | | |
-| TASK-045 | Update pr-management.yml - coverage job: replace `pip install .[dev]` + `python -m pytest` with `uv sync --extra dev` + `uv run pytest` | | |
-| TASK-046 | Update coverage-badge.yml: replace `pip install .[dev]` + `python -m pytest` with `uv sync --extra dev` + `uv run pytest --cov` | | |
-| TASK-047 | Update documentation.yml - build-and-validate job: replace `pip install .[doc]` with `uv sync --extra doc`, replace `mkdocs build` with `uv run mkdocs build`, replace `mike` commands with `uv run mike` | | |
-| TASK-048 | Update documentation.yml - deploy job: replace `pip install .[doc]` with `uv sync --extra doc`, replace all `mkdocs`/`mike` commands with `uv run` prefix | | |
-| TASK-049 | Update release.yml - pypi job: replace `pip install setuptools wheel build` + `python -m build` with UV installation + `uv build` | | |
-| TASK-050 | Update release.yml - pypi job: ensure uv.lock is included in source distribution (verify pyproject.toml [tool.setuptools] or MANIFEST.in includes uv.lock) | | |
-| TASK-051 | Update on_demand.yml: Docker builds reference Dockerfile which will be updated in Phase 6; no direct Python commands, verify Dockerfile changes are sufficient | | |
-| TASK-052 | Add UV caching to all workflows: use `astral-sh/setup-uv@v3` with built-in caching (caches `~/.cache/uv` automatically), or add manual cache step for `uv.lock` + `.venv` | | |
-| TASK-053 | Update pr-management.yml: remove actions/setup-python cache: 'pip' since UV handles caching differently | | |
-| TASK-054 | Update documentation.yml: remove actions/setup-python cache: 'pip' since UV handles caching differently | | |
-| TASK-055 | Test all workflows in feature branch: push to chore/python/uv branch and verify all jobs pass (check-sync, pre-commit, compiling, linting, typing, pytest, coverage) | | |
-| TASK-056 | Create PR from feature branch to main: verify all workflows execute successfully in PR context (especially coverage comment workflow) | | |
+| TASK-038 | Identify all workflows using pip/venv: pr-management.yml (6 jobs), release.yml (1 job), documentation.yml (2 jobs), on_demand.yml (Docker-only), coverage-badge.yml (1 job) | ✅ | 2025-11-04 |
+| TASK-039 | Add UV installation step using official action: `astral-sh/setup-uv@v3` with version 0.5.1 and caching enabled in all workflows that build/test code | ✅ | 2025-11-04 |
+| TASK-040 | Update pr-management.yml - check-sync job: replace `python .github/scripts/check-python-versions.py` with `uv run python .github/scripts/check-python-versions.py` | ✅ | 2025-11-04 |
+| TASK-041 | Update pr-management.yml - compiling job: replace `pip install .` and `pip install .[dev]` with `uv sync --frozen --extra dev` + `uv run python -m py_compile` | ✅ | 2025-11-04 |
+| TASK-042 | Update pr-management.yml - linting job: replace `pip install tox tox-gh-actions` + `tox -e lint` with `uv sync --frozen --extra dev` + `make ci-lint` | ✅ | 2025-11-04 |
+| TASK-043 | Update pr-management.yml - typing job: replace `pip install tox tox-gh-actions` + `tox -e type` with `uv sync --frozen --extra dev` + `make ci-type` | ✅ | 2025-11-04 |
+| TASK-044 | Update pr-management.yml - pytest job: replace `pip install tox tox-gh-actions` + `tox` with `uv sync --frozen --extra dev` + `make ci-test` | ✅ | 2025-11-04 |
+| TASK-045 | Update pr-management.yml - coverage job: replace `pip install .[dev]` + `python -m pytest` with `uv sync --frozen --extra dev` + `uv run pytest` | ✅ | 2025-11-04 |
+| TASK-046 | Update coverage-badge.yml: replace `pip install .[dev]` + `python -m pytest` with `uv sync --frozen --extra dev` + `uv run pytest --cov` | ✅ | 2025-11-04 |
+| TASK-047 | Update documentation.yml - build-and-validate job: replace `pip install .[doc]` with `uv sync --frozen --extra doc`, replace `mkdocs build` with `uv run mkdocs build`, replace `mike` commands with `uv run mike` | ✅ | 2025-11-04 |
+| TASK-048 | Update documentation.yml - deploy job: replace `pip install .[doc]` with `uv sync --frozen --extra doc`, replace all `mkdocs`/`mike` commands with `uv run` prefix | ✅ | 2025-11-04 |
+| TASK-049 | Update release.yml - pypi job: replace `pip install setuptools wheel build` + `python -m build` with UV installation + `uv build` | ✅ | 2025-11-04 |
+| TASK-050 | Update release.yml - pypi job: ensure uv.lock is included in source distribution (verify pyproject.toml [tool.setuptools] or MANIFEST.in includes uv.lock) | ✅ | 2025-11-04 |
+| TASK-051 | Update on_demand.yml: Docker builds reference Dockerfile which will be updated in Phase 6; no direct Python commands to migrate (Docker-only workflow, no changes needed) | ✅ | 2025-11-04 |
+| TASK-052 | Add UV caching to all workflows: use `astral-sh/setup-uv@v3` with built-in caching enabled via `enable-cache: true` (caches `~/.cache/uv` automatically) | ✅ | 2025-11-04 |
+| TASK-053 | Update pr-management.yml: removed actions/setup-python cache: 'pip' since UV handles caching differently (not applicable: workflow doesn't use pip cache) | ✅ | 2025-11-04 |
+| TASK-054 | Update documentation.yml: removed actions/setup-python cache: 'pip' since UV handles caching differently | ✅ | 2025-11-04 |
+| TASK-055 | Test all workflows in feature branch: push to chore/python/uv branch and verify all jobs pass (check-sync, pre-commit, compiling, linting, typing, pytest, coverage) | ⏳ | |
+| TASK-056 | Create PR from feature branch to main: verify all workflows execute successfully in PR context (especially coverage comment workflow) | ⏳ | |
 
 ### Implementation Phase 6: Docker Configuration
 
