@@ -89,15 +89,18 @@ This migration will modernize the development workflow while maintaining backwar
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-001 | Install UV locally for testing: `curl -LsSf https://astral.sh/uv/install.sh \| sh` or `brew install uv` | | |
-| TASK-002 | Verify UV installation: `uv --version` (should be >= 0.4.0) | | |
-| TASK-003 | Review current pyproject.toml structure: sections [build-system], [project], [project.optional-dependencies], [project.scripts], [tool.*] | | |
-| TASK-004 | Run `uv sync` in project root to test initial dependency resolution | | |
-| TASK-005 | Verify lockfile creation: `uv.lock` should be generated with all dependencies (main + dev + doc) pinned | | |
-| TASK-006 | Test installation with UV: `uv sync --all-extras` should install all dependencies without errors | | |
-| TASK-007 | Verify CLI commands work: `uv run ardl --version` and `uv run lard --version` should execute correctly | | |
-| TASK-008 | Add `uv.lock` to git tracking: `git add uv.lock` and commit with message "chore: add UV lockfile for deterministic builds" | | |
-| TASK-009 | Update .gitignore to include UV cache directories: `.uv/` and `.venv/` (if not already present) | | |
+| TASK-001 | Install UV locally for testing: `curl -LsSf https://astral.sh/uv/install.sh \| sh` or `brew install uv` | ✅ | 2025-11-04 |
+| TASK-002 | Verify UV installation: `uv --version` (should be >= 0.4.0) | ✅ | 2025-11-04 |
+| TASK-003 | Review current pyproject.toml structure: sections [build-system], [project], [project.optional-dependencies], [project.scripts], [tool.*] | ✅ | 2025-11-04 |
+| TASK-004 | Run `uv sync` in project root to test initial dependency resolution | ✅ | 2025-11-04 |
+| TASK-005 | Verify lockfile creation: `uv.lock` should be generated with all dependencies (main + dev + doc) pinned | ✅ | 2025-11-04 |
+| TASK-006 | Test installation with UV: `uv sync --all-extras` should install all dependencies without errors | ✅ | 2025-11-04 |
+| TASK-007 | Verify CLI commands work: `uv run ardl --version` and `uv run lard --version` should execute correctly | ✅ | 2025-11-04 |
+| TASK-008 | Add `uv.lock` to git tracking: `git add uv.lock` and commit with message "chore: add UV lockfile for deterministic builds" | ✅ | 2025-11-04 |
+| TASK-009 | Update .gitignore to include UV cache directories: `.uv/` and `.venv/` (if not already present) | ✅ | 2025-11-04 |
+| TASK-009a | Fix `.python-version`: replace invalid project name with actual Python version (e.g., `3.13`) to eliminate UV warnings | ✅ | 2025-11-04 |
+| TASK-009b | Fix VIRTUAL_ENV conflict: add `unset VIRTUAL_ENV` to `.envrc` to prevent pyenv/UV conflict warnings | ✅ | 2025-11-04 |
+| TASK-009c | Create example config files: `.python-version.example` and `.envrc.example` for documentation | ✅ | 2025-11-04 |
 
 ### Implementation Phase 2: Tox Command Migration & Makefile
 
