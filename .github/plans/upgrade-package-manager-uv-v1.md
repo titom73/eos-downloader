@@ -1,16 +1,16 @@
 ---
 goal: Migrate eos-downloader project from pip/setuptools to UV package manager
-version: 1.0
-date_created: 2025-01-04
-last_updated: 2025-01-04
+version: 1.1
+date_created: 2025-11-04
+last_updated: 2025-11-04
 owner: Thomas Grimonet
-status: Planned
+status: In progress
 tags: ['upgrade', 'infrastructure', 'tooling', 'uv', 'package-manager', 'devops']
 ---
 
 # Implementation Plan: Migration to UV Package Manager
 
-![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
+![Status: In progress](https://img.shields.io/badge/status-In%20progress-yellow)
 
 ## Introduction
 
@@ -43,6 +43,8 @@ This migration will modernize the development workflow while maintaining backwar
 - **REQ-010**: Ensure backward compatibility for end users installing from PyPI via pip
 - **REQ-011**: Preserve existing project structure (eos_downloader/ directory, tests/ structure)
 - **REQ-012**: Maintain Docker image functionality and build process
+- **REQ-013**: Support partial installations with UV (equivalent to `pip install -e .` and `pip install -e ".[doc]"`)
+- **REQ-014**: Preserve complete project definition from pyproject.toml without modifications (metadata, dependencies, build-system, scripts, optional-dependencies)
 
 ### Security Requirements
 
@@ -80,6 +82,9 @@ This migration will modernize the development workflow while maintaining backwar
 - **PAT-006**: Use `uv lock` to update lockfile after dependency changes (replaces pip-compile)
 - **PAT-007**: Use `uv build` for building distributions (replaces `python -m build`)
 - **PAT-008**: Use `uv pip compile` for generating requirements.txt if needed for legacy compatibility
+- **PAT-009**: Use `uv sync` for editable install without extras (replaces `pip install -e .`)
+- **PAT-010**: Use `uv sync --extra doc` for editable install with specific extra (replaces `pip install -e ".[doc]"`)
+- **PAT-011**: Use `uv sync --all-extras` for editable install with all extras (replaces `pip install -e ".[dev,doc]"`)
 
 ## 2. Implementation Steps
 
@@ -111,6 +116,8 @@ This migration will modernize the development workflow while maintaining backwar
 | TASK-010 | Document all existing tox commands from pyproject.toml [tool.tox] section: envlist = clean, lint, type, py{39,310,311,312} | | |
 | TASK-011 | Create Makefile with UV-based commands for developer convenience | | |
 | TASK-012 | Add Makefile target `make install`: runs `uv sync --all-extras` (replaces `pip install -e .[dev]`) | | |
+| TASK-012a | Add Makefile target `make install-base`: runs `uv sync` (replaces `pip install -e .`) | | |
+| TASK-012b | Add Makefile target `make install-doc`: runs `uv sync --extra doc` (replaces `pip install -e ".[doc]"`) | | |
 | TASK-013 | Add Makefile target `make test`: runs `uv run pytest --cov=eos_downloader --cov-report=term-missing --cov-report=html` (replaces `tox -e py39`) | | |
 | TASK-014 | Add Makefile target `make lint`: runs `uv run flake8 eos_downloader tests && uv run pylint eos_downloader` (replaces `tox -e lint`) | | |
 | TASK-015 | Add Makefile target `make type`: runs `uv run mypy eos_downloader` (replaces `tox -e type`) | | |
@@ -118,7 +125,7 @@ This migration will modernize the development workflow while maintaining backwar
 | TASK-017 | Add Makefile target `make format`: runs `uv run black eos_downloader tests && uv run isort eos_downloader tests` for code formatting | | |
 | TASK-018 | Add Makefile target `make docs`: runs `uv run mkdocs build` for documentation building | | |
 | TASK-019 | Test all Makefile targets locally to ensure parity with tox functionality and same test coverage | | |
-| TASK-020 | Document command mapping in README.md: create comparison table (tox commands -> UV/Makefile equivalents) | | |
+| TASK-020 | Document command mapping in README.md: create comparison table (pip/tox commands -> UV/Makefile equivalents, including partial installs) | | |
 
 ### Implementation Phase 3: Script Adaptation
 
@@ -266,6 +273,17 @@ This migration will modernize the development workflow while maintaining backwar
   - **Cons**: Rye is being deprecated in favor of UV, migration to UV would still be needed later
   - **Reason not chosen**: UV is the future direction from Astral; migrating to deprecated tool makes no sense
 
+### Partial Installation Support
+
+UV fully supports partial installations equivalent to pip's `-e .` and `-e ".[extra]"` patterns through its `--extra` flag system:
+
+- **Base install** (`pip install -e .`): `uv sync` - Installs only core dependencies
+- **Single extra** (`pip install -e ".[doc]"`): `uv sync --extra doc` - Installs core + doc dependencies
+- **Multiple extras** (`pip install -e ".[dev,doc]"`): `uv sync --extra dev --extra doc` - Installs core + specified extras
+- **All extras** (`pip install -e ".[dev]"` where dev includes all): `uv sync --all-extras` - Installs all dependency groups
+
+This maintains the same flexibility as pip while providing UV's performance benefits and deterministic resolution via uv.lock.
+
 ## 4. Dependencies
 
 ### External Dependencies
@@ -304,10 +322,12 @@ Phase 1 (UV Setup)
 
 ### Files to Create
 
-- **FILE-001**: `uv.lock` - UV lockfile with pinned dependencies (generated by `uv sync`, ~5000+ lines)
-- **FILE-002**: `Makefile` - Command aliases for UV operations (clean, install, test, lint, type, format, docs, build)
-- **FILE-003**: `docs/migration-guide-uv.md` - Migration guide for existing contributors
-- **FILE-004**: `docs/uv-commands-cheatsheet.md` - UV command reference and comparison table
+- **FILE-001**: `uv.lock` - UV lockfile with pinned dependencies (generated by `uv sync`, ~2769+ lines)
+- **FILE-002**: `Makefile` - Command aliases for UV operations (clean, install, install-base, install-doc, test, lint, type, format, docs, build)
+- **FILE-003**: `docs/migration-guide-uv.md` - Migration guide for existing contributors, including partial installation examples
+- **FILE-004**: `docs/uv-commands-cheatsheet.md` - UV command reference and comparison table with pip equivalents including partial installs
+- **FILE-005**: `.python-version.example` - Example Python version file (contains actual Python version like `3.13`)
+- **FILE-006**: `.envrc.example` - Example direnv configuration with `unset VIRTUAL_ENV` to prevent UV warnings
 
 ### Files to Modify
 
@@ -418,8 +438,23 @@ Phase 1 (UV Setup)
 - **TEST-024**: Dependency removal: `uv remove requests-mock`
   - **Expected**: Dependency removed from pyproject.toml, uv.lock updated
   
-- **TEST-025**: Cross-platform test: Run `uv sync` on Linux, macOS, Windows
+- **TEST-025a**: Partial installation (base): `uv sync` in fresh clone
+  - **Expected**: Only core dependencies installed, package available in editable mode, CLI commands work
+  
+- **TEST-025b**: Partial installation (doc extra): `uv sync --extra doc` in fresh clone
+  - **Expected**: Core + doc dependencies installed (mkdocs, mkdocstrings, etc.), documentation buildable
+  
+- **TEST-025c**: Partial installation (dev extra): `uv sync --extra dev` in fresh clone
+  - **Expected**: Core + dev dependencies installed (pytest, flake8, mypy, etc.), tests runnable
+  
+- **TEST-025d**: Full installation: `uv sync --all-extras` in fresh clone
+  - **Expected**: All dependencies installed (core + dev + doc), all commands work
+  
+- **TEST-026**: Cross-platform test: Run `uv sync` on Linux, macOS, Windows
   - **Expected**: UV works identically on all platforms, same uv.lock behavior
+  
+- **TEST-027**: pyproject.toml preservation: Verify [project], [project.scripts], [project.optional-dependencies], [build-system] sections unchanged
+  - **Expected**: All project metadata preserved exactly, no UV-specific modifications needed
 
 ## 7. Risks & Assumptions
 
