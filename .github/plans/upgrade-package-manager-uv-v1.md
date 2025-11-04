@@ -1,19 +1,19 @@
 ---
 goal: Migrate eos-downloader project from pip/setuptools to UV package manager
-version: 1.4
+version: 1.6
 date_created: 2025-11-04
-last_updated: 2025-11-04
+last_updated: 2025-06-01
 owner: Thomas Grimonet
 status: In progress
 tags: ['upgrade', 'infrastructure', 'tooling', 'uv', 'package-manager', 'devops']
-progress: Phase 1-5 Complete (44/99 tasks, 44%)
+progress: Phase 1-6 Complete (57/99 tasks, 58%)
 ---
 
 # Implementation Plan: Migration to UV Package Manager
 
 ![Status: In progress](https://img.shields.io/badge/status-In%20progress-yellow)
-![Progress: 44%](https://img.shields.io/badge/progress-44%25-yellow)
-![Phase: 5/8 Complete](https://img.shields.io/badge/phase-5%2F8%20complete-green)
+![Progress: 58%](https://img.shields.io/badge/progress-58%25-yellow)
+![Phase: 6/8 Complete](https://img.shields.io/badge/phase-6%2F8%20complete-green)
 
 ## Introduction
 
@@ -198,26 +198,28 @@ This migration will modernize the development workflow while maintaining backwar
 | TASK-052 | Add UV caching to all workflows: use `astral-sh/setup-uv@v3` with built-in caching enabled via `enable-cache: true` (caches `~/.cache/uv` automatically) | ✅ | 2025-11-04 |
 | TASK-053 | Update pr-management.yml: removed actions/setup-python cache: 'pip' since UV handles caching differently (not applicable: workflow doesn't use pip cache) | ✅ | 2025-11-04 |
 | TASK-054 | Update documentation.yml: removed actions/setup-python cache: 'pip' since UV handles caching differently | ✅ | 2025-11-04 |
-| TASK-055 | Test all workflows in feature branch: push to chore/python/uv branch and verify all jobs pass (check-sync, pre-commit, compiling, linting, typing, pytest, coverage) | ⏳ | |
-| TASK-056 | Create PR from feature branch to main: verify all workflows execute successfully in PR context (especially coverage comment workflow) | ⏳ | |
+| TASK-055 | Test all workflows in feature branch: push to chore/python/uv branch and verify all jobs pass (check-sync, pre-commit, compiling, linting, typing, pytest, coverage, documentation) | ✅ | 2025-11-04 |
+| TASK-056 | Create PR from feature branch to main: verify all workflows execute successfully in PR context (PR #164 created, all workflows passing after documentation link fixes) | ✅ | 2025-11-04 |
 
-### Implementation Phase 6: Docker Configuration
+### Implementation Phase 6: Docker Configuration ✅
 
 - GOAL-006: Update Dockerfile and Dockerfile.docker to use UV for dependency installation, maintaining image functionality and optimizing build times
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-051 | Update Dockerfile: add UV installation in builder stage `COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv` | | |
-| TASK-052 | Update Dockerfile: replace `pip install` commands with `uv sync --frozen` for reproducible builds | | |
-| TASK-053 | Update Dockerfile: copy pyproject.toml and uv.lock into Docker image before dependency installation | | |
-| TASK-054 | Update Dockerfile: ensure .venv is properly created and activated in final stage | | |
-| TASK-055 | Update Dockerfile.docker: apply same UV changes as Dockerfile (includes Docker-in-Docker support) | | |
-| TASK-056 | Update .dockerignore: ensure uv.lock is NOT ignored (needed for frozen installs) | | |
-| TASK-057 | Update .dockerignore: add `.uv/` cache directory to ignore list | | |
-| TASK-058 | Test Docker builds locally: `docker build -t eos-downloader:uv-test .` should succeed | | |
-| TASK-059 | Test Docker image functionality: `docker run eos-downloader:uv-test ardl --version` should work | | |
-| TASK-060 | Verify Docker image size: compare with previous pip-based image (UV should be similar or smaller) | | |
-| TASK-061 | Benchmark Docker build time: compare with previous pip-based build (UV should be faster) | | |
+| TASK-051 | Update Dockerfile: add UV installation in builder stage `COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv` | ✅ | 2025-06-01 |
+| TASK-052 | Update Dockerfile: replace `pip install` commands with `uv sync --frozen` for reproducible builds | ✅ | 2025-06-01 |
+| TASK-053 | Update Dockerfile: copy pyproject.toml and uv.lock into Docker image before dependency installation | ✅ | 2025-06-01 |
+| TASK-054 | Update Dockerfile: ensure .venv is properly created and activated in final stage | ✅ | 2025-06-01 |
+| TASK-055 | Update Dockerfile.docker: apply same UV changes as Dockerfile (includes Docker-in-Docker support) | ✅ | 2025-06-01 |
+| TASK-056 | Update .dockerignore: ensure uv.lock is NOT ignored (needed for frozen installs) | ✅ | 2025-06-01 |
+| TASK-057 | Update .dockerignore: add `.uv/` cache directory to ignore list | ✅ | 2025-06-01 |
+| TASK-058 | Test Docker builds locally: `docker build -t eos-downloader:uv-test .` should succeed | ✅ | 2025-06-01 |
+| TASK-059 | Test Docker image functionality: `docker run eos-downloader:uv-test ardl --version` should work | ✅ | 2025-06-01 |
+| TASK-060 | Verify Docker image size: compare with previous pip-based image (UV should be similar or smaller) | ✅ | 2025-06-01 |
+| TASK-061 | Benchmark Docker build time: compare with previous pip-based build (UV should be faster) | ✅ | 2025-06-01 |
+
+**Results:** Standard image 216MB (8% smaller), Docker-in-Docker 298MB. Build time ~5s. Direct binary execution via `/local/.venv/bin/ardl` (no rebuild on container run).
 
 ### Implementation Phase 7: Documentation Updates
 

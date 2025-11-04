@@ -4,6 +4,7 @@
 # Allow files and directories
 !/eos_downloader/
 !/pyproject.toml
+!/uv.lock
 !/LICENSE
 
 # Ignore unnecessary files inside allowed directories
@@ -12,3 +13,17 @@
 **/*.log
 **/.DS_Store
 **/Thumbs.db
+
+# Ignore UV cache directory
+.uv/
+**/.uv/
+
+# Ignore Python cache
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environments
+.venv/
+**/.venv/
