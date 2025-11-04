@@ -126,6 +126,8 @@ This migration will modernize the development workflow while maintaining backwar
 | TASK-018 | Add Makefile target `make docs`: runs `uv run mkdocs build` for documentation building | | |
 | TASK-019 | Test all Makefile targets locally to ensure parity with tox functionality and same test coverage | | |
 | TASK-020 | Document command mapping in README.md: create comparison table (pip/tox commands -> UV/Makefile equivalents, including partial installs) | | |
+| TASK-020a | Document Makefile targets for GitHub Actions usage: ensure targets are compatible with CI environment (no interactive prompts, proper exit codes) | | |
+| TASK-020b | Consider adding Makefile target aliases for common CI operations: `make ci-lint`, `make ci-test`, `make ci-type` with appropriate flags (e.g., --no-cov-on-fail) | | |
 
 ### Implementation Phase 3: Script Adaptation
 
@@ -164,19 +166,25 @@ This migration will modernize the development workflow while maintaining backwar
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-038 | Identify all workflows using pip/venv: pr-management.yml, release.yml, documentation.yml, on_demand.yml, coverage-badge.yml | | |
-| TASK-039 | Add UV installation step using official action: `astral-sh/setup-uv@v3` (https://github.com/astral-sh/setup-uv) | | |
-| TASK-040 | Update pr-management.yml: replace `pip install` with `uv sync --all-extras` in all test jobs | | |
-| TASK-041 | Update pr-management.yml: replace test execution `pytest` with `uv run pytest` | | |
-| TASK-042 | Update pr-management.yml: replace lint commands with `uv run flake8` and `uv run pylint` | | |
-| TASK-043 | Update pr-management.yml: replace type checking with `uv run mypy` | | |
-| TASK-044 | Update release.yml: replace pip build commands with `uv build` for PyPI publishing | | |
-| TASK-045 | Update release.yml: ensure uv.lock is included in source distribution for reproducibility | | |
-| TASK-046 | Update documentation.yml: replace pip install with `uv sync` and mkdocs build with `uv run mkdocs build` | | |
-| TASK-047 | Update on_demand.yml: replace pip commands with UV equivalents if workflow exists | | |
-| TASK-048 | Update coverage-badge.yml: use UV for pytest-cov execution: `uv run pytest --cov` | | |
-| TASK-049 | Add caching for UV in all workflows: cache `~/.cache/uv` and `uv.lock` for faster subsequent runs | | |
-| TASK-050 | Test all workflows in feature branch: create test PR to verify all jobs pass successfully | | |
+| TASK-038 | Identify all workflows using pip/venv: pr-management.yml (5 jobs), release.yml (1 job), documentation.yml (2 jobs), on_demand.yml (2 jobs), coverage-badge.yml (1 job) | | |
+| TASK-039 | Add UV installation step using official action: `astral-sh/setup-uv@v3` in all workflows that build/test code | | |
+| TASK-040 | Update pr-management.yml - check-sync job: replace `python .github/scripts/check-python-versions.py` with `uv run python .github/scripts/check-python-versions.py` | | |
+| TASK-041 | Update pr-management.yml - compiling job: replace `pip install .` and `pip install .[dev]` with `uv sync --all-extras` | | |
+| TASK-042 | Update pr-management.yml - linting job: replace `pip install tox tox-gh-actions` + `tox -e lint` with `uv sync --extra dev` + `make lint` (or direct UV commands) | | |
+| TASK-043 | Update pr-management.yml - typing job: replace `pip install tox tox-gh-actions` + `tox -e type` with `uv sync --extra dev` + `make type` (or direct UV commands) | | |
+| TASK-044 | Update pr-management.yml - pytest job: replace `pip install tox tox-gh-actions` + `tox` with `uv sync --extra dev` + `make test` (or direct UV commands) | | |
+| TASK-045 | Update pr-management.yml - coverage job: replace `pip install .[dev]` + `python -m pytest` with `uv sync --extra dev` + `uv run pytest` | | |
+| TASK-046 | Update coverage-badge.yml: replace `pip install .[dev]` + `python -m pytest` with `uv sync --extra dev` + `uv run pytest --cov` | | |
+| TASK-047 | Update documentation.yml - build-and-validate job: replace `pip install .[doc]` with `uv sync --extra doc`, replace `mkdocs build` with `uv run mkdocs build`, replace `mike` commands with `uv run mike` | | |
+| TASK-048 | Update documentation.yml - deploy job: replace `pip install .[doc]` with `uv sync --extra doc`, replace all `mkdocs`/`mike` commands with `uv run` prefix | | |
+| TASK-049 | Update release.yml - pypi job: replace `pip install setuptools wheel build` + `python -m build` with UV installation + `uv build` | | |
+| TASK-050 | Update release.yml - pypi job: ensure uv.lock is included in source distribution (verify pyproject.toml [tool.setuptools] or MANIFEST.in includes uv.lock) | | |
+| TASK-051 | Update on_demand.yml: Docker builds reference Dockerfile which will be updated in Phase 6; no direct Python commands, verify Dockerfile changes are sufficient | | |
+| TASK-052 | Add UV caching to all workflows: use `astral-sh/setup-uv@v3` with built-in caching (caches `~/.cache/uv` automatically), or add manual cache step for `uv.lock` + `.venv` | | |
+| TASK-053 | Update pr-management.yml: remove actions/setup-python cache: 'pip' since UV handles caching differently | | |
+| TASK-054 | Update documentation.yml: remove actions/setup-python cache: 'pip' since UV handles caching differently | | |
+| TASK-055 | Test all workflows in feature branch: push to chore/python/uv branch and verify all jobs pass (check-sync, pre-commit, compiling, linting, typing, pytest, coverage) | | |
+| TASK-056 | Create PR from feature branch to main: verify all workflows execute successfully in PR context (especially coverage comment workflow) | | |
 
 ### Implementation Phase 6: Docker Configuration
 
@@ -288,11 +296,12 @@ This maintains the same flexibility as pip while providing UV's performance bene
 
 ### External Dependencies
 
-- **DEP-001**: UV package manager (https://github.com/astral-sh/uv) - minimum version 0.4.0, recommended latest stable
-- **DEP-002**: GitHub Actions astral-sh/setup-uv action (https://github.com/astral-sh/setup-uv) for CI/CD integration
-- **DEP-003**: Docker base images must support UV installation (Python 3.9+ images, any Linux distro with curl)
-- **DEP-004**: All existing Python dependencies must remain compatible with UV resolver (verified in Phase 1)
-- **DEP-005**: Bumpver compatibility with UV environment for automated version management
+- **DEP-001**: UV package manager (https://github.com/astral-sh/uv) - minimum version 0.4.0, recommended latest stable (0.9.7+ verified)
+- **DEP-002**: GitHub Actions astral-sh/setup-uv action (https://github.com/astral-sh/setup-uv) - version v3 or later for CI/CD integration with built-in caching
+- **DEP-003**: Docker base images must support UV installation (Python 3.9+ images, any Linux distro with curl) - verified with Python 3.13.5
+- **DEP-004**: All existing Python dependencies must remain compatible with UV resolver (verified in Phase 1: 131 packages resolved successfully)
+- **DEP-005**: Bumpver compatibility with UV environment for automated version management (to be tested in Phase 4)
+- **DEP-006**: GitHub Actions runners must support UV installation (ubuntu-latest verified, matrix includes Python 3.9-3.12)
 
 ### Internal Dependencies
 
@@ -336,11 +345,11 @@ Phase 1 (UV Setup)
 - **FILE-007**: `CONTRIBUTING.md` - Replace all pip commands with UV equivalents throughout document
 - **FILE-008**: `docs/contributing.md` - Mirror CONTRIBUTING.md changes for consistency
 - **FILE-009**: `docs/faq.md` - Add UV-related FAQs (installation, troubleshooting, benefits)
-- **FILE-010**: `.github/workflows/pr-management.yml` - Replace pip with UV, add UV caching
-- **FILE-011**: `.github/workflows/release.yml` - Replace pip with UV, use `uv build` for packaging
-- **FILE-012**: `.github/workflows/documentation.yml` - Replace pip with UV for docs build
-- **FILE-013**: `.github/workflows/on_demand.yml` - Replace pip with UV if workflow exists
-- **FILE-014**: `.github/workflows/coverage-badge.yml` - Replace pip with UV for test execution
+- **FILE-010**: `.github/workflows/pr-management.yml` - Replace pip/tox with UV in 6 jobs: check-sync (1 command), compiling (2 commands), linting (2 commands), typing (2 commands), pytest (2 commands), coverage (2 commands)
+- **FILE-011**: `.github/workflows/release.yml` - Replace pip build with UV: pypi job (2 commands: install build tools, run build)
+- **FILE-012**: `.github/workflows/documentation.yml` - Replace pip with UV in 2 jobs: build-and-validate (3 commands: install, mkdocs, mike), deploy (3 commands: install, mike deploy, mike set-default)
+- **FILE-013**: `.github/workflows/on_demand.yml` - No direct Python commands (Docker builds only), verify Dockerfile changes from Phase 6 are sufficient
+- **FILE-014**: `.github/workflows/coverage-badge.yml` - Replace pip with UV: coverage job (2 commands: install, pytest)
 - **FILE-015**: `Dockerfile` - Add UV installation, use `uv sync --frozen`, copy uv.lock
 - **FILE-016**: `Dockerfile.docker` - Same UV changes as Dockerfile for Docker-in-Docker variant
 - **FILE-017**: `.github/scripts/check-python-versions.py` - Test and update if needed for UV compatibility
@@ -418,13 +427,43 @@ Phase 1 (UV Setup)
   - **Expected**: Confirms uv.lock is up to date with pyproject.toml
   
 - **TEST-018**: GitHub Actions pr-management workflow: Push to feature branch, create PR
-  - **Expected**: All jobs pass (test matrix for Python 3.9-3.12, lint, type check)
+  - **Expected**: All jobs pass (setup, check-sync, pre-commit matrix, compiling matrix, linting matrix, typing matrix, pytest matrix, coverage)
   
-- **TEST-019**: GitHub Actions caching: Run workflow twice, check cache hit
-  - **Expected**: Second run uses cache, significantly faster dependency installation
+- **TEST-018a**: GitHub Actions pr-management - check-sync job: Verify Python version synchronization script runs with UV
+  - **Expected**: Script executes successfully with `uv run python`, detects version mismatches if any
   
-- **TEST-020**: Package installation from PyPI (post-release validation): `pip install eos-downloader`
-  - **Expected**: End users can still install via pip (backward compatibility maintained)
+- **TEST-018b**: GitHub Actions pr-management - compiling job: Verify UV sync installs dependencies across all Python versions (3.9-3.12)
+  - **Expected**: Matrix job succeeds for all Python versions, dependencies installed via UV, py_compile validation passes
+  
+- **TEST-018c**: GitHub Actions pr-management - linting/typing jobs: Verify Makefile targets (or direct UV commands) execute flake8, pylint, mypy
+  - **Expected**: All linters run successfully, no new errors introduced by UV migration
+  
+- **TEST-018d**: GitHub Actions pr-management - pytest job: Verify tests run across Python matrix with UV
+  - **Expected**: All tests pass for Python 3.9-3.12, coverage collected correctly
+  
+- **TEST-018e**: GitHub Actions pr-management - coverage job: Verify coverage report generated and PR commented
+  - **Expected**: Coverage JSON created, percentage extracted, PR comment posted/updated with coverage data
+  
+- **TEST-019**: GitHub Actions coverage-badge workflow: Push to main branch, verify badge update
+  - **Expected**: Coverage badge generated, uploaded to Gist, artifact uploaded with coverage.json
+  
+- **TEST-019a**: GitHub Actions caching: Run workflow twice, check UV cache hit
+  - **Expected**: Second run uses UV cache (`~/.cache/uv`), significantly faster dependency resolution (<1s vs 6s+)
+  
+- **TEST-020**: GitHub Actions documentation workflow: PR to main with docs changes
+  - **Expected**: build-and-validate job succeeds, mkdocs builds docs, mike test deployment works
+  
+- **TEST-020a**: GitHub Actions documentation workflow: Push tag (e.g., v0.14.1), verify docs deployment
+  - **Expected**: deploy job triggers, mike deploys with version tag and "stable" alias, default version set
+  
+- **TEST-020b**: GitHub Actions release workflow: Push version tag, verify PyPI publish and Docker builds
+  - **Expected**: pypi job builds with `uv build`, publishes to PyPI, docker jobs succeed, trigger-docs-deployment confirms docs workflow
+  
+- **TEST-020c**: GitHub Actions on_demand workflow: Manual trigger with custom tag
+  - **Expected**: Docker builds succeed with Dockerfiles using UV (no Python commands in workflow itself)
+  
+- **TEST-021**: Package installation from PyPI (post-release validation): `pip install eos-downloader`
+  - **Expected**: End users can still install via pip (backward compatibility maintained), uv.lock included in sdist
   
 - **TEST-021**: Makefile targets: `make clean && make install && make test && make lint && make type`
   - **Expected**: All Makefile targets execute successfully
@@ -466,9 +505,14 @@ Phase 1 (UV Setup)
   - **Mitigation**: Thorough testing in feature branch before merge; keep rollback plan ready; report issues to UV project with detailed reproduction
   
 - **RISK-002**: GitHub Actions UV setup may fail on certain runner versions or OS combinations
-  - **Likelihood**: Low (astral-sh/setup-uv action is well-maintained)
+  - **Likelihood**: Low (astral-sh/setup-uv action is well-maintained, ubuntu-latest verified)
   - **Impact**: Medium (CI/CD pipeline failures)
-  - **Mitigation**: Test on all runner versions in matrix (ubuntu-latest, windows-latest if applicable); have fallback to pip installation if UV setup fails
+  - **Mitigation**: Test on all runner versions in matrix (ubuntu-latest primary); have fallback to manual UV installation via curl if setup-uv action fails; monitor astral-sh/setup-uv releases for breaking changes
+  
+- **RISK-002a**: Tox removal may break existing developer workflows or CI pipelines not covered by main workflows
+  - **Likelihood**: Medium (some developers may have local tox aliases or scripts)
+  - **Impact**: Low (documentation and Makefile provide alternatives)
+  - **Mitigation**: Keep [tool.tox] section in pyproject.toml for reference during migration; provide clear migration guide with command mappings; announce change in PR description; consider keeping tox as optional dev dependency temporarily
   
 - **RISK-003**: Docker build time or final image size may increase unexpectedly
   - **Likelihood**: Very Low (UV should be faster and similar/smaller size)
