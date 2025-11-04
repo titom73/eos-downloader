@@ -24,7 +24,7 @@ uv sync
 - Runtime requirements for CLI commands (ardl, lard)
 - Essential libraries (cryptography, paramiko, cvprac)
 
-**Use case**: 
+**Use case**:
 - Production deployments
 - Docker containers
 - Minimal installations

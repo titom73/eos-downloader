@@ -1,16 +1,19 @@
 ---
 goal: Migrate eos-downloader project from pip/setuptools to UV package manager
-version: 1.1
+version: 1.2
 date_created: 2025-11-04
 last_updated: 2025-11-04
 owner: Thomas Grimonet
 status: In progress
 tags: ['upgrade', 'infrastructure', 'tooling', 'uv', 'package-manager', 'devops']
+progress: Phase 1 & 2 Complete (25/99 tasks, 25%)
 ---
 
 # Implementation Plan: Migration to UV Package Manager
 
 ![Status: In progress](https://img.shields.io/badge/status-In%20progress-yellow)
+![Progress: 25%](https://img.shields.io/badge/progress-25%25-yellow)
+![Phase: 2/8 Complete](https://img.shields.io/badge/phase-2%2F8%20complete-green)
 
 ## Introduction
 
@@ -110,24 +113,36 @@ This migration will modernize the development workflow while maintaining backwar
 ### Implementation Phase 2: Tox Command Migration & Makefile
 
 - GOAL-002: Replace tox commands with UV equivalents while maintaining exact same functionality and test coverage
+- STATUS: ✅ **COMPLETED** (2025-11-04)
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-010 | Document all existing tox commands from pyproject.toml [tool.tox] section: envlist = clean, lint, type, py{39,310,311,312} | | |
-| TASK-011 | Create Makefile with UV-based commands for developer convenience | | |
-| TASK-012 | Add Makefile target `make install`: runs `uv sync --all-extras` (replaces `pip install -e .[dev]`) | | |
-| TASK-012a | Add Makefile target `make install-base`: runs `uv sync` (replaces `pip install -e .`) | | |
-| TASK-012b | Add Makefile target `make install-doc`: runs `uv sync --extra doc` (replaces `pip install -e ".[doc]"`) | | |
-| TASK-013 | Add Makefile target `make test`: runs `uv run pytest --cov=eos_downloader --cov-report=term-missing --cov-report=html` (replaces `tox -e py39`) | | |
-| TASK-014 | Add Makefile target `make lint`: runs `uv run flake8 eos_downloader tests && uv run pylint eos_downloader` (replaces `tox -e lint`) | | |
-| TASK-015 | Add Makefile target `make type`: runs `uv run mypy eos_downloader` (replaces `tox -e type`) | | |
-| TASK-016 | Add Makefile target `make clean`: runs cleanup commands for test artifacts, cache, etc. (replaces `tox -e clean`) | | |
-| TASK-017 | Add Makefile target `make format`: runs `uv run black eos_downloader tests && uv run isort eos_downloader tests` for code formatting | | |
-| TASK-018 | Add Makefile target `make docs`: runs `uv run mkdocs build` for documentation building | | |
-| TASK-019 | Test all Makefile targets locally to ensure parity with tox functionality and same test coverage | | |
-| TASK-020 | Document command mapping in README.md: create comparison table (pip/tox commands -> UV/Makefile equivalents, including partial installs) | | |
-| TASK-020a | Document Makefile targets for GitHub Actions usage: ensure targets are compatible with CI environment (no interactive prompts, proper exit codes) | | |
-| TASK-020b | Consider adding Makefile target aliases for common CI operations: `make ci-lint`, `make ci-test`, `make ci-type` with appropriate flags (e.g., --no-cov-on-fail) | | |
+| TASK-010 | Document all existing tox commands from pyproject.toml [tool.tox] section: envlist = clean, lint, type, py{39,310,311,312} | ✅ | 2025-11-04 |
+| TASK-011 | Create Makefile with UV-based commands for developer convenience | ✅ | 2025-11-04 |
+| TASK-012 | Add Makefile target `make install`: runs `uv sync --all-extras` (replaces `pip install -e .[dev]`) | ✅ | 2025-11-04 |
+| TASK-012a | Add Makefile target `make install-base`: runs `uv sync` (replaces `pip install -e .`) | ✅ | 2025-11-04 |
+| TASK-012b | Add Makefile target `make install-doc`: runs `uv sync --extra doc` (replaces `pip install -e ".[doc]"`) | ✅ | 2025-11-04 |
+| TASK-013 | Add Makefile target `make test`: runs `uv run pytest --cov=eos_downloader --cov-report=term-missing --cov-report=html` (replaces `tox -e py39`) | ✅ | 2025-11-04 |
+| TASK-014 | Add Makefile target `make lint`: runs `uv run flake8 eos_downloader tests && uv run pylint eos_downloader` (replaces `tox -e lint`) | ✅ | 2025-11-04 |
+| TASK-015 | Add Makefile target `make type`: runs `uv run mypy eos_downloader` (replaces `tox -e type`) | ✅ | 2025-11-04 |
+| TASK-016 | Add Makefile target `make clean`: runs cleanup commands for test artifacts, cache, etc. (replaces `tox -e clean`) | ✅ | 2025-11-04 |
+| TASK-017 | Add Makefile target `make format`: runs `uv run black eos_downloader tests && uv run isort eos_downloader tests` for code formatting | ✅ | 2025-11-04 |
+| TASK-018 | Add Makefile target `make docs`: runs `uv run mkdocs build` for documentation building | ✅ | 2025-11-04 |
+| TASK-019 | Test all Makefile targets locally to ensure parity with tox functionality and same test coverage | ✅ | 2025-11-04 |
+| TASK-020 | Document command mapping in README.md: create comparison table (pip/tox commands -> UV/Makefile equivalents, including partial installs) | ✅ | 2025-11-04 |
+| TASK-020a | Document Makefile targets for GitHub Actions usage: ensure targets are compatible with CI environment (no interactive prompts, proper exit codes) | ✅ | 2025-11-04 |
+| TASK-020b | Consider adding Makefile target aliases for common CI operations: `make ci-lint`, `make ci-test`, `make ci-type` with appropriate flags (e.g., --no-cov-on-fail) | ✅ | 2025-11-04 |
+
+**Phase 2 Deliverables:**
+- ✅ Enhanced Makefile with 30+ UV-based targets (development, CI/CD, utility)
+- ✅ **Backward-compatible tox.ini** that delegates to UV + Makefile (compromise solution)
+- ✅ All targets tested locally: `make lint`, `make type`, `make test`, `make coverage`, `make check`, `make ci-all` all pass
+- ✅ Tox commands still work: `tox -e lint`, `tox -e type`, `tox -e test`, `tox -e all` all pass
+- ✅ Comprehensive migration guide: `docs/tox-to-uv-migration.md` (detailed command mappings, benefits, troubleshooting)
+- ✅ CI/CD integration targets: `make ci-install`, `make ci-lint`, `make ci-type`, `make ci-test`, `make ci-coverage`, `make ci-all`
+- ✅ Code formatted with black: 17 files reformatted for consistency
+- ✅ 221 tests passing with pytest
+- ✅ **Best of both worlds:** Team can keep using familiar `tox` commands, but UV provides the performance
 
 ### Implementation Phase 3: Script Adaptation
 
@@ -255,17 +270,17 @@ This migration will modernize the development workflow while maintaining backwar
   - **Pros**: Mature ecosystem, large community, good documentation, proven track record
   - **Cons**: Slower than UV (Python-based vs Rust-based), adds abstraction layer over setuptools, migration would require poetry.lock format
   - **Reason not chosen**: UV provides significantly better performance (10-100x faster) and is more aligned with standard Python tooling without additional abstraction layers
-  
+
 - **ALT-002**: PDM (https://pdm.fming.dev/) - Modern Python package manager with PEP 582 support
   - **Pros**: Modern, supports PEP 582 (__pypackages__), good performance
   - **Cons**: Smaller community than Poetry, less established, performance not as good as UV
   - **Reason not chosen**: UV has better performance benchmarks, stronger momentum, and backing from Astral (Ruff creators)
-  
+
 - **ALT-003**: Stay with pip + pip-tools (https://pip-tools.readthedocs.io/)
   - **Pros**: Industry standard, universally supported, minimal learning curve, no migration needed
   - **Cons**: Slower dependency resolution, manual lockfile management with pip-compile, multiple tools needed (pip, pip-tools, virtualenv)
   - **Reason not chosen**: Does not provide the performance benefits, modern features (single tool), and improved developer experience of UV
-  
+
 - **ALT-004**: Pipenv (https://pipenv.pypa.io/) - Official PyPA virtual environment and dependency manager
   - **Pros**: Official PyPA tool, integrated Pipfile/Pipfile.lock, built-in virtualenv management
   - **Cons**: Significantly slower than UV, has had maintenance concerns historically, less active development
@@ -377,121 +392,121 @@ Phase 1 (UV Setup)
 
 - **TEST-001**: Fresh UV installation: `curl -LsSf https://astral.sh/uv/install.sh | sh && uv --version`
   - **Expected**: UV installs successfully, version >= 0.4.0 displayed
-  
+
 - **TEST-002**: Initial dependency installation: `uv sync --all-extras` from clean checkout
   - **Expected**: All dependencies (main + dev + doc) install without errors, .venv created, uv.lock generated
-  
+
 - **TEST-003**: Full test suite execution: `uv run pytest --cov=eos_downloader --cov-report=term-missing`
   - **Expected**: All tests pass (100+ tests), coverage >= 80% (same or better than current)
-  
+
 - **TEST-004**: Linting with flake8: `uv run flake8 eos_downloader tests`
   - **Expected**: No new linting errors introduced (existing count maintained)
-  
+
 - **TEST-005**: Linting with pylint: `uv run pylint eos_downloader`
   - **Expected**: No new pylint errors introduced (existing score maintained)
-  
+
 - **TEST-006**: Type checking: `uv run mypy eos_downloader`
   - **Expected**: No new type errors introduced (existing type coverage maintained)
-  
+
 - **TEST-007**: Package building: `uv build`
   - **Expected**: Wheel and sdist created in dist/ directory, both installable
-  
+
 - **TEST-008**: Documentation building: `uv run mkdocs build`
   - **Expected**: Documentation builds without errors, site/ directory created
-  
+
 - **TEST-009**: CLI functionality: `uv run ardl --version && uv run ardl --help`
   - **Expected**: CLI commands work correctly, version and help displayed
-  
+
 - **TEST-010**: CLI subcommands: `uv run ardl get eos --help && uv run ardl info eos --help`
   - **Expected**: All subcommands accessible and functional
-  
+
 - **TEST-011**: Docker build: `docker build -t eos-downloader:uv-test -f Dockerfile .`
   - **Expected**: Image builds successfully in <5 minutes (faster than pip)
-  
+
 - **TEST-012**: Docker functionality: `docker run eos-downloader:uv-test ardl --version`
   - **Expected**: CLI works in container, correct version displayed
-  
+
 - **TEST-013**: Docker size comparison: `docker images | grep eos-downloader`
   - **Expected**: Image size similar or smaller than current pip-based image
-  
+
 - **TEST-014**: Version bumping: `uv run bumpver update --dry --patch`
   - **Expected**: Dry run shows correct version updates in pyproject.toml, __init__.py
-  
+
 - **TEST-015**: Lockfile update after version bump: `uv lock` after bumpver
   - **Expected**: uv.lock updates with new version, no dependency changes
-  
+
 - **TEST-016**: Script execution: `uv run python .github/scripts/check-python-versions.py`
   - **Expected**: Script runs successfully, validates Python versions
-  
+
 - **TEST-017**: Lockfile freshness check: `uv lock --check`
   - **Expected**: Confirms uv.lock is up to date with pyproject.toml
-  
+
 - **TEST-018**: GitHub Actions pr-management workflow: Push to feature branch, create PR
   - **Expected**: All jobs pass (setup, check-sync, pre-commit matrix, compiling matrix, linting matrix, typing matrix, pytest matrix, coverage)
-  
+
 - **TEST-018a**: GitHub Actions pr-management - check-sync job: Verify Python version synchronization script runs with UV
   - **Expected**: Script executes successfully with `uv run python`, detects version mismatches if any
-  
+
 - **TEST-018b**: GitHub Actions pr-management - compiling job: Verify UV sync installs dependencies across all Python versions (3.9-3.12)
   - **Expected**: Matrix job succeeds for all Python versions, dependencies installed via UV, py_compile validation passes
-  
+
 - **TEST-018c**: GitHub Actions pr-management - linting/typing jobs: Verify Makefile targets (or direct UV commands) execute flake8, pylint, mypy
   - **Expected**: All linters run successfully, no new errors introduced by UV migration
-  
+
 - **TEST-018d**: GitHub Actions pr-management - pytest job: Verify tests run across Python matrix with UV
   - **Expected**: All tests pass for Python 3.9-3.12, coverage collected correctly
-  
+
 - **TEST-018e**: GitHub Actions pr-management - coverage job: Verify coverage report generated and PR commented
   - **Expected**: Coverage JSON created, percentage extracted, PR comment posted/updated with coverage data
-  
+
 - **TEST-019**: GitHub Actions coverage-badge workflow: Push to main branch, verify badge update
   - **Expected**: Coverage badge generated, uploaded to Gist, artifact uploaded with coverage.json
-  
+
 - **TEST-019a**: GitHub Actions caching: Run workflow twice, check UV cache hit
   - **Expected**: Second run uses UV cache (`~/.cache/uv`), significantly faster dependency resolution (<1s vs 6s+)
-  
+
 - **TEST-020**: GitHub Actions documentation workflow: PR to main with docs changes
   - **Expected**: build-and-validate job succeeds, mkdocs builds docs, mike test deployment works
-  
+
 - **TEST-020a**: GitHub Actions documentation workflow: Push tag (e.g., v0.14.1), verify docs deployment
   - **Expected**: deploy job triggers, mike deploys with version tag and "stable" alias, default version set
-  
+
 - **TEST-020b**: GitHub Actions release workflow: Push version tag, verify PyPI publish and Docker builds
   - **Expected**: pypi job builds with `uv build`, publishes to PyPI, docker jobs succeed, trigger-docs-deployment confirms docs workflow
-  
+
 - **TEST-020c**: GitHub Actions on_demand workflow: Manual trigger with custom tag
   - **Expected**: Docker builds succeed with Dockerfiles using UV (no Python commands in workflow itself)
-  
+
 - **TEST-021**: Package installation from PyPI (post-release validation): `pip install eos-downloader`
   - **Expected**: End users can still install via pip (backward compatibility maintained), uv.lock included in sdist
-  
+
 - **TEST-021**: Makefile targets: `make clean && make install && make test && make lint && make type`
   - **Expected**: All Makefile targets execute successfully
-  
+
 - **TEST-022**: Fresh contributor setup: Clone repo, follow README UV setup, run tests
   - **Expected**: New contributor can set up environment and run tests in <5 minutes
-  
+
 - **TEST-023**: Dependency addition: `uv add requests-mock` as dev dependency
   - **Expected**: Dependency added to pyproject.toml [project.optional-dependencies.dev], uv.lock updated
-  
+
 - **TEST-024**: Dependency removal: `uv remove requests-mock`
   - **Expected**: Dependency removed from pyproject.toml, uv.lock updated
-  
+
 - **TEST-025a**: Partial installation (base): `uv sync` in fresh clone
   - **Expected**: Only core dependencies installed, package available in editable mode, CLI commands work
-  
+
 - **TEST-025b**: Partial installation (doc extra): `uv sync --extra doc` in fresh clone
   - **Expected**: Core + doc dependencies installed (mkdocs, mkdocstrings, etc.), documentation buildable
-  
+
 - **TEST-025c**: Partial installation (dev extra): `uv sync --extra dev` in fresh clone
   - **Expected**: Core + dev dependencies installed (pytest, flake8, mypy, etc.), tests runnable
-  
+
 - **TEST-025d**: Full installation: `uv sync --all-extras` in fresh clone
   - **Expected**: All dependencies installed (core + dev + doc), all commands work
-  
+
 - **TEST-026**: Cross-platform test: Run `uv sync` on Linux, macOS, Windows
   - **Expected**: UV works identically on all platforms, same uv.lock behavior
-  
+
 - **TEST-027**: pyproject.toml preservation: Verify [project], [project.scripts], [project.optional-dependencies], [build-system] sections unchanged
   - **Expected**: All project metadata preserved exactly, no UV-specific modifications needed
 
@@ -503,37 +518,37 @@ Phase 1 (UV Setup)
   - **Likelihood**: Low (UV is well-tested, used in production by many projects)
   - **Impact**: Medium (could block migration, require workarounds)
   - **Mitigation**: Thorough testing in feature branch before merge; keep rollback plan ready; report issues to UV project with detailed reproduction
-  
+
 - **RISK-002**: GitHub Actions UV setup may fail on certain runner versions or OS combinations
   - **Likelihood**: Low (astral-sh/setup-uv action is well-maintained, ubuntu-latest verified)
   - **Impact**: Medium (CI/CD pipeline failures)
   - **Mitigation**: Test on all runner versions in matrix (ubuntu-latest primary); have fallback to manual UV installation via curl if setup-uv action fails; monitor astral-sh/setup-uv releases for breaking changes
-  
+
 - **RISK-002a**: Tox removal may break existing developer workflows or CI pipelines not covered by main workflows
   - **Likelihood**: Medium (some developers may have local tox aliases or scripts)
   - **Impact**: Low (documentation and Makefile provide alternatives)
   - **Mitigation**: Keep [tool.tox] section in pyproject.toml for reference during migration; provide clear migration guide with command mappings; announce change in PR description; consider keeping tox as optional dev dependency temporarily
-  
+
 - **RISK-003**: Docker build time or final image size may increase unexpectedly
   - **Likelihood**: Very Low (UV should be faster and similar/smaller size)
   - **Impact**: Low (minor performance degradation)
   - **Mitigation**: Benchmark before/after migration; optimize Dockerfile layers; use multi-stage builds effectively; consider UV caching in build
-  
+
 - **RISK-004**: Some dependencies may have issues with UV's resolver (rare edge cases)
   - **Likelihood**: Very Low (UV uses same PyPI index as pip, compatible resolver)
   - **Impact**: High if it occurs (migration blocked)
   - **Mitigation**: Test dependency resolution early in Phase 1; if issues found, report to UV project; worst case, document workarounds or stay with pip for specific dependencies
-  
+
 - **RISK-005**: Contributors may resist changing from familiar pip workflow
   - **Likelihood**: Medium (change management challenge)
   - **Impact**: Low (training/documentation can address)
   - **Mitigation**: Provide clear documentation with command comparison table; emphasize performance benefits (10-100x faster); create migration guide for contributors; offer help/support during transition period
-  
+
 - **RISK-006**: bumpver may not work correctly with UV-managed project or lockfile updates
   - **Likelihood**: Low (bumpver is tool-agnostic, works with pyproject.toml)
   - **Impact**: Medium (version management disrupted)
   - **Mitigation**: Test thoroughly in Phase 4; add post-bumpver hook to run `uv lock`; document manual lockfile update if needed; consider alternative version bumping tools if bumpver incompatible
-  
+
 - **RISK-007**: Lockfile merge conflicts in collaborative development
   - **Likelihood**: Medium (multiple contributors updating dependencies)
   - **Impact**: Low (can be resolved with `uv lock`)
@@ -544,31 +559,31 @@ Phase 1 (UV Setup)
 - **ASSUMPTION-001**: UV will remain actively maintained and supported by Astral
   - **Validation**: Astral is well-funded, UV is strategic product for them (part of Ruff ecosystem)
   - **Risk if false**: Would need to migrate to another tool (Poetry, PDM)
-  
+
 - **ASSUMPTION-002**: UV's lockfile format (uv.lock) will remain stable and backward compatible
   - **Validation**: UV follows semantic versioning, major version changes would be announced
   - **Risk if false**: May need lockfile regeneration on UV updates
-  
+
 - **ASSUMPTION-003**: All current dependencies (cryptography, paramiko, requests, tqdm, loguru, rich, cvprac, click, pydantic) are compatible with UV resolver
   - **Validation**: UV uses standard PyPI resolution, compatible with pip
   - **Risk if false**: Would need to find workarounds or alternative dependencies (unlikely)
-  
+
 - **ASSUMPTION-004**: GitHub Actions runners will continue to support UV installation via astral-sh/setup-uv action
   - **Validation**: Official action maintained by Astral, widely used
   - **Risk if false**: Can fall back to manual UV installation via curl or cargo
-  
+
 - **ASSUMPTION-005**: UV's performance benefits (10-100x faster) will be realized in this project's CI/CD pipelines
   - **Validation**: Benchmarks from UV project show consistent speedups
   - **Risk if false**: Still get other benefits (deterministic builds, better tooling), performance neutral worst case
-  
+
 - **ASSUMPTION-006**: End users installing from PyPI via pip will not be affected (backward compatibility)
   - **Validation**: UV only affects development; published packages work with pip
   - **Risk if false**: Critical issue, would need to fix packaging (unlikely scenario)
-  
+
 - **ASSUMPTION-007**: Docker base images (Python 3.9+ official images) support UV installation without issues
   - **Validation**: UV installs via curl or binary copy, minimal requirements
   - **Risk if false**: Can use alternative installation methods (cargo, manual binary)
-  
+
 - **ASSUMPTION-008**: The project's current test suite (pytest, coverage, flake8, pylint, mypy) is comprehensive enough to validate UV migration
   - **Validation**: Current coverage >= 80%, tests passing consistently
   - **Risk if false**: May miss edge cases; mitigated by thorough manual testing in Phase 8

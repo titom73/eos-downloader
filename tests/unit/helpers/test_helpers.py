@@ -251,9 +251,7 @@ class TestDownloadProgressBar:
         mock_get.return_value = mock_response
         task_id = progress_bar.progress.add_task("test", start=False)
 
-        with patch.object(
-            progress_bar.progress, "update"
-        ) as mock_update:
+        with patch.object(progress_bar.progress, "update") as mock_update:
             progress_bar._copy_url(
                 task_id, "http://example.com/file.txt", "/tmp/file.txt"
             )
@@ -407,9 +405,7 @@ class TestDownloadProgressBar:
         mock_get.return_value = mock_response
         task_id = progress_bar.progress.add_task("test", start=False)
 
-        progress_bar._copy_url(
-            task_id, "http://example.com/file.txt", "/tmp/file.txt"
-        )
+        progress_bar._copy_url(task_id, "http://example.com/file.txt", "/tmp/file.txt")
 
         # Verify headers were passed
         call_kwargs = mock_get.call_args[1]

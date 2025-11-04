@@ -131,8 +131,8 @@ markdown_extensions:
 - pymdownx.critic
 - pymdownx.details
 - pymdownx.emoji:
-    emoji_index: !!python/name:material.extensions.emoji.twemoji
-    emoji_generator: !!python/name:material.extensions.emoji.to_svg
+    emoji_index: !!python/name:material.extensions.emoji.twemoji ""
+    emoji_generator: !!python/name:material.extensions.emoji.to_svg ""
 - pymdownx.highlight
 - pymdownx.inlinehilite
 - pymdownx.magiclink
@@ -146,7 +146,7 @@ markdown_extensions:
     custom_fences:
     - name: mermaid
       class: mermaid
-      format: !!python/name:pymdownx.superfences.fence_code_format
+      format: !!python/name:pymdownx.superfences.fence_code_format ""
 - pymdownx.tabbed:
     alternate_style: true
 - pymdownx.tasklist:
@@ -170,6 +170,9 @@ nav:
   - Environment variables: usage/environment.md
   - Version information: usage/info.md
   - Software mapping: usage/mapping.md
+- Development:
+  - UV installation mode: dev-notes/uv-installation-modes.md
+  - tox to uv notes: dev-notes/tox-to-uv-migration.md
 - Code documentation:
   - Models:
     - Version: api/models/version.md

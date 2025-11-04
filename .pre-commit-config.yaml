@@ -36,10 +36,10 @@ repos:
 - repo: local # as per https://pylint.pycqa.org/en/latest/user_guide/installation/pre-commit-integration.html
   hooks:
   - id: pylint
-    entry: pylint
-    language: python
+    entry: uv run pylint
+    language: system
     name: Check for Linting error on Python files
-    description: This hook runs pylint.
+    description: This hook runs pylint via UV.
     types: [ python ]
     args:
     - -rn # Only display messages

@@ -547,9 +547,7 @@ class TestCvpCommand:
 
         # Assert
         assert result.exit_code == 0
-        mock_querier.latest.assert_called_once_with(
-            package="cvp", branch=None
-        )
+        mock_querier.latest.assert_called_once_with(package="cvp", branch=None)
 
     @patch("eos_downloader.cli.get.commands.initialize")
     @patch("eos_downloader.cli.get.commands.AristaXmlQuerier")
@@ -590,9 +588,7 @@ class TestCvpCommand:
 
         # Assert
         assert result.exit_code == 0
-        mock_querier.latest.assert_called_once_with(
-            package="cvp", branch="2024.2"
-        )
+        mock_querier.latest.assert_called_once_with(package="cvp", branch="2024.2")
 
     @patch("eos_downloader.cli.get.commands.initialize")
     @patch("eos_downloader.cli.get.commands.CvpXmlObject")
@@ -661,9 +657,7 @@ class TestCvpCommand:
 
         # Assert
         assert result.exit_code == 0
-        mock_soft_manager.assert_called_once_with(
-            dry_run=True, force_download=False
-        )
+        mock_soft_manager.assert_called_once_with(dry_run=True, force_download=False)
 
     @patch("eos_downloader.cli.get.commands.initialize")
     @patch("eos_downloader.cli.get.commands.AristaXmlQuerier")
@@ -1171,6 +1165,5 @@ class TestPathCommand:
         assert result.exit_code == 0
         # In debug mode, should print URL
         assert any(
-            "URL to download" in str(call)
-            for call in mock_console.print.call_args_list
+            "URL to download" in str(call) for call in mock_console.print.call_args_list
         )
