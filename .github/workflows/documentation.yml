@@ -64,7 +64,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync --frozen --extra doc
+        uv sync --extra doc
 
     - name: Build documentation
       run: |
@@ -135,7 +135,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync --frozen --extra doc
+        uv sync --extra doc
 
     - name: Determine version and alias
       id: version_info

@@ -179,7 +179,7 @@ If you see:
 warning: `VIRTUAL_ENV=...` does not match the project environment path `.venv`
 ```
 
-**Solution**: Add `unset VIRTUAL_ENV` to your `.envrc` file (see [`.envrc.example`](../.envrc.example))
+**Solution**: Add `unset VIRTUAL_ENV` to your `.envrc` file
 
 ### Warning: Unsupported Python request in .python-version
 
@@ -188,11 +188,10 @@ If you see:
 warning: Ignoring unsupported Python request `eos-downloader` in version file
 ```
 
-**Solution**: Update `.python-version` to contain actual Python version (e.g., `3.13`) instead of project name (see [`.python-version.example`](../.python-version.example))
+**Solution**: Update `.python-version` to contain actual Python version (e.g., `3.13`) instead of project name
 
 ## See Also
 
 - [UV Documentation](https://docs.astral.sh/uv/)
 - [UV Installation Guide](https://docs.astral.sh/uv/getting-started/installation/)
-- [Migration Guide](migration-guide-uv.md)
-- [UV Commands Cheatsheet](uv-commands-cheatsheet.md)
+- [Tox to UV Migration Guide](tox-to-uv-migration.md)

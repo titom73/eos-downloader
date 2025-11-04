@@ -326,7 +326,9 @@ If you're migrating from tox to UV:
 
 - **UV Documentation:** https://docs.astral.sh/uv/
 - **UV Installation Modes:** [`docs/uv-installation-modes.md`](./uv-installation-modes.md)
-- **Migration Plan:** [`.github/plans/upgrade-package-manager-uv-v1.md`](../.github/plans/upgrade-package-manager-uv-v1.md)
+## Additional Resources
+
+- **Migration Plan:** [View on GitHub](https://github.com/titom73/eos-downloader/blob/main/.github/plans/upgrade-package-manager-uv-v1.md)
 - **Makefile:** [`Makefile`](../Makefile) (see all available targets with `make help`)
 
 ---
@@ -373,7 +375,7 @@ make reset         # Full reset
 If you have questions about the migration:
 
 1. Check the [UV documentation](https://docs.astral.sh/uv/)
-2. Review the [migration plan](.github/plans/upgrade-package-manager-uv-v1.md)
+2. Review the [migration plan](https://github.com/titom73/eos-downloader/blob/main/.github/plans/upgrade-package-manager-uv-v1.md)
 3. Open an issue on GitHub
 
 **Happy migrating!** 🚀
