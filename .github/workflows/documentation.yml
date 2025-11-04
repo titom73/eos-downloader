@@ -55,16 +55,20 @@ jobs:
       uses: actions/setup-python@v6
       with:
         python-version: ${{ steps.python-version.outputs.version }}
-        cache: 'pip'
+
+    - name: Install UV
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "0.5.1"
+        enable-cache: true
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install .[doc]
+        uv sync --frozen --extra doc
 
     - name: Build documentation
       run: |
-        mkdocs build --strict --verbose --clean
+        uv run mkdocs build --strict --verbose --clean
 
     - name: Test mike configuration
       run: |
@@ -73,10 +77,10 @@ jobs:
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
         # Test mike deploy (creates local commit, no push)
-        mike deploy test-build test
+        uv run mike deploy test-build test
 
         # List versions to verify mike configuration
-        mike list
+        uv run mike list
 
         # Undo the test commit
         git reset --soft HEAD~1
@@ -117,7 +121,12 @@ jobs:
       uses: actions/setup-python@v6
       with:
         python-version: ${{ steps.python-version.outputs.version }}
-        cache: 'pip'
+
+    - name: Install UV
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "0.5.1"
+        enable-cache: true
 
     - name: Setup Git config
       run: |
@@ -126,8 +135,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install .[doc]
+        uv sync --frozen --extra doc
 
     - name: Determine version and alias
       id: version_info
@@ -168,11 +176,11 @@ jobs:
         if [[ -n "$ALIAS" ]]; then
           # Deploy with alias
           echo "Deploying $VERSION with alias $ALIAS"
-          mike deploy --push --update-aliases "$VERSION" "$ALIAS"
+          uv run mike deploy --push --update-aliases "$VERSION" "$ALIAS"
         else
           # Deploy without alias
           echo "Deploying $VERSION without alias"
-          mike deploy --push "$VERSION"
+          uv run mike deploy --push "$VERSION"
         fi
 
     - name: Set default version
@@ -180,12 +188,12 @@ jobs:
       run: |
         # For releases, set stable as the default landing page
         echo "Setting stable as default version"
-        mike set-default --push stable
+        uv run mike set-default --push stable
 
     - name: List deployed versions
       run: |
         echo "Currently deployed documentation versions:"
-        mike list
+        uv run mike list
 
     - name: Add deployment summary
       run: |
@@ -208,5 +216,5 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 📋 All Deployed Versions" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        mike list >> $GITHUB_STEP_SUMMARY
+        uv run mike list >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

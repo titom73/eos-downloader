@@ -42,15 +42,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Install UV
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.1"
+          enable-cache: true
+
       - name: Check Python versions synchronization
         run: |
-          python .github/scripts/check-python-versions.py
+          uv run python .github/scripts/check-python-versions.py
 
       - name: Provide fix instructions if out of sync
         if: failure()
         run: |
           echo "::error::Python versions are out of sync between .github/python-versions.json and pyproject.toml"
-          echo "::notice::To fix this, run: python .github/scripts/sync-python-versions.py"
+          echo "::notice::To fix this, run: uv run python .github/scripts/sync-python-versions.py"
 
 
   pre-commit:
@@ -82,16 +88,19 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: install requirements
-        run: |
-          pip install .
+      - name: Install UV
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.1"
+          enable-cache: true
 
-      - name: install dev requirements
-        run: pip install .[dev]
-
-      - name: validate the syntax of python scripts
+      - name: Install dependencies
         run: |
-          python -m py_compile $(git ls-files '*.py')
+          uv sync --frozen --extra dev
+
+      - name: Validate the syntax of python scripts
+        run: |
+          uv run python -m py_compile $(git ls-files '*.py')
 
   linting:
     name: Run flake8, pylint for supported Python versions
@@ -110,11 +119,18 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Install dependencies
-        run: pip install tox tox-gh-actions
+      - name: Install UV
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.1"
+          enable-cache: true
 
-      - name: "Run tox for ${{ matrix.python }}"
-        run: tox -e lint
+      - name: Install dependencies
+        run: |
+          uv sync --frozen --extra dev
+
+      - name: Run linting
+        run: make ci-lint
 
   typing:
     name: Run mypy for supported Python versions
@@ -133,11 +149,18 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Install dependencies
-        run: pip install tox tox-gh-actions
+      - name: Install UV
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.1"
+          enable-cache: true
 
-      - name: "Run tox for ${{ matrix.python }}"
-        run: tox -e type
+      - name: Install dependencies
+        run: |
+          uv sync --frozen --extra dev
+
+      - name: Run type checking
+        run: make ci-type
 
   pytest:
     name: Run pytest validation
@@ -156,12 +179,18 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Install dependencies
-        run: pip install tox tox-gh-actions
+      - name: Install UV
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.1"
+          enable-cache: true
 
-      - name: "Run tox for ${{ matrix.python }}"
-        # run: tox -e testenv
-        run: tox
+      - name: Install dependencies
+        run: |
+          uv sync --frozen --extra dev
+
+      - name: Run tests
+        run: make ci-test
 
   coverage:
     name: Coverage Report
@@ -187,14 +216,19 @@ jobs:
         with:
           python-version: ${{ steps.python-version.outputs.version }}
 
+      - name: Install UV
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.1"
+          enable-cache: true
+
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install .[dev]
+          uv sync --frozen --extra dev
 
       - name: Run tests with coverage
         run: |
-          python -m pytest --cov=eos_downloader --cov-report=term-missing --cov-report=json --cov-branch tests/
+          uv run pytest --cov=eos_downloader --cov-report=term-missing --cov-report=json --cov-branch tests/
 
       - name: Debug coverage file
         run: |
