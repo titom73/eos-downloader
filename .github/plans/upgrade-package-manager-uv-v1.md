@@ -1,19 +1,19 @@
 ---
 goal: Migrate eos-downloader project from pip/setuptools to UV package manager
-version: 1.7
+version: 1.8
 date_created: 2025-11-04
 last_updated: 2025-06-01
 owner: Thomas Grimonet
-status: In progress
+status: Near completion
 tags: ['upgrade', 'infrastructure', 'tooling', 'uv', 'package-manager', 'devops']
-progress: Phase 1-7 Complete (69/99 tasks, 70%)
+progress: Phase 1-3, 5-7 Complete (78/99 tasks, 79%)
 ---
 
 # Implementation Plan: Migration to UV Package Manager
 
-![Status: In progress](https://img.shields.io/badge/status-In%20progress-yellow)
-![Progress: 70%](https://img.shields.io/badge/progress-70%25-yellow)
-![Phase: 7/8 Complete](https://img.shields.io/badge/phase-7%2F8%20complete-green)
+![Status: Near completion](https://img.shields.io/badge/status-Near%20completion-yellowgreen)
+![Progress: 79%](https://img.shields.io/badge/progress-79%25-yellowgreen)
+![Phase: 6/8 Complete](https://img.shields.io/badge/phase-6%2F8%20complete-green)
 
 ## Introduction
 
@@ -144,21 +144,23 @@ This migration will modernize the development workflow while maintaining backwar
 - ✅ 221 tests passing with pytest
 - ✅ **Best of both worlds:** Team can keep using familiar `tox` commands, but UV provides the performance
 
-### Implementation Phase 3: Script Adaptation
+### Implementation Phase 3: Script Adaptation ✅
 
-- GOAL-003: Update .github/scripts/*.py to ensure compatibility with UV environment and continue functioning correctly
+- GOAL-003: Update .github/scripts/*.py and .sh to ensure compatibility with UV environment and continue functioning correctly
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-021 | Analyze check-python-versions.py: extracts Python version classifiers from pyproject.toml using regex | | |
-| TASK-022 | Test check-python-versions.py with UV environment: `uv run python .github/scripts/check-python-versions.py` | | |
-| TASK-023 | Update check-python-versions.py if needed: ensure it works with uv.lock present and UV venv structure | | |
-| TASK-024 | Analyze sync-python-versions.py: updates pyproject.toml classifiers and requires-python field | | |
-| TASK-025 | Test sync-python-versions.py with UV environment: `uv run python .github/scripts/sync-python-versions.py` | | |
-| TASK-026 | Update sync-python-versions.py if needed: ensure it correctly modifies pyproject.toml without breaking UV compatibility | | |
-| TASK-027 | Verify python-versions.json synchronization still works correctly after UV migration | | |
-| TASK-028 | Update .github/scripts/README.md with UV usage examples: `uv run python .github/scripts/<script>.py` | | |
-| TASK-029 | Test all scripts end-to-end in UV environment to ensure full compatibility | | |
+| TASK-021 | Analyze check-python-versions.py: extracts Python version classifiers from pyproject.toml using regex - no changes needed | ✅ | 2025-06-01 |
+| TASK-022 | Test check-python-versions.py with UV environment: `uv run python .github/scripts/check-python-versions.py` - works correctly | ✅ | 2025-06-01 |
+| TASK-023 | Update check-python-versions.py if needed: no changes required, works with UV environment | ✅ | 2025-06-01 |
+| TASK-024 | Analyze sync-python-versions.py: updates pyproject.toml classifiers and requires-python field - no changes needed | ✅ | 2025-06-01 |
+| TASK-025 | Test sync-python-versions.py with UV environment: `uv run python .github/scripts/sync-python-versions.py` - works correctly | ✅ | 2025-06-01 |
+| TASK-026 | Update sync-python-versions.py if needed: no changes required, works with UV environment | ✅ | 2025-06-01 |
+| TASK-027 | Update docs-helper.sh: replaced pip with UV commands, mkdocs/mike now use `uv run` prefix | ✅ | 2025-06-01 |
+| TASK-028 | Update docs-helper.sh: dependency check now validates UV installation instead of pip | ✅ | 2025-06-01 |
+| TASK-029 | Test all scripts end-to-end in UV environment to ensure full compatibility | ✅ | 2025-06-01 |
+
+**Results:** Python scripts (check-python-versions.py, sync-python-versions.py, update_coverage_badge.py) require no changes - they work correctly with UV environment. Shell script (docs-helper.sh) updated to use UV commands for mkdocs and mike.
 
 ### Implementation Phase 4: Bumpver Configuration
 

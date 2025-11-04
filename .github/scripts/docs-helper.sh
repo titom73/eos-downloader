@@ -39,15 +39,16 @@ print_header() {
 check_dependencies() {
     print_header "Checking Dependencies"
 
-    if ! command -v python &> /dev/null; then
-        print_error "Python is not installed"
+    if ! command -v uv &> /dev/null; then
+        print_error "UV is not installed"
+        print_info "Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"
         exit 1
     fi
-    print_success "Python found: $(python --version)"
+    print_success "UV found: $(uv --version)"
 
-    if ! python -c "import mkdocs" &> /dev/null; then
+    if ! uv run python -c "import mkdocs" &> /dev/null; then
         print_warning "MkDocs not found. Installing dependencies..."
-        pip install -e ".[doc]"
+        uv sync --extra doc
     fi
     print_success "MkDocs is installed"
 
@@ -65,14 +66,14 @@ serve_docs() {
     print_info "Access at: http://127.0.0.1:8000"
     print_info "Press Ctrl+C to stop"
     echo ""
-    mkdocs serve
+    uv run mkdocs serve
 }
 
 # Build documentation
 build_docs() {
     print_header "Building Documentation"
     print_info "Building with strict mode..."
-    mkdocs build --strict --verbose --clean
+    uv run mkdocs build --strict --verbose --clean
     print_success "Documentation built successfully!"
     print_info "Output directory: ./site/"
 }
@@ -89,11 +90,11 @@ test_mike() {
     fi
 
     print_info "Testing local deployment (creates local commit, no push)..."
-    mike deploy test-build test
+    uv run mike deploy test-build test
 
     print_success "Mike test deployment successful!"
     print_info "Listing all versions:"
-    mike list
+    uv run mike list
 
     print_warning "Note: This created a local commit. To undo: git reset --soft HEAD~1"
 }
@@ -140,10 +141,10 @@ deploy_version() {
 
     if [ -n "$alias" ]; then
         print_info "Deploying $version with alias: $alias"
-        mike deploy --push "$version" "$alias"
+        uv run mike deploy --push "$version" "$alias"
     else
         print_info "Deploying $version without alias"
-        mike deploy --push "$version"
+        uv run mike deploy --push "$version"
     fi
 
     print_success "Deployment complete!"
@@ -169,7 +170,7 @@ delete_version() {
     echo
 
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        mike delete --push "$version"
+        uv run mike delete --push "$version"
         print_success "Version $version deleted"
     else
         print_info "Deletion cancelled"
@@ -187,7 +188,7 @@ set_default() {
     fi
 
     print_header "Setting Default Version: $version"
-    mike set-default --push "$version"
+    uv run mike set-default --push "$version"
     print_success "Default version set to: $version"
 }
 
