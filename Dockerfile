@@ -1,12 +1,17 @@
 ARG PYTHON_VER=3
 ARG BUILDPLATFORM=linux/amd64
 
+FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:latest AS uv
+
 FROM --platform=$BUILDPLATFORM python:${PYTHON_VER}-slim
 
-RUN pip install --upgrade pip
+# Copy UV from official image
+COPY --from=uv /uv /usr/local/bin/uv
 
 WORKDIR /local
-COPY . /local
+
+# Copy dependency files first for better layer caching
+COPY pyproject.toml uv.lock ./
 
 LABEL maintainer="Thomas Grimonet <tom@inetsix.net>"
 LABEL   "org.opencontainers.image.title"="eos-downloader" \
@@ -22,7 +27,12 @@ LABEL   "org.opencontainers.image.title"="eos-downloader" \
         "org.opencontainers.image.revision"="dev" \
         "org.opencontainers.image.version"="dev"
 
-ENV PYTHONPATH=/local
-RUN pip --no-cache-dir install .
+# Copy application code
+COPY . /local
 
-ENTRYPOINT [ "/usr/local/bin/ardl" ]
+# Install dependencies and application using UV with frozen lockfile for reproducibility
+RUN uv sync --frozen --no-dev --no-editable
+
+ENV PATH="/local/.venv/bin:$PATH"
+
+ENTRYPOINT [ "ardl" ]

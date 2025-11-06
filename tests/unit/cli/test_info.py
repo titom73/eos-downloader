@@ -124,9 +124,7 @@ class TestInfoVersionsCommand:
         assert output_data[0]["branch"] == "2024.3"
 
     @patch("eos_downloader.cli.info.commands.AristaXmlQuerier")
-    def test_versions_text_output(
-        self, mock_querier_class, runner, mock_eos_versions
-    ):
+    def test_versions_text_output(self, mock_querier_class, runner, mock_eos_versions):
         """Test versions command with text output format."""
         # Setup mock
         mock_querier = Mock()
@@ -158,9 +156,7 @@ class TestInfoVersionsCommand:
     ):
         """Test versions command filtering by branch."""
         # Setup mock - only return versions for specific branch
-        filtered_versions = [
-            v for v in mock_eos_versions if v.branch == "4.29"
-        ]
+        filtered_versions = [v for v in mock_eos_versions if v.branch == "4.29"]
         mock_querier = Mock()
         mock_querier.available_public_versions.return_value = filtered_versions
         mock_querier_class.return_value = mock_querier
@@ -249,9 +245,7 @@ class TestInfoVersionsCommand:
         """Test versions command with debug flag shows exception details."""
         # Setup mock to raise ValueError
         mock_querier = Mock()
-        mock_querier.available_public_versions.side_effect = ValueError(
-            "API Error"
-        )
+        mock_querier.available_public_versions.side_effect = ValueError("API Error")
         mock_querier_class.return_value = mock_querier
 
         # Execute with debug
@@ -360,9 +354,7 @@ class TestInfoLatestCommand:
         assert "4.29.3M" in result.output
 
     @patch("eos_downloader.cli.info.commands.AristaXmlQuerier")
-    def test_latest_cvp_version(
-        self, mock_querier_class, runner, mock_cvp_versions
-    ):
+    def test_latest_cvp_version(self, mock_querier_class, runner, mock_cvp_versions):
         """Test getting latest CVP version."""
         # Setup mock
         mock_querier = Mock()
@@ -388,9 +380,7 @@ class TestInfoLatestCommand:
         assert "2024.3.0" in result.output
 
     @patch("eos_downloader.cli.info.commands.AristaXmlQuerier")
-    def test_latest_with_branch(
-        self, mock_querier_class, runner, mock_eos_versions
-    ):
+    def test_latest_with_branch(self, mock_querier_class, runner, mock_eos_versions):
         """Test latest version for specific branch."""
         # Setup mock
         mock_querier = Mock()
@@ -448,9 +438,7 @@ class TestInfoLatestCommand:
         )
 
     @patch("eos_downloader.cli.info.commands.AristaXmlQuerier")
-    def test_latest_json_format(
-        self, mock_querier_class, runner, mock_eos_versions
-    ):
+    def test_latest_json_format(self, mock_querier_class, runner, mock_eos_versions):
         """Test latest version with JSON output."""
         # Setup mock
         mock_querier = Mock()
@@ -476,9 +464,7 @@ class TestInfoLatestCommand:
         assert output_data["version"] == "4.29.3M"
 
     @patch("eos_downloader.cli.info.commands.AristaXmlQuerier")
-    def test_latest_text_format(
-        self, mock_querier_class, runner, mock_eos_versions
-    ):
+    def test_latest_text_format(self, mock_querier_class, runner, mock_eos_versions):
         """Test latest version with text output."""
         # Setup mock
         mock_querier = Mock()

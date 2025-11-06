@@ -31,34 +31,76 @@ git remote add upstream https://github.com/titom73/eos-downloader.git
 
 - Python 3.9 or higher
 - Git
-- A virtual environment tool (venv, conda, etc.)
+- [UV package manager](https://github.com/astral-sh/uv) (replaces pip, pip-tools, virtualenv)
 
-#### Environment Setup
+#### Install UV (One-Time Setup)
 
 ```bash
-# Create and activate a virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+# Linux/macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install the package in development mode with all dependencies
-pip install -e ".[dev]"
+# macOS with Homebrew
+brew install uv
+
+# Verify installation
+uv --version  # Should show 0.4.0 or higher
+```
+
+#### Environment Setup with UV
+
+UV automatically creates and manages virtual environments - no need for manual venv creation!
+
+```bash
+# Install all development dependencies (creates .venv automatically)
+uv sync --all-extras
+
+# This installs:
+# - Core dependencies
+# - Development tools (pytest, ruff, mypy, etc.)
+# - Documentation tools (mkdocs, etc.)
 
 # Install pre-commit hooks for code quality
-pre-commit install
+uv run pre-commit install
 ```
+
+**What `uv sync` does:**
+- Creates `.venv/` directory if it doesn't exist
+- Installs dependencies from `uv.lock` (deterministic)
+- Installs the package in editable mode
+- Validates dependency resolution
 
 #### Verify Installation
 
 ```bash
 # Run tests to ensure everything is working
-pytest
+uv run pytest
 
 # Check code style
-tox -e lint
+make lint
+# or directly: uv run ruff check .
 
 # Run type checking
-tox -e type
+make type
+# or directly: uv run mypy eos_downloader
+
+# Test CLI
+uv run ardl --help
 ```
+
+#### UV Command Reference
+
+| Task | pip/tox Command | UV Command |
+|------|----------------|------------|
+| Install dev dependencies | `pip install -e ".[dev]"` | `uv sync --all-extras` |
+| Install docs only | `pip install -e ".[doc]"` | `uv sync --extra doc` |
+| Run command in venv | `python -m pytest` | `uv run pytest` |
+| Add dependency | Edit pyproject.toml + `pip install -e .` | `uv add <package>` |
+| Add dev dependency | Edit pyproject.toml + `pip install -e ".[dev]"` | `uv add --dev <package>` |
+| Remove dependency | Edit pyproject.toml + `pip uninstall` | `uv remove <package>` |
+| Update lockfile | `pip-compile` | `uv lock` |
+| Update all dependencies | `pip install --upgrade -e ".[dev]"` | `uv lock --upgrade` |
+| Build package | `python -m build` | `uv build` |
+| Show dependencies | `pip list` | `uv pip list` |
 
 ## Development Workflow
 
@@ -207,22 +249,26 @@ class TestEosVersion:
 
 ```bash
 # Run all tests
-pytest
+uv run pytest
 
 # Run with coverage
-pytest --cov=eos_downloader --cov-report=term-missing
+uv run pytest --cov=eos_downloader --cov-report=term-missing
 
 # Run specific test file
-pytest tests/unit/models/test_version.py
+uv run pytest tests/unit/models/test_version.py
 
 # Run tests matching a pattern
-pytest -k "test_version"
+uv run pytest -k "test_version"
 
 # Run with verbose output
-pytest -v
+uv run pytest -v
 
 # Run tests in parallel (if you have pytest-xdist installed)
-pytest -n auto
+uv run pytest -n auto
+
+# Using Makefile shortcuts
+make test            # Run all tests
+make test-coverage   # Run with coverage report
 ```
 
 #### Test Best Practices
@@ -239,20 +285,110 @@ pytest -n auto
 Before submitting your changes, ensure they pass all quality checks:
 
 ```bash
-# Run all checks with tox
-tox
+# Run all checks using Makefile
+make lint        # Linting with ruff
+make type        # Type checking with mypy
+make test        # Run tests
+make check       # Run all checks (lint + type + test)
 
-# Individual checks
-tox -e lint      # Linting with flake8 and pylint
-tox -e type      # Type checking with mypy
-tox -e py310     # Tests on Python 3.10
+# Individual UV commands
+uv run ruff check .              # Linting
+uv run mypy eos_downloader       # Type checking
+uv run pytest                    # Tests
 
 # Format code
-black eos_downloader/ tests/
-isort eos_downloader/ tests/
+uv run ruff format eos_downloader/ tests/
+# or use Makefile: make format
 
 # Pre-commit checks (runs automatically on commit)
-pre-commit run --all-files
+uv run pre-commit run --all-files
+```
+
+**Note:** The project uses UV for dependency management. All commands above use `uv run` to execute tools in the project's virtual environment. The Makefile provides convenient shortcuts for common tasks.
+
+### 5. UV Lockfile Management
+
+The `uv.lock` file ensures deterministic, reproducible builds across all environments. It contains exact versions and hashes of all dependencies.
+
+#### When to Update the Lockfile
+
+**You MUST update `uv.lock` when:**
+- Adding a new dependency
+- Removing a dependency
+- Changing dependency version constraints in `pyproject.toml`
+- Updating dependencies to newer versions
+
+**DO NOT manually edit `uv.lock`** - always use UV commands to update it.
+
+#### Adding Dependencies
+
+```bash
+# Add a runtime dependency (automatically updates uv.lock)
+uv add requests
+
+# Add a development dependency
+uv add --dev pytest-mock
+
+# Add with version constraint
+uv add "rich>=13.0.0"
+
+# Add optional dependency to specific group
+# Edit pyproject.toml [project.optional-dependencies] manually, then:
+uv lock
+```
+
+#### Removing Dependencies
+
+```bash
+# Remove a dependency (automatically updates uv.lock)
+uv remove requests
+
+# Remove from specific group
+# Edit pyproject.toml manually, then:
+uv lock
+```
+
+#### Updating Dependencies
+
+```bash
+# Update all dependencies to latest compatible versions
+uv lock --upgrade
+
+# Update specific package
+uv lock --upgrade-package requests
+
+# Verify lockfile is in sync with pyproject.toml
+uv sync --frozen  # Fails if lockfile is out of sync
+```
+
+#### Lockfile in Pull Requests
+
+- **Always commit `uv.lock` changes** with your code changes
+- CI will verify lockfile is in sync (`uv sync --frozen`)
+- If CI fails with "lockfile out of sync":
+  ```bash
+  uv lock
+  git add uv.lock
+  git commit --amend --no-edit
+  git push --force-with-lease
+  ```
+
+#### Troubleshooting UV
+
+```bash
+# Clear UV cache if resolution fails
+uv cache clean
+
+# Verify environment is correct
+uv run python --version
+uv pip list
+
+# Recreate virtual environment from scratch
+rm -rf .venv
+uv sync --all-extras
+
+# Check for dependency conflicts
+uv lock --verbose
 ```
 
 ## Submitting Your Contribution

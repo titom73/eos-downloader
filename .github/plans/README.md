@@ -72,8 +72,9 @@ Or manually use the template from: `.github/prompts/create-implementation-plan.p
 
 | Plan | Status | Purpose | Version |
 |------|--------|---------|---------|
-| [feature-cache-download-docker-v1.md](feature-cache-download-docker-v1.md) | ![Planned](https://img.shields.io/badge/status-Planned-blue) | Smart caching for downloads and Docker imports | 1.0 |
+| [feature-cache-download-docker-v1.md](feature-cache-download-docker-v1.md) | ![Completed](https://img.shields.io/badge/status-Completed-brightgreen) | Smart caching for downloads and Docker imports | 1.0 |
 | [test-coverage-improvement-v1.md](test-coverage-improvement-v1.md) | ![Planned](https://img.shields.io/badge/status-Planned-blue) | Increase unit test coverage to >80% | 1.0 |
+| [upgrade-package-manager-uv-v1.md](upgrade-package-manager-uv-v1.md) | ![Planned](https://img.shields.io/badge/status-Planned-blue) | Migrate to UV package manager for 10-100x faster dependency management | 1.0 |
 
 ## Guidelines
 

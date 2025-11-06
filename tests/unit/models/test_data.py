@@ -9,10 +9,10 @@ from eos_downloader.models.data import DataMapping, ImageInfo
 @pytest.fixture
 def data_mapping():
     return DataMapping(
-        CloudVision={"ova": ImageInfo(extension=".ova", prepend="cvp" )},
+        CloudVision={"ova": ImageInfo(extension=".ova", prepend="cvp")},
         EOS={
             "64": ImageInfo(extension=".swi", prepend="EOS64"),
-            "default": ImageInfo(extension=".swi", prepend="EOS" ),
+            "default": ImageInfo(extension=".swi", prepend="EOS"),
         },
     )
 
@@ -30,7 +30,9 @@ def test_filename_valid_eos(data_mapping):
 def test_filename_eos_default(data_mapping):
     with pytest.raises(ValueError) as exc_info:
         data_mapping.filename("EOS", "unknown", "4.28.0F")
-    assert str(exc_info.value) == "No default configuration found for image type unknown"
+    assert (
+        str(exc_info.value) == "No default configuration found for image type unknown"
+    )
 
 
 def test_filename_invalid_software(data_mapping):

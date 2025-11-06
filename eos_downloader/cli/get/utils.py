@@ -1,4 +1,5 @@
 """Generic functions for the CLI."""
+
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
 
@@ -96,7 +97,7 @@ def search_version(
             version_obj = querier.latest(package="eos", branch=branch, rtype=rtype)
             version = str(version_obj)
         except AuthenticationError as auth_error:
-            console.print(f"[red]Authentication Error:[/red] {str(auth_error)}")
+            console.print(f"[red]Authentication Error: [/red] {str(auth_error)}")
             sys.exit(1)
     return version
 

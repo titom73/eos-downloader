@@ -20,9 +20,7 @@ from eos_downloader.cli.get import commands as get_commands
 from eos_downloader.cli.utils import AliasedGroup
 
 
-@click.group(
-    cls=AliasedGroup, no_args_is_help=True, invoke_without_command=True
-)
+@click.group(cls=AliasedGroup, no_args_is_help=True, invoke_without_command=True)
 @click.version_option(__version__)
 @click.pass_context
 @click.option(
@@ -48,9 +46,7 @@ from eos_downloader.cli.utils import AliasedGroup
     help="Activate debug mode for ardl cli",
     default=False,
 )
-def ardl(
-    ctx: click.Context, token: str, log_level: str, debug_enabled: bool
-) -> None:
+def ardl(ctx: click.Context, token: str, log_level: str, debug_enabled: bool) -> None:
     """Arista Network Download CLI"""
     ctx.ensure_object(dict)
     ctx.obj["token"] = token

@@ -55,7 +55,7 @@ classifiers = [
   'Programming Language :: Python :: 3.9',
   'Programming Language :: Python :: 3.10',
   'Programming Language :: Python :: 3.11',
-  'Programming Language :: Python :: 3.12',
+  'Programming Language :: Python :: 3.13',
   'Programming Language :: Python :: 3 :: Only',
   'Programming Language :: Python :: Implementation :: PyPy',
 ]
@@ -160,69 +160,6 @@ init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
 warn_untyped_fields = true
-
-
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-min_version = 4.0
-envlist =
-  clean,
-  lint,
-  type,
-  py{38,39,310}
-
-[tox-full]
-min_version = 4.0
-envlist =
-  clean,
-  py{38,39,310},
-  lint,
-  type,
-  report
-
-[gh-actions-base]
-python =
-  3.8: lint, type
-  3.9: lint, type
-  3.10: lint, type
-
-[gh-actions]
-python =
-  3.8: py38
-  3.9: py39
-  3.10: py310, lint, type, coverage
-
-[testenv]
-description = run the test driver with {basepython}
-extras = dev
-commands =
-   pytest -rA -q --cov-report term-missing --cov-report html --cov-report xml --color yes --cov=eos_downloader tests/
-
-[testenv:lint]
-description = check the code style
-commands =
-  flake8 --max-line-length=165 --config=/dev/null eos_downloader
-  pylint --rcfile=pylintrc  eos_downloader
-
-[testenv:type]
-description = check typing
-commands =
-  type: mypy --config-file=pyproject.toml eos_downloader
-
-[testenv:clean]
-deps = coverage[toml]
-skip_install = true
-commands = coverage erase
-
-[testenv:report]
-deps = coverage[toml]
-commands = coverage report
-# add the following to make the report fail under some percentage
-# commands = coverage report --fail-under=80
-depends = py310
-
-"""
 
 [tool.pytest.ini_options]
 addopts = "-ra -q -s -vv --capture=tee-sys --cov eos_downloader --cov-append"

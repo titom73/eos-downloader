@@ -74,6 +74,30 @@ This makes repeated runs **instant** and saves bandwidth! 🚀
 
 A contributing guide is available in [docs folder](./docs/contributing.md)
 
+**Quick Start:**
+
+```bash
+# 1. Install UV (one-time setup)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# or on macOS: brew install uv
+
+# 2. Clone the repository
+git clone https://github.com/titom73/eos-downloader.git
+cd eos-downloader
+
+# 3. Install development dependencies (creates .venv automatically)
+uv sync --all-extras
+
+# 4. Install pre-commit hooks
+uv run pre-commit install
+
+# 5. Run tests
+uv run pytest
+
+# 6. Start developing!
+uv run ardl --help
+```
+
 ## Author
 
 From an original idea of [@Mark Rayson](https://github.com/Sparky-python) in [arista-netdevops-community/eos-scripts](https://github.com/arista-netdevops-community/eos-scripts)

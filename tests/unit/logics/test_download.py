@@ -32,12 +32,15 @@ def mock_eos_object():
     return mock
 
 
-@pytest.mark.parametrize("dry_run,force_download", [
-    (True, False),
-    (False, False),
-    (False, True),
-    (True, True),
-])
+@pytest.mark.parametrize(
+    "dry_run,force_download",
+    [
+        (True, False),
+        (False, False),
+        (False, True),
+        (True, True),
+    ],
+)
 def test_soft_manager_init(dry_run, force_download):
     """Test SoftManager initialization with various flags."""
     manager = SoftManager(dry_run=dry_run, force_download=force_download)
@@ -139,7 +142,9 @@ def test_import_docker(mock_system, mock_which, soft_manager):
 
     # Test with existing file
     with patch("os.path.exists", return_value=True):
-        was_cached = soft_manager.import_docker("/tmp/test.swi", "arista/ceos", "latest")
+        was_cached = soft_manager.import_docker(
+            "/tmp/test.swi", "arista/ceos", "latest"
+        )
         assert isinstance(was_cached, bool)
         mock_system.assert_called_once()
 
@@ -182,16 +187,13 @@ class TestFileCache:
         mock_exists.return_value = True
         manager = SoftManager()
         result = manager._file_exists_and_valid(
-            Path("/tmp/test.swi"),
-            check_type="skip"
+            Path("/tmp/test.swi"), check_type="skip"
         )
         assert result is True
 
     @patch("pathlib.Path.exists")
     @patch("eos_downloader.logics.download.SoftManager.checksum")
-    def test_file_exists_and_valid_with_checksum(
-        self, mock_checksum, mock_exists
-    ):
+    def test_file_exists_and_valid_with_checksum(self, mock_checksum, mock_exists):
         """Test cache check validates checksum when requested."""
         mock_exists.return_value = True
         mock_checksum.return_value = True
@@ -201,16 +203,14 @@ class TestFileCache:
         result = manager._file_exists_and_valid(
             Path("/tmp/test.swi"),
             checksum_file=Path("/tmp/test.swi.md5"),
-            check_type="md5sum"
+            check_type="md5sum",
         )
         assert result is True
         mock_checksum.assert_called_once_with(check_type="md5sum")
 
     @patch("pathlib.Path.exists")
     @patch("eos_downloader.logics.download.SoftManager.checksum")
-    def test_file_exists_and_valid_checksum_fails(
-        self, mock_checksum, mock_exists
-    ):
+    def test_file_exists_and_valid_checksum_fails(self, mock_checksum, mock_exists):
         """Test cache check returns False when checksum validation fails."""
         mock_exists.return_value = True
         mock_checksum.side_effect = ValueError("Checksum mismatch")
@@ -220,7 +220,7 @@ class TestFileCache:
         result = manager._file_exists_and_valid(
             Path("/tmp/test.swi"),
             checksum_file=Path("/tmp/test.swi.md5"),
-            check_type="md5sum"
+            check_type="md5sum",
         )
         assert result is False
 
@@ -232,10 +232,7 @@ class TestFileCache:
         manager = SoftManager()
 
         cached_path = manager.download_file(
-            "http://test.com/file.swi",
-            "/tmp",
-            "test.swi",
-            rich_interface=False
+            "http://test.com/file.swi", "/tmp", "test.swi", rich_interface=False
         )
 
         # Should return cached path without downloading
@@ -244,19 +241,14 @@ class TestFileCache:
 
     @patch("pathlib.Path.exists")
     @patch("eos_downloader.logics.download.SoftManager._download_file_raw")
-    def test_download_file_bypasses_cache_with_force(
-        self, mock_download, mock_exists
-    ):
+    def test_download_file_bypasses_cache_with_force(self, mock_download, mock_exists):
         """Test that force flag bypasses cache."""
         mock_exists.return_value = True
         mock_download.return_value = "/tmp/test.swi"
         manager = SoftManager(force_download=True)
 
         downloaded_path = manager.download_file(
-            "http://test.com/file.swi",
-            "/tmp",
-            "test.swi",
-            rich_interface=False
+            "http://test.com/file.swi", "/tmp", "test.swi", rich_interface=False
         )
 
         # Should download despite cache
@@ -276,7 +268,7 @@ class TestFileCache:
             "/tmp",
             "test.swi",
             rich_interface=False,
-            force=True
+            force=True,
         )
 
         # Should download despite cache
@@ -339,9 +331,7 @@ class TestDockerCache:
     def test_docker_image_exists_timeout(self, mock_which, mock_run):
         """Test handling of subprocess timeout."""
         mock_which.return_value = "/usr/bin/docker"
-        mock_run.side_effect = subprocess.TimeoutExpired(
-            cmd="docker images", timeout=5
-        )
+        mock_run.side_effect = subprocess.TimeoutExpired(cmd="docker images", timeout=5)
 
         result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
         assert result is False
@@ -380,10 +370,7 @@ class TestDockerCache:
 
         manager = SoftManager()
         was_cached = manager.import_docker(
-            "/tmp/test.tar",
-            "arista/ceos",
-            "4.29.3M",
-            force=True
+            "/tmp/test.tar", "arista/ceos", "4.29.3M", force=True
         )
 
         # Should call docker import despite cache

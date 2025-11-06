@@ -51,9 +51,7 @@ def mock_arista_server(
     mock_xml_tree: ET.ElementTree,
 ) -> Generator[Mock, None, None]:
     """Provide mock AristaServer instance."""
-    with patch(
-        "eos_downloader.logics.arista_server.AristaServer"
-    ) as mock_class:
+    with patch("eos_downloader.logics.arista_server.AristaServer") as mock_class:
         mock_instance = MagicMock()
         mock_instance.authenticate.return_value = None
         mock_instance.get_xml_data.return_value = mock_xml_tree
@@ -100,9 +98,7 @@ class TestXmlCommand:
             assert result.exit_code == 0
             mock_arista_server.authenticate.assert_called_once()
             mock_arista_server.get_xml_data.assert_called_once()
-            mock_file.assert_called_once_with(
-                str(output_file), "w", encoding="utf-8"
-            )
+            mock_file.assert_called_once_with(str(output_file), "w", encoding="utf-8")
 
     def test_xml_command_with_default_output(
         self,
@@ -122,9 +118,7 @@ class TestXmlCommand:
             )
 
             assert result.exit_code == 0
-            mock_file.assert_called_once_with(
-                "arista.xml", "w", encoding="utf-8"
-            )
+            mock_file.assert_called_once_with("arista.xml", "w", encoding="utf-8")
 
     def test_xml_command_with_debug_log_level(
         self,
@@ -161,13 +155,9 @@ class TestXmlCommand:
         """Test XML command handles authentication failure."""
         output_file = tmp_path / "output.xml"
 
-        with patch(
-            "eos_downloader.logics.arista_server.AristaServer"
-        ) as mock_class:
+        with patch("eos_downloader.logics.arista_server.AristaServer") as mock_class:
             mock_instance = MagicMock()
-            mock_instance.authenticate.side_effect = Exception(
-                "Authentication failed"
-            )
+            mock_instance.authenticate.side_effect = Exception("Authentication failed")
             mock_instance.get_xml_data.return_value = None
             mock_class.return_value = mock_instance
 
@@ -197,9 +187,7 @@ class TestXmlCommand:
         """Test XML command handles None XML data gracefully."""
         output_file = tmp_path / "output.xml"
 
-        with patch(
-            "eos_downloader.logics.arista_server.AristaServer"
-        ) as mock_class:
+        with patch("eos_downloader.logics.arista_server.AristaServer") as mock_class:
             mock_instance = MagicMock()
             mock_instance.authenticate.return_value = None
             mock_instance.get_xml_data.return_value = None
@@ -230,9 +218,7 @@ class TestXmlCommand:
         """Test XML command handles XML with None root element."""
         output_file = tmp_path / "output.xml"
 
-        with patch(
-            "eos_downloader.logics.arista_server.AristaServer"
-        ) as mock_class:
+        with patch("eos_downloader.logics.arista_server.AristaServer") as mock_class:
             mock_instance = MagicMock()
             mock_instance.authenticate.return_value = None
 
@@ -326,8 +312,7 @@ class TestXmlCommand:
 
             # Click will catch the exception
             assert result.exit_code != 0 or (
-                "Permission denied" in result.output
-                or "Error" in result.output
+                "Permission denied" in result.output or "Error" in result.output
             )
 
     def test_xml_command_with_all_log_levels(
@@ -356,6 +341,4 @@ class TestXmlCommand:
                     ],
                 )
 
-                assert result.exit_code == 0, (
-                    f"Failed with log level: {log_level}"
-                )
+                assert result.exit_code == 0, f"Failed with log level: {log_level}"

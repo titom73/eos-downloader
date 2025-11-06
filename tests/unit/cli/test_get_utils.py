@@ -172,9 +172,7 @@ class TestSearchVersion:
         )
 
     @patch("eos_downloader.cli.get.utils.AristaXmlQuerier")
-    def test_search_with_invalid_release_type_defaults(
-        self, mock_querier_class
-    ):
+    def test_search_with_invalid_release_type_defaults(self, mock_querier_class):
         """Test that invalid release type defaults to feature."""
         # Setup
         mock_querier = MagicMock()
@@ -201,9 +199,7 @@ class TestSearchVersion:
         )
 
     @patch("eos_downloader.cli.get.utils.AristaXmlQuerier")
-    def test_search_latest_with_branch_and_release_type(
-        self, mock_querier_class
-    ):
+    def test_search_latest_with_branch_and_release_type(self, mock_querier_class):
         """Test searching latest with both branch and release type."""
         # Setup
         mock_querier = MagicMock()
@@ -234,9 +230,7 @@ class TestSearchVersion:
 class TestDownloadFiles:
     """Test suite for download_files function."""
 
-    def test_download_files_success(
-        self, mock_arista_dl_obj, mock_console, tmp_path
-    ):
+    def test_download_files_success(self, mock_arista_dl_obj, mock_console, tmp_path):
         """Test successful file download."""
         # Setup
         output_path = tmp_path
@@ -326,9 +320,7 @@ class TestDownloadFiles:
         mock_cli = MagicMock()
         # Mock downloads to return tuple (path, was_cached)
         mock_cli.downloads.return_value = (str(tmp_path), False)
-        mock_cli.checksum.side_effect = subprocess.CalledProcessError(
-            1, "checksum"
-        )
+        mock_cli.checksum.side_effect = subprocess.CalledProcessError(1, "checksum")
 
         # Execute - should exit with code 1
         with pytest.raises(SystemExit) as exc_info:
@@ -357,9 +349,7 @@ class TestDownloadFiles:
         mock_cli = MagicMock()
         # Mock downloads to return tuple (path, was_cached)
         mock_cli.downloads.return_value = (str(tmp_path), False)
-        mock_cli.checksum.side_effect = subprocess.CalledProcessError(
-            1, "checksum"
-        )
+        mock_cli.checksum.side_effect = subprocess.CalledProcessError(1, "checksum")
 
         # Execute - should exit with code 1
         with pytest.raises(SystemExit) as exc_info:
@@ -407,9 +397,7 @@ class TestDownloadFiles:
 class TestHandleDockerImport:
     """Test suite for handle_docker_import function."""
 
-    def test_docker_import_success(
-        self, mock_console, tmp_path
-    ):
+    def test_docker_import_success(self, mock_console, tmp_path):
         """Test successful Docker image import."""
         # Setup
         test_file = tmp_path / "cEOS-lab-4.29.3M.tar.xz"
@@ -442,9 +430,7 @@ class TestHandleDockerImport:
             force=False,
         )
 
-    def test_docker_import_with_default_tag(
-        self, mock_console, tmp_path
-    ):
+    def test_docker_import_with_default_tag(self, mock_console, tmp_path):
         """Test Docker import with default tag from version when None specified."""
         # Setup
         test_file = tmp_path / "cEOS-lab-4.29.3M.tar.xz"
@@ -498,9 +484,7 @@ class TestHandleDockerImport:
         # Assert - should return 1 on FileNotFoundError
         assert result == 1
 
-    def test_docker_import_file_not_found_debug_mode(
-        self, mock_console, tmp_path
-    ):
+    def test_docker_import_file_not_found_debug_mode(self, mock_console, tmp_path):
         """Test file not found in debug mode prints exception details."""
         # Setup
         mock_cli = MagicMock()
@@ -523,9 +507,7 @@ class TestHandleDockerImport:
         assert result == 1
         mock_console.print_exception.assert_called_once_with(show_locals=True)
 
-    def test_docker_import_invalid_filename(
-        self, mock_console, tmp_path
-    ):
+    def test_docker_import_invalid_filename(self, mock_console, tmp_path):
         """Test Docker import with None filename returns error."""
         # Setup
         mock_cli = MagicMock()
@@ -548,9 +530,7 @@ class TestHandleDockerImport:
         # Should not call import_docker when filename is None
         mock_cli.import_docker.assert_not_called()
 
-    def test_docker_import_with_custom_output_path(
-        self, mock_console, tmp_path
-    ):
+    def test_docker_import_with_custom_output_path(self, mock_console, tmp_path):
         """Test Docker import with custom output path."""
         # Setup
         test_file = tmp_path / "custom" / "cEOS-lab-4.29.3M.tar.xz"

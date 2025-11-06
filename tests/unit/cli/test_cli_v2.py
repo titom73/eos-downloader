@@ -58,11 +58,9 @@ class TestMainCli:
 
     def test_cli_with_global_options(self) -> None:
         """Test CLI with global options like token and log-level."""
-        result = self.runner.invoke(ardl, [
-            "--token", "test_token",
-            "--log-level", "debug",
-            "--help"
-        ])
+        result = self.runner.invoke(
+            ardl, ["--token", "test_token", "--log-level", "debug", "--help"]
+        )
         assert result.exit_code == 0
         assert "Arista Network Download CLI" in result.output
 
@@ -157,11 +155,7 @@ class TestContextHandling:
         # We can't easily test the internal context object creation
         # without more invasive mocking, but we can test that the CLI
         # accepts context-related options
-        result = self.runner.invoke(ardl, [
-            "--token", "test",
-            "--debug",
-            "--help"
-        ])
+        result = self.runner.invoke(ardl, ["--token", "test", "--debug", "--help"])
         assert result.exit_code == 0
 
     def test_environment_variable_handling(self) -> None:
@@ -235,7 +229,7 @@ class TestOutputFormatting:
         """Test that help output is properly formatted."""
         result = self.runner.invoke(ardl, ["--help"])
         assert result.exit_code == 0
-        output_lines = result.output.split('\n')
+        output_lines = result.output.split("\n")
         # Check that help output has expected structure
         assert any("Usage:" in line for line in output_lines)
         assert any("Options:" in line for line in output_lines)
@@ -259,12 +253,18 @@ class TestCliIntegration:
 
     def test_global_options_with_subcommands(self) -> None:
         """Test that global options work with subcommands."""
-        result = self.runner.invoke(ardl, [
-            "--token", "test_token",
-            "--log-level", "debug",
-            "--debug",
-            "get", "--help"
-        ])
+        result = self.runner.invoke(
+            ardl,
+            [
+                "--token",
+                "test_token",
+                "--log-level",
+                "debug",
+                "--debug",
+                "get",
+                "--help",
+            ],
+        )
         assert result.exit_code == 0
         assert "Download Arista from Arista website" in result.output
 

@@ -40,7 +40,7 @@ def test_ardl_help(runner: CliRunner) -> None:
         - Exit code is 0
         - Help message contains expected text
     """
-    result = runner.invoke(ardl, ['--help'])
+    result = runner.invoke(ardl, ["--help"])
     assert result.exit_code in [0, 2]
     assert "Arista Network Download CLI" in result.output
 
@@ -55,7 +55,7 @@ def test_ardl_version(runner: CliRunner) -> None:
         - Exit code is 0
         - Output contains version information
     """
-    result = runner.invoke(ardl, ['--version'])
+    result = runner.invoke(ardl, ["--version"])
     assert result.exit_code in [0, 2]
     assert "version" in result.output
 
@@ -82,9 +82,7 @@ def test_cli_execution(runner: CliRunner) -> None:
     # Verify help is shown
     assert result.output is not None, "CLI should produce output"
     assert "Usage: ardl" in result.output, "Should show usage information"
-    assert "Arista Network Download CLI" in result.output, (
-        "Should show CLI description"
-    )
+    assert "Arista Network Download CLI" in result.output, "Should show CLI description"
 
 
 def test_cli_diagnosis() -> None:
@@ -99,6 +97,7 @@ def test_cli_diagnosis() -> None:
     # Test 1: Can we import ardl?
     try:
         from eos_downloader.cli.cli import ardl as test_ardl
+
         print("✓ Successfully imported ardl")
     except Exception as e:
         print(f"✗ Failed to import ardl: {e}")
@@ -113,15 +112,13 @@ def test_cli_diagnosis() -> None:
 
     print(f"Exit code: {result.exit_code}")
     print(f"Has output: {len(result.output) > 0}")
-    preview = (result.output[:100] if result.output else 'No output')
+    preview = result.output[:100] if result.output else "No output"
     print(f"Output preview: {preview}")
 
     if result.exception:
         print(f"Exception: {result.exception}")
         traceback.print_exception(
-            type(result.exception),
-            result.exception,
-            result.exception.__traceback__
+            type(result.exception), result.exception, result.exception.__traceback__
         )
 
     # The actual assertion - this should pass
@@ -145,11 +142,12 @@ def test_cli_via_main_function() -> None:
 
     try:
         # Mock argv to prevent cli() from trying to parse real args
-        sys.argv = ['ardl']
+        sys.argv = ["ardl"]
         sys.stdout = StringIO()
 
         # Import and test
         from eos_downloader.cli.cli import ardl as test_ardl
+
         test_runner = CliRunner()
         result = test_runner.invoke(test_ardl, [])
 

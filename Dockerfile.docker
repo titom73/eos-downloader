@@ -1,33 +1,39 @@
 ARG PYTHON_VER=3
 ARG BUILDPLATFORM=linux/amd64
 
+FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:latest AS uv
+
 FROM --platform=$BUILDPLATFORM python:${PYTHON_VER}-slim
 
+# Install Docker CLI for Docker-in-Docker support
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates \
         curl \
         gnupg \
-        lsb-release \
-    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-        gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
+    && install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc \
+    && chmod a+r /etc/apt/keyrings/docker.asc \
     && echo \
-        "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
-        $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+        bookworm stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
     && apt-get update \
     && apt-get install -y --no-install-recommends docker-ce-cli \
     && rm -rf /var/lib/apt/lists/* \
     && rm -Rf /usr/share/doc && rm -Rf /usr/share/man \
     && apt-get clean
 
-RUN pip install --upgrade pip
+# Copy UV from official image
+COPY --from=uv /uv /usr/local/bin/uv
 
 WORKDIR /local
-COPY . /local
+
+# Copy dependency files first for better layer caching
+COPY pyproject.toml uv.lock ./
 
 LABEL maintainer="Thomas Grimonet <tom@inetsix.net>"
 LABEL   "org.opencontainers.image.title"="eos-downloader" \
-        "org.opencontainers.image.description"="eos-downloader container" \
-        "org.opencontainers.artifact.description"="A CLI to manage Arista EOS version download" \
+        "org.opencontainers.image.description"="eos-downloader container with Docker support" \
+        "org.opencontainers.artifact.description"="A CLI to manage Arista EOS version download with Docker-in-Docker support" \
         "org.opencontainers.image.source"="https://github.com/titom73/eos-downloader" \
         "org.opencontainers.image.url"="https://github.com/titom73/eos-downloader" \
         "org.opencontainers.image.documentation"="https://github.com/titom73/eos-downloader" \
@@ -38,7 +44,12 @@ LABEL   "org.opencontainers.image.title"="eos-downloader" \
         "org.opencontainers.image.revision"="dev" \
         "org.opencontainers.image.version"="dev"
 
-ENV PYTHONPATH=/local
-RUN pip --no-cache-dir install .
+# Copy application code
+COPY . /local
 
-ENTRYPOINT [ "/usr/local/bin/ardl" ]
+# Install dependencies and application using UV with frozen lockfile for reproducibility
+RUN uv sync --frozen --no-dev --no-editable
+
+ENV PATH="/local/.venv/bin:$PATH"
+
+ENTRYPOINT [ "ardl" ]

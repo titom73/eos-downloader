@@ -170,6 +170,9 @@ nav:
   - Environment variables: usage/environment.md
   - Version information: usage/info.md
   - Software mapping: usage/mapping.md
+- Development:
+  - UV installation mode: dev-notes/uv-installation-modes.md
+  - tox to uv notes: dev-notes/tox-to-uv-migration.md
 - Code documentation:
   - Models:
     - Version: api/models/version.md

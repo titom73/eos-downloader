@@ -169,7 +169,7 @@ class AristaServer:
             "Access token expired",
             "Invalid access token",
         ]:
-            error_msg = result.json()['status']['message']
+            error_msg = result.json()["status"]["message"]
             logging.critical(f"Authentication failed: {error_msg}")
             raise eos_downloader.exceptions.AuthenticationError(
                 f"Authentication failed: {error_msg}. "
