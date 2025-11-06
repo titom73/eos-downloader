@@ -4,9 +4,10 @@ Notes regarding how to release eos-downloader package
 
 ## Package requirements
 
-- `bumpver`
-- `build`
-- `twine`
+- UV package manager (with dev dependencies installed: `uv sync --extra dev`)
+- `bumpver` (installed via UV dev dependencies)
+- `build` (installed via UV dev dependencies)
+- `twine` (installed via UV dev dependencies)
 
 Also, [Github CLI](https://cli.github.com/) can be helpful and is recommended
 
@@ -19,25 +20,25 @@ It is configured to update:
 For instance to bump a patch version:
 
 ```bash
-bumpver update --patch --tag final
+uv run bumpver update --patch --tag final
 ```
 
 and for a minor version
 
 ```bash
-bumpver update --minor --tag final
+uv run bumpver update --minor --tag final
 ```
 
 Tip: It is possible to check what the changes would be using `--dry`
 
 ```bash
-bumpver update --minor  --tag final --dry
+uv run bumpver update --minor  --tag final --dry
 ```
 
 For a development version, you can use the following:
 
 ```bash
-bumpver update --minor  --tag dev --tagnum --dry
+uv run bumpver update --minor  --tag dev --tagnum --dry
 ```
 
 The following tag should be used:
@@ -72,24 +73,26 @@ This is to be executed at the top of the repo
 4. Build the package locally
 
    ```bash
-   python -m build
+   uv build
    ```
 5. Check the package with `twine` (replace with your vesion)
 
     ```bash
-    twine check dist/*
+    uv run twine check dist/*
     ```
 6. Upload the package to test.pypi
 
     ```bash
-    twine upload -r testpypi dist/eos-downloader-x.x.x.*
+    uv run twine upload -r testpypi dist/eos-downloader-x.x.x.*
     ```
 7. Verify the package by installing it in a local venv and checking it installs
    and run correctly (run the tests)
 
    ```bash
-   # In a brand new venv
-   pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple --no-cache eos-downloader
+   # In a brand new UV environment
+   uv venv test-release
+   source test-release/bin/activate  # On Windows: test-release\Scripts\activate
+   uv pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple --no-cache eos-downloader
    ```
 8. Push to eos-downloader repository and create a Pull Request
 
@@ -106,8 +109,10 @@ This is to be executed at the top of the repo
 10. Like 7 but for normal pypi
 
     ```bash
-    # In a brand new venv
-    pip install eos-downloader
+    # In a brand new UV environment
+    uv venv test-prod-release
+    source test-prod-release/bin/activate  # On Windows: test-prod-release\Scripts\activate
+    uv pip install eos-downloader
     ```
 
 11. Test installed version

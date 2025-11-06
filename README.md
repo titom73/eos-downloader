@@ -70,11 +70,9 @@ ardl get eos --version 4.29.4M --import-docker --force
 
 This makes repeated runs **instant** and saves bandwidth! 🚀
 
-## For Contributors
+## Contributing
 
-### Development Environment Setup
-
-This project uses [UV](https://github.com/astral-sh/uv) for fast, reliable Python dependency management (10-100x faster than pip!). UV replaces pip, pip-tools, and virtualenv with a single Rust-based tool.
+A contributing guide is available in [docs folder](./docs/contributing.md)
 
 **Quick Start:**
 
@@ -99,31 +97,6 @@ uv run pytest
 # 6. Start developing!
 uv run ardl --help
 ```
-
-**Common Development Commands:**
-
-| Task | pip/tox Command | UV Command |
-|------|----------------|------------|
-| Install dev dependencies | `pip install -e ".[dev]"` | `uv sync --all-extras` |
-| Install docs dependencies | `pip install -e ".[doc]"` | `uv sync --extra doc` |
-| Run tests | `pytest` | `uv run pytest` |
-| Run linting | `tox -e lint` | `make lint` or `uv run ruff check` |
-| Run type checking | `tox -e type` | `make type` or `uv run mypy` |
-| Build package | `python -m build` | `uv build` |
-| Add dependency | Edit `pyproject.toml` + `pip install -e .` | `uv add <package>` |
-| Update lockfile | `pip-compile` | `uv lock` |
-
-**Why UV?**
-- ⚡ **10-100x faster** than pip for dependency resolution
-- 🔒 **Deterministic builds** with uv.lock lockfile
-- 🎯 **Single tool** replaces pip, pip-tools, virtualenv
-- 🦀 **Modern & reliable** - written in Rust by Astral (creators of Ruff)
-
-See [docs/dev-notes/tox-to-uv-migration.md](./docs/dev-notes/tox-to-uv-migration.md) for detailed migration guide and [docs/contributing.md](./docs/contributing.md) for full contributing guidelines.
-
-## Contributing
-
-A contributing guide is available in [docs folder](./docs/contributing.md)
 
 ## Author
 
