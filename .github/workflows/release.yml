@@ -23,10 +23,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5
 
+    - name: Load UV version
+      id: versions
+      run: |
+        UV_VERSION=$(cat .github/python-versions.json | jq -r '.uv_version')
+        echo "uv-version=$UV_VERSION" >> $GITHUB_OUTPUT
+        echo "Using UV version: $UV_VERSION"
+
     - name: Install UV
       uses: astral-sh/setup-uv@v3
       with:
-        version: "0.5.1"
+        version: ${{ steps.versions.outputs.uv-version }}
         enable-cache: true
 
     - name: Build package

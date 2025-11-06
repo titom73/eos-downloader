@@ -24,15 +24,19 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       python-versions: ${{ steps.set-versions.outputs.versions }}
+      uv-version: ${{ steps.set-versions.outputs.uv-version }}
     steps:
       - uses: actions/checkout@v5
 
-      - name: Load Python versions from JSON
+      - name: Load Python and UV versions from JSON
         id: set-versions
         run: |
           VERSIONS=$(cat .github/python-versions.json | jq -c '.versions')
+          UV_VERSION=$(cat .github/python-versions.json | jq -r '.uv_version')
           echo "versions=$VERSIONS" >> $GITHUB_OUTPUT
+          echo "uv-version=$UV_VERSION" >> $GITHUB_OUTPUT
           echo "Loaded Python versions: $VERSIONS"
+          echo "Loaded UV version: $UV_VERSION"
 
   check-sync:
     name: Verify Python versions are synchronized
@@ -45,7 +49,7 @@ jobs:
       - name: Install UV
         uses: astral-sh/setup-uv@v3
         with:
-          version: "0.5.1"
+          version: ${{ needs.setup.outputs.uv-version }}
           enable-cache: true
 
       - name: Check Python versions synchronization
@@ -91,7 +95,7 @@ jobs:
       - name: Install UV
         uses: astral-sh/setup-uv@v3
         with:
-          version: "0.5.1"
+          version: ${{ needs.setup.outputs.uv-version }}
           enable-cache: true
 
       - name: Install dependencies
@@ -122,7 +126,7 @@ jobs:
       - name: Install UV
         uses: astral-sh/setup-uv@v3
         with:
-          version: "0.5.1"
+          version: ${{ needs.setup.outputs.uv-version }}
           enable-cache: true
 
       - name: Install dependencies
@@ -152,7 +156,7 @@ jobs:
       - name: Install UV
         uses: astral-sh/setup-uv@v3
         with:
-          version: "0.5.1"
+          version: ${{ needs.setup.outputs.uv-version }}
           enable-cache: true
 
       - name: Install dependencies
@@ -182,7 +186,7 @@ jobs:
       - name: Install UV
         uses: astral-sh/setup-uv@v3
         with:
-          version: "0.5.1"
+          version: ${{ needs.setup.outputs.uv-version }}
           enable-cache: true
 
       - name: Install dependencies
@@ -219,7 +223,7 @@ jobs:
       - name: Install UV
         uses: astral-sh/setup-uv@v3
         with:
-          version: "0.5.1"
+          version: ${{ needs.setup.outputs.uv-version }}
           enable-cache: true
 
       - name: Install dependencies

@@ -1,6 +1,7 @@
 {
-  "versions": ["3.9", "3.10", "3.11", "3.12"],
+  "versions": ["3.9", "3.10", "3.11", "3.13"],
   "min_version": "3.9",
-  "max_version": "3.12",
-  "default_version": "3.11"
+  "max_version": "3.13",
+  "default_version": "3.13",
+  "uv_version": "0.5.1"
 }

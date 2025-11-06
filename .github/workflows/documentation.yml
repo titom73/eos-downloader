@@ -44,22 +44,25 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Load default Python version
-      id: python-version
+    - name: Load Python and UV versions
+      id: versions
       run: |
         DEFAULT_VERSION=$(cat .github/python-versions.json | jq -r '.default_version')
-        echo "version=$DEFAULT_VERSION" >> $GITHUB_OUTPUT
+        UV_VERSION=$(cat .github/python-versions.json | jq -r '.uv_version')
+        echo "python-version=$DEFAULT_VERSION" >> $GITHUB_OUTPUT
+        echo "uv-version=$UV_VERSION" >> $GITHUB_OUTPUT
         echo "Using Python version: $DEFAULT_VERSION"
+        echo "Using UV version: $UV_VERSION"
 
     - name: Setup Python
       uses: actions/setup-python@v6
       with:
-        python-version: ${{ steps.python-version.outputs.version }}
+        python-version: ${{ steps.versions.outputs.python-version }}
 
     - name: Install UV
       uses: astral-sh/setup-uv@v3
       with:
-        version: "0.5.1"
+        version: ${{ steps.versions.outputs.uv-version }}
         enable-cache: true
 
     - name: Install dependencies
@@ -110,22 +113,25 @@ jobs:
         fetch-depth: 0
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Load default Python version
-      id: python-version
+    - name: Load Python and UV versions
+      id: versions
       run: |
         DEFAULT_VERSION=$(cat .github/python-versions.json | jq -r '.default_version')
-        echo "version=$DEFAULT_VERSION" >> $GITHUB_OUTPUT
+        UV_VERSION=$(cat .github/python-versions.json | jq -r '.uv_version')
+        echo "python-version=$DEFAULT_VERSION" >> $GITHUB_OUTPUT
+        echo "uv-version=$UV_VERSION" >> $GITHUB_OUTPUT
         echo "Using Python version: $DEFAULT_VERSION"
+        echo "Using UV version: $UV_VERSION"
 
     - name: Setup Python
       uses: actions/setup-python@v6
       with:
-        python-version: ${{ steps.python-version.outputs.version }}
+        python-version: ${{ steps.versions.outputs.python-version }}
 
     - name: Install UV
       uses: astral-sh/setup-uv@v3
       with:
-        version: "0.5.1"
+        version: ${{ steps.versions.outputs.uv-version }}
         enable-cache: true
 
     - name: Setup Git config

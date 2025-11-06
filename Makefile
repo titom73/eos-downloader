@@ -219,6 +219,15 @@ ci-all: ci-lint ci-type ci-test ## CI: Run all checks (lint, type, test)
 # Utility targets
 ################################################################################
 
+.PHONY: sync-python-versions
+sync-python-versions: ## Sync Python versions from JSON to pyproject.toml
+	@echo "Synchronizing Python versions..."
+	uv run python .github/scripts/sync-python-versions.py
+	@echo "✓ Python versions synchronized"
+	@echo ""
+	@echo "Review changes:"
+	@echo "  git diff pyproject.toml"
+
 .PHONY: clean
 clean: docs-clean ## Clean all generated files
 	@echo "Cleaning Python cache and build artifacts..."
