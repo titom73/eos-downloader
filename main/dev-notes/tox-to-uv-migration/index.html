@@ -10,6 +10,10 @@
       
       
       
+        <link rel="prev" href="../uv-installation-modes/">
+      
+      
+        <link rel="next" href="../../api/models/version/">
       
       
       <link rel="icon" href="../../imgs/favicon.ico">
@@ -17,7 +21,7 @@
     
     
       
-        <title>DOCS DEPLOYMENT CHANGELOG - Arista EOS Downloader</title>
+        <title>tox to uv notes - Arista EOS Downloader</title>
       
     
     
@@ -83,7 +87,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#documentation-deployment-system-change-log" class="md-skip">
+        <a href="#tox-to-uv-migration-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -123,7 +127,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              DOCS DEPLOYMENT CHANGELOG
+              tox to uv notes
             
           </span>
         </div>
@@ -485,8 +489,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -498,11 +504,11 @@
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -518,7 +524,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Development
@@ -532,7 +538,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dev-notes/uv-installation-modes/" class="md-nav__link">
+      <a href="../uv-installation-modes/" class="md-nav__link">
         
   
   
@@ -552,10 +558,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../dev-notes/tox-to-uv-migration/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    tox to uv notes
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -566,6 +592,354 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#tox-to-uv-migration-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tox to UV Migration Guide
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tox to UV Migration Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-reference-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Reference Table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detailed-command-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detailed Command Mapping
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Detailed Command Mapping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-linting-tox-e-lint" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Linting (tox -e lint)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-type-checking-tox-e-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Type Checking (tox -e type)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-testing-tox-e-py3839310" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Testing (tox -e py{38,39,310})
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-coverage-report-tox-e-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Coverage Report (tox -e report)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-clean-tox-e-clean" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Clean (tox -e clean)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-full-test-suite-tox" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Full Test Suite (tox)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation &amp; Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation &amp; Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installing-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installing Dependencies
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cicd-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      CI/CD Integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CI/CD Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#github-actions-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      GitHub Actions Migration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits-of-uv-over-tox" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefits of UV Over Tox
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Benefits of UV Over Tox">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-speed" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Speed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-simplicity" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Simplicity
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-dependency-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Dependency Resolution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-modern-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Modern Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-not-found-make" class="md-nav__link">
+    <span class="md-ellipsis">
+      “Command not found: make”
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uv-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      “UV not found”
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#virtual-environment-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      “Virtual environment not found”
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tests-failing-with-import-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      “Tests failing with import errors”
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migration-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Checklist
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Resources
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-resources_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Resources
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-start-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Start Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Start Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#developer-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Developer Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cicd-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      CI/CD Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Questions?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -994,66 +1368,92 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#documentation-deployment-system-change-log" class="md-nav__link">
+  <a href="#tox-to-uv-migration-guide" class="md-nav__link">
     <span class="md-ellipsis">
-      Documentation Deployment System - Change Log
+      Tox to UV Migration Guide
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Documentation Deployment System - Change Log">
+    <nav class="md-nav" aria-label="Tox to UV Migration Guide">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#2025-10-24-documentation-infrastructure-overhaul" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
-      [2025-10-24] - Documentation Infrastructure Overhaul
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="[2025-10-24] - Documentation Infrastructure Overhaul">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      🎯 Summary
+      Overview
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#new-features" class="md-nav__link">
+  <a href="#quick-reference-table" class="md-nav__link">
     <span class="md-ellipsis">
-      ✨ New Features
+      Quick Reference Table
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="✨ New Features">
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detailed-command-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detailed Command Mapping
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Detailed Command Mapping">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#github-actions-workflows" class="md-nav__link">
+  <a href="#1-linting-tox-e-lint" class="md-nav__link">
     <span class="md-ellipsis">
-      GitHub Actions Workflows
+      1. Linting (tox -e lint)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#developer-tools" class="md-nav__link">
+  <a href="#2-type-checking-tox-e-type" class="md-nav__link">
     <span class="md-ellipsis">
-      Developer Tools
+      2. Type Checking (tox -e type)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#documentation" class="md-nav__link">
+  <a href="#3-testing-tox-e-py3839310" class="md-nav__link">
     <span class="md-ellipsis">
-      Documentation
+      3. Testing (tox -e py{38,39,310})
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-coverage-report-tox-e-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Coverage Report (tox -e report)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-clean-tox-e-clean" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Clean (tox -e clean)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-full-test-suite-tox" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Full Test Suite (tox)
     </span>
   </a>
   
@@ -1065,28 +1465,19 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#modified" class="md-nav__link">
+  <a href="#installation-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      🔄 Modified
+      Installation &amp; Setup
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🔄 Modified">
+    <nav class="md-nav" aria-label="Installation &amp; Setup">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#workflows" class="md-nav__link">
+  <a href="#installing-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
-      Workflows
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration
+      Installing Dependencies
     </span>
   </a>
   
@@ -1098,37 +1489,19 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#removed" class="md-nav__link">
+  <a href="#cicd-integration" class="md-nav__link">
     <span class="md-ellipsis">
-      ❌ Removed
+      CI/CD Integration
     </span>
   </a>
   
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#architecture-changes" class="md-nav__link">
-    <span class="md-ellipsis">
-      📊 Architecture Changes
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📊 Architecture Changes">
+    <nav class="md-nav" aria-label="CI/CD Integration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#before" class="md-nav__link">
+  <a href="#github-actions-migration" class="md-nav__link">
     <span class="md-ellipsis">
-      Before
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#after" class="md-nav__link">
-    <span class="md-ellipsis">
-      After
+      GitHub Actions Migration
     </span>
   </a>
   
@@ -1140,46 +1513,46 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#security-improvements" class="md-nav__link">
+  <a href="#benefits-of-uv-over-tox" class="md-nav__link">
     <span class="md-ellipsis">
-      🔒 Security Improvements
+      Benefits of UV Over Tox
     </span>
   </a>
   
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#benefits" class="md-nav__link">
-    <span class="md-ellipsis">
-      📈 Benefits
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📈 Benefits">
+    <nav class="md-nav" aria-label="Benefits of UV Over Tox">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#for-developers" class="md-nav__link">
+  <a href="#1-speed" class="md-nav__link">
     <span class="md-ellipsis">
-      For Developers
+      1. Speed
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#for-maintainers" class="md-nav__link">
+  <a href="#2-simplicity" class="md-nav__link">
     <span class="md-ellipsis">
-      For Maintainers
+      2. Simplicity
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#for-users" class="md-nav__link">
+  <a href="#3-dependency-resolution" class="md-nav__link">
     <span class="md-ellipsis">
-      For Users
+      3. Dependency Resolution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-modern-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Modern Features
     </span>
   </a>
   
@@ -1191,37 +1564,46 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#usage-examples" class="md-nav__link">
+  <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
-      🎓 Usage Examples
+      Troubleshooting
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🎓 Usage Examples">
+    <nav class="md-nav" aria-label="Troubleshooting">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#local-development" class="md-nav__link">
+  <a href="#command-not-found-make" class="md-nav__link">
     <span class="md-ellipsis">
-      Local Development
+      “Command not found: make”
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#deploying-versions" class="md-nav__link">
+  <a href="#uv-not-found" class="md-nav__link">
     <span class="md-ellipsis">
-      Deploying Versions
+      “UV not found”
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#checking-deployed-versions" class="md-nav__link">
+  <a href="#virtual-environment-not-found" class="md-nav__link">
     <span class="md-ellipsis">
-      Checking Deployed Versions
+      “Virtual environment not found”
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tests-failing-with-import-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      “Tests failing with import errors”
     </span>
   </a>
   
@@ -1233,46 +1615,64 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#testing-performed" class="md-nav__link">
+  <a href="#migration-checklist" class="md-nav__link">
     <span class="md-ellipsis">
-      🧪 Testing Performed
+      Migration Checklist
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#migration-notes" class="md-nav__link">
+  <a href="#additional-resources" class="md-nav__link">
     <span class="md-ellipsis">
-      📝 Migration Notes
+      Additional Resources
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="📝 Migration Notes">
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-resources_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Resources
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-start-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Start Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Start Examples">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#for-existing-deployments" class="md-nav__link">
+  <a href="#developer-workflow" class="md-nav__link">
     <span class="md-ellipsis">
-      For Existing Deployments
+      Developer Workflow
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#for-contributors" class="md-nav__link">
+  <a href="#cicd-workflow" class="md-nav__link">
     <span class="md-ellipsis">
-      For Contributors
+      CI/CD Workflow
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#for-maintainers_1" class="md-nav__link">
+  <a href="#maintenance" class="md-nav__link">
     <span class="md-ellipsis">
-      For Maintainers
+      Maintenance
     </span>
   </a>
   
@@ -1284,25 +1684,11 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#future-enhancements" class="md-nav__link">
+  <a href="#questions" class="md-nav__link">
     <span class="md-ellipsis">
-      🔮 Future Enhancements
+      Questions?
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#references" class="md-nav__link">
-    <span class="md-ellipsis">
-      📚 References
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -1330,233 +1716,334 @@
   
 
 
-  <h1>DOCS DEPLOYMENT CHANGELOG</h1>
+  <h1>tox to uv notes</h1>
 
-<h2 id="documentation-deployment-system-change-log">Documentation Deployment System - Change Log<a class="headerlink" href="#documentation-deployment-system-change-log" title="Permanent link">¶</a></h2>
-<h3 id="2025-10-24-documentation-infrastructure-overhaul">[2025-10-24] - Documentation Infrastructure Overhaul<a class="headerlink" href="#2025-10-24-documentation-infrastructure-overhaul" title="Permanent link">¶</a></h3>
-<h4 id="summary">🎯 Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h4>
-<p>Complete redesign of the documentation deployment system using MkDocs, mike, and GitHub Actions for automated, versioned documentation deployment to GitHub Pages.</p>
-<h4 id="new-features">✨ New Features<a class="headerlink" href="#new-features" title="Permanent link">¶</a></h4>
-<h5 id="github-actions-workflows">GitHub Actions Workflows<a class="headerlink" href="#github-actions-workflows" title="Permanent link">¶</a></h5>
-<ul>
-<li><strong><code>deploy-docs.yml</code></strong>: Unified workflow for all documentation deployments</li>
-<li>Automatic deployment on tag push (versioned releases)</li>
-<li>Automatic deployment on main branch push (development docs)</li>
-<li>Manual dispatch with custom version/alias support</li>
-<li>Intelligent version detection and aliasing</li>
-<li>Detailed deployment summaries</li>
-</ul>
-<h5 id="developer-tools">Developer Tools<a class="headerlink" href="#developer-tools" title="Permanent link">¶</a></h5>
-<ul>
-<li><strong><code>scripts/docs-helper.sh</code></strong>: Interactive helper script for local documentation operations</li>
-<li>Serve documentation locally with live reload</li>
-<li>Build documentation with strict validation</li>
-<li>Test mike deployments without pushing</li>
-<li>List deployed versions</li>
-<li>Deploy, delete, and set default versions</li>
-<li>
-<p>Colored output and interactive prompts</p>
-</li>
-<li>
-<p><strong>Makefile Targets</strong>: Convenient make commands for documentation tasks</p>
-</li>
-<li><code>make docs-serve</code>: Start local development server</li>
-<li><code>make docs-build</code>: Build and validate documentation</li>
-<li><code>make docs-test</code>: Test mike deployment locally</li>
-<li><code>make docs-list</code>: List all deployed versions</li>
-<li><code>make docs-deploy-dev</code>: Deploy development documentation</li>
-<li><code>make docs-deploy-stable VERSION=vX.Y.Z</code>: Deploy stable release</li>
-<li><code>make docs-delete VERSION=vX.Y.Z</code>: Delete a version</li>
-<li><code>make docs-clean</code>: Clean build directory</li>
-</ul>
-<h5 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">¶</a></h5>
-<ul>
-<li><strong><code>docs/contributing/documentation-deployment.md</code></strong>: Comprehensive deployment guide</li>
-<li>Version management strategy</li>
-<li>Workflow documentation</li>
-<li>Troubleshooting guide</li>
-<li>Best practices</li>
-<li>Security considerations</li>
-<li>
-<p>Workflow diagrams</p>
-</li>
-<li>
-<p><strong><code>.github/workflows/README.md</code></strong>: Complete workflow reference</p>
-</li>
-<li>All workflows documented</li>
-<li>Required secrets</li>
-<li>Workflow dependencies</li>
-<li>Common operations</li>
-<li>
-<p>Troubleshooting</p>
-</li>
-<li>
-<p><strong><code>docs/contributing/docs-deployment-summary.md</code></strong>: Executive summary</p>
-</li>
-<li>Architecture overview</li>
-<li>Changes made</li>
-<li>Benefits</li>
-<li>Usage examples</li>
-<li>Migration notes</li>
-</ul>
-<h4 id="modified">🔄 Modified<a class="headerlink" href="#modified" title="Permanent link">¶</a></h4>
-<h5 id="workflows">Workflows<a class="headerlink" href="#workflows" title="Permanent link">¶</a></h5>
-<ul>
-<li><strong><code>check-docs.yml</code></strong>: Enhanced with better mike testing</li>
-<li>Added git configuration for mike operations</li>
-<li>Improved test workflow</li>
-<li>
-<p>Better artifact handling</p>
-</li>
-<li>
-<p><strong><code>release.yml</code></strong>: Simplified documentation handling</p>
-</li>
-<li>Removed duplicate deployment logic</li>
-<li>Added informational step about automatic deployment</li>
-<li>Documentation deployment now handled by <code>deploy-docs.yml</code></li>
-</ul>
-<h5 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h5>
-<ul>
-<li><strong><code>mkdocs.yml</code></strong>: Updated navigation</li>
-<li>Added Contributing section</li>
-<li>
-<p>Linked new documentation pages</p>
-</li>
-<li>
-<p><strong><code>Makefile</code></strong>: Added documentation targets (see above)</p>
-</li>
-</ul>
-<h4 id="removed">❌ Removed<a class="headerlink" href="#removed" title="Permanent link">¶</a></h4>
-<ul>
-<li><strong><code>.github/workflows/main-doc.yml</code></strong>: Replaced by unified <code>deploy-docs.yml</code></li>
-</ul>
-<h4 id="architecture-changes">📊 Architecture Changes<a class="headerlink" href="#architecture-changes" title="Permanent link">¶</a></h4>
-<h5 id="before">Before<a class="headerlink" href="#before" title="Permanent link">¶</a></h5>
-<div class="highlight"><pre><span></span><code>Tag Push → release.yml → Deploy docs
-Main Push → main-doc.yml → Deploy docs
-(Duplicate logic, no unified control)
-</code></pre></div>
-<h5 id="after">After<a class="headerlink" href="#after" title="Permanent link">¶</a></h5>
-<div class="highlight"><pre><span></span><code>Tag Push → deploy-docs.yml → Deploy as vX.Y.Z (alias: stable)
-Main Push → deploy-docs.yml → Deploy as main (alias: development)
-Manual → deploy-docs.yml → Deploy custom version/alias
-(Single source of truth, unified workflow)
-</code></pre></div>
-<h4 id="security-improvements">🔒 Security Improvements<a class="headerlink" href="#security-improvements" title="Permanent link">¶</a></h4>
-<ul>
-<li>No long-lived secrets required</li>
-<li>Uses GitHub’s automatic <code>GITHUB_TOKEN</code></li>
-<li>Scoped permissions (<code>contents: write</code> only for deployment)</li>
-<li>Clear audit trail in <code>gh-pages</code> branch</li>
-<li>Automatic secret masking</li>
-</ul>
-<h4 id="benefits">📈 Benefits<a class="headerlink" href="#benefits" title="Permanent link">¶</a></h4>
-<h5 id="for-developers">For Developers<a class="headerlink" href="#for-developers" title="Permanent link">¶</a></h5>
-<ul>
-<li>Local testing without pushing to gh-pages</li>
-<li>Helper script for common operations</li>
-<li>Makefile targets for convenience</li>
-<li>Clear error messages and validation</li>
-<li>Comprehensive documentation</li>
-</ul>
-<h5 id="for-maintainers">For Maintainers<a class="headerlink" href="#for-maintainers" title="Permanent link">¶</a></h5>
-<ul>
-<li>Automatic versioned releases</li>
-<li>Development docs always up-to-date</li>
-<li>Easy rollback capabilities</li>
-<li>Clear deployment history</li>
-<li>Manual deployment control when needed</li>
-</ul>
-<h5 id="for-users">For Users<a class="headerlink" href="#for-users" title="Permanent link">¶</a></h5>
-<ul>
-<li>Version selector in documentation</li>
-<li>Stable version as default landing page</li>
-<li>Development version for latest features</li>
-<li>Fast, reliable documentation hosting</li>
-<li>Professional, polished documentation site</li>
-</ul>
-<h4 id="usage-examples">🎓 Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">¶</a></h4>
-<h5 id="local-development">Local Development<a class="headerlink" href="#local-development" title="Permanent link">¶</a></h5>
-<div class="highlight"><pre><span></span><code><span class="c1"># Start development server</span>
-make<span class="w"> </span>docs-serve
+<h2 id="tox-to-uv-migration-guide">Tox to UV Migration Guide<a class="headerlink" href="#tox-to-uv-migration-guide" title="Permanent link">¶</a></h2>
+<h3 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h3>
+<p>This document provides the complete mapping from <strong>tox</strong> commands to <strong>UV + Makefile</strong> commands for the <code>eos-downloader</code> project.</p>
+<p>The migration <strong>maintains backward compatibility</strong> with tox commands while leveraging UV’s performance. You can use either:
+- <strong>Tox commands</strong> (backward compatible): <code>tox -e lint</code>, <code>tox -e test</code>
+- <strong>Makefile commands</strong> (direct UV, faster): <code>make lint</code>, <code>make test</code></p>
+<p><strong>Both work!</strong> The tox.ini delegates to the Makefile, which uses UV directly.</p>
+<hr>
+<h3 id="quick-reference-table">Quick Reference Table<a class="headerlink" href="#quick-reference-table" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Old Tox Command</th>
+<th>New Options (Both Work!)</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tox</code></td>
+<td><code>tox -e all</code> or <code>make check</code></td>
+<td>Run all checks (lint, type, test)</td>
+</tr>
+<tr>
+<td><code>tox -e lint</code></td>
+<td><code>tox -e lint</code> or <code>make lint</code></td>
+<td>Run linting (flake8 + pylint)</td>
+</tr>
+<tr>
+<td><code>tox -e type</code></td>
+<td><code>tox -e type</code> or <code>make type</code></td>
+<td>Run type checking (mypy)</td>
+</tr>
+<tr>
+<td><code>tox -e py38</code></td>
+<td><code>tox -e test</code> or <code>make test</code></td>
+<td>Run tests with pytest</td>
+</tr>
+<tr>
+<td><code>tox -e py39</code></td>
+<td><code>tox -e test</code> or <code>make test</code></td>
+<td>Run tests with pytest</td>
+</tr>
+<tr>
+<td><code>tox -e py310</code></td>
+<td><code>tox -e test</code> or <code>make test</code></td>
+<td>Run tests with pytest</td>
+</tr>
+<tr>
+<td><code>tox -e clean</code></td>
+<td><code>tox -e clean</code> or <code>make clean</code></td>
+<td>Clean generated files</td>
+</tr>
+<tr>
+<td><code>tox -e report</code></td>
+<td><code>tox -e coverage</code> or <code>make coverage</code></td>
+<td>Generate coverage report</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> Tox commands still work but delegate to UV + Makefile for maximum performance.</p>
+<hr>
+<h3 id="detailed-command-mapping">Detailed Command Mapping<a class="headerlink" href="#detailed-command-mapping" title="Permanent link">¶</a></h3>
+<h4 id="1-linting-tox-e-lint">1. Linting (<code>tox -e lint</code>)<a class="headerlink" href="#1-linting-tox-e-lint" title="Permanent link">¶</a></h4>
+<p><strong>Still works (backward compatible):</strong>
+</p><div class="highlight"><pre><span></span><code>tox<span class="w"> </span>-e<span class="w"> </span>lint
+</code></pre></div><p></p>
+<p><strong>Or use Makefile (slightly faster):</strong>
+</p><div class="highlight"><pre><span></span><code>make<span class="w"> </span>lint
+</code></pre></div><p></p>
+<p><strong>Or direct UV command:</strong>
+</p><div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>flake8<span class="w"> </span>--max-line-length<span class="o">=</span><span class="m">165</span><span class="w"> </span>--config<span class="o">=</span>/dev/null<span class="w"> </span>eos_downloader
+uv<span class="w"> </span>run<span class="w"> </span>pylint<span class="w"> </span>--rcfile<span class="o">=</span>pylintrc<span class="w"> </span>eos_downloader
+</code></pre></div><p></p>
+<p><strong>What it does:</strong>
+- Runs <code>flake8</code> for style checking
+- Runs <code>pylint</code> for code quality analysis
+- Both tools check the <code>eos_downloader</code> package</p>
+<hr>
+<h4 id="2-type-checking-tox-e-type">2. Type Checking (<code>tox -e type</code>)<a class="headerlink" href="#2-type-checking-tox-e-type" title="Permanent link">¶</a></h4>
+<p><strong>Old (tox):</strong>
+</p><div class="highlight"><pre><span></span><code>tox<span class="w"> </span>-e<span class="w"> </span><span class="nb">type</span>
+</code></pre></div><p></p>
+<p><strong>New (UV):</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1"># Using Makefile (recommended)</span>
+make<span class="w"> </span><span class="nb">type</span>
+
+<span class="c1"># Direct UV command</span>
+uv<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>--config-file<span class="o">=</span>pyproject.toml<span class="w"> </span>eos_downloader
+</code></pre></div><p></p>
+<p><strong>What it does:</strong>
+- Runs <code>mypy</code> type checker
+- Uses configuration from <code>pyproject.toml</code>
+- Validates type hints across the codebase</p>
+<hr>
+<h4 id="3-testing-tox-e-py3839310">3. Testing (<code>tox -e py{38,39,310}</code>)<a class="headerlink" href="#3-testing-tox-e-py3839310" title="Permanent link">¶</a></h4>
+<p><strong>Old (tox):</strong>
+</p><div class="highlight"><pre><span></span><code>tox<span class="w"> </span>-e<span class="w"> </span>py38<span class="w">      </span><span class="c1"># Python 3.8</span>
+tox<span class="w"> </span>-e<span class="w"> </span>py39<span class="w">      </span><span class="c1"># Python 3.9</span>
+tox<span class="w"> </span>-e<span class="w"> </span>py310<span class="w">     </span><span class="c1"># Python 3.10</span>
+</code></pre></div><p></p>
+<p><strong>New (UV):</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1"># Using Makefile (recommended)</span>
+make<span class="w"> </span><span class="nb">test</span>
+
+<span class="c1"># Direct UV command</span>
+uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>-rA<span class="w"> </span>-q<span class="w"> </span>--color<span class="w"> </span>yes<span class="w"> </span>--cov<span class="o">=</span>eos_downloader<span class="w"> </span>tests/
+</code></pre></div><p></p>
+<p><strong>What it does:</strong>
+- Runs pytest test suite
+- Includes basic coverage
+- Uses pytest configuration from <code>pyproject.toml</code></p>
+<p><strong>Note:</strong> UV automatically uses the Python version from <code>.python-version</code> file. For multi-version testing, use GitHub Actions matrix strategy (see CI/CD section).</p>
+<hr>
+<h4 id="4-coverage-report-tox-e-report">4. Coverage Report (<code>tox -e report</code>)<a class="headerlink" href="#4-coverage-report-tox-e-report" title="Permanent link">¶</a></h4>
+<p><strong>Old (tox):</strong>
+</p><div class="highlight"><pre><span></span><code>tox<span class="w"> </span>-e<span class="w"> </span>report
+</code></pre></div><p></p>
+<p><strong>New (UV):</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1"># Using Makefile (recommended)</span>
+make<span class="w"> </span>coverage
+
+<span class="c1"># Direct UV command</span>
+uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>-rA<span class="w"> </span>-q<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--cov<span class="o">=</span>eos_downloader<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--cov-report<span class="w"> </span>term-missing<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--cov-report<span class="w"> </span>html<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--cov-report<span class="w"> </span>xml<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--color<span class="w"> </span>yes<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>tests/
+</code></pre></div><p></p>
+<p><strong>What it does:</strong>
+- Runs tests with comprehensive coverage
+- Generates three report formats:
+  - <strong>Terminal:</strong> Shows missing lines
+  - <strong>HTML:</strong> <code>htmlcov/index.html</code> (interactive)
+  - <strong>XML:</strong> <code>coverage.xml</code> (for CI/CD)</p>
+<hr>
+<h4 id="5-clean-tox-e-clean">5. Clean (<code>tox -e clean</code>)<a class="headerlink" href="#5-clean-tox-e-clean" title="Permanent link">¶</a></h4>
+<p><strong>Old (tox):</strong>
+</p><div class="highlight"><pre><span></span><code>tox<span class="w"> </span>-e<span class="w"> </span>clean
+</code></pre></div><p></p>
+<p><strong>New (UV):</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1"># Using Makefile (recommended)</span>
+make<span class="w"> </span>clean
+
+<span class="c1"># Manual cleanup</span>
+rm<span class="w"> </span>-rf<span class="w"> </span>.pytest_cache<span class="w"> </span>__pycache__<span class="w"> </span>.mypy_cache<span class="w"> </span>htmlcov<span class="w"> </span>coverage.xml<span class="w"> </span>.coverage
+</code></pre></div><p></p>
+<p><strong>What it does:</strong>
+- Removes Python cache files (<code>__pycache__</code>)
+- Removes test artifacts (<code>.pytest_cache</code>)
+- Removes coverage reports (<code>htmlcov</code>, <code>coverage.xml</code>)
+- Removes mypy cache (<code>.mypy_cache</code>)</p>
+<hr>
+<h4 id="6-full-test-suite-tox">6. Full Test Suite (<code>tox</code>)<a class="headerlink" href="#6-full-test-suite-tox" title="Permanent link">¶</a></h4>
+<p><strong>Old (tox):</strong>
+</p><div class="highlight"><pre><span></span><code>tox
+</code></pre></div><p></p>
+<p><strong>New (UV):</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1"># Using Makefile (recommended)</span>
+make<span class="w"> </span>check
+
+<span class="c1"># Or run each step individually</span>
+make<span class="w"> </span>lint
+make<span class="w"> </span><span class="nb">type</span>
+make<span class="w"> </span><span class="nb">test</span>
+</code></pre></div><p></p>
+<p><strong>What it does:</strong>
+- Runs all quality checks in sequence:
+  1. Linting (flake8 + pylint)
+  2. Type checking (mypy)
+  3. Tests (pytest)</p>
+<hr>
+<h3 id="installation-setup">Installation &amp; Setup<a class="headerlink" href="#installation-setup" title="Permanent link">¶</a></h3>
+<h4 id="installing-dependencies">Installing Dependencies<a class="headerlink" href="#installing-dependencies" title="Permanent link">¶</a></h4>
+<p><strong>Old (tox):</strong>
+</p><div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>tox
+tox<span class="w"> </span>--notest<span class="w">  </span><span class="c1"># Install dependencies without running tests</span>
+</code></pre></div><p></p>
+<p><strong>New (UV):</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1"># Install all dependencies (dev + doc)</span>
+make<span class="w"> </span>install
 <span class="c1"># or</span>
-./scripts/docs-helper.sh<span class="w"> </span>serve
+uv<span class="w"> </span>sync<span class="w"> </span>--all-extras
 
-<span class="c1"># Build and validate</span>
-make<span class="w"> </span>docs-build
+<span class="c1"># Install only what you need</span>
+make<span class="w"> </span>install-dev<span class="w">      </span><span class="c1"># Development dependencies</span>
+make<span class="w"> </span>install-doc<span class="w">      </span><span class="c1"># Documentation dependencies</span>
+make<span class="w"> </span>install-base<span class="w">     </span><span class="c1"># Production dependencies only</span>
+</code></pre></div><p></p>
+<hr>
+<h3 id="cicd-integration">CI/CD Integration<a class="headerlink" href="#cicd-integration" title="Permanent link">¶</a></h3>
+<h4 id="github-actions-migration">GitHub Actions Migration<a class="headerlink" href="#github-actions-migration" title="Permanent link">¶</a></h4>
+<p><strong>Old (tox in GitHub Actions):</strong>
+</p><div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run tox</span>
+<span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tox -e lint,type,py310</span>
+</code></pre></div><p></p>
+<p><strong>New (UV + Makefile in GitHub Actions):</strong>
+</p><div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install UV</span>
+<span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">astral-sh/setup-uv@v3</span>
+<span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"0.5.0"</span>
+<span class="w">    </span><span class="nt">enable-cache</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 
-<span class="c1"># Test mike deployment</span>
-make<span class="w"> </span>docs-test
-</code></pre></div>
-<h5 id="deploying-versions">Deploying Versions<a class="headerlink" href="#deploying-versions" title="Permanent link">¶</a></h5>
-<div class="highlight"><pre><span></span><code><span class="c1"># Automatic (via git tag)</span>
-git<span class="w"> </span>tag<span class="w"> </span>v0.14.0
-git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v0.14.0
-<span class="c1"># → Triggers deploy-docs.yml automatically</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install dependencies</span>
+<span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">make ci-install</span>
 
-<span class="c1"># Manual deployment</span>
-make<span class="w"> </span>docs-deploy-stable<span class="w"> </span><span class="nv">VERSION</span><span class="o">=</span>v0.13.0
-<span class="c1"># or</span>
-./scripts/docs-helper.sh<span class="w"> </span>deploy<span class="w"> </span>v0.13.0<span class="w"> </span>stable
-
-<span class="c1"># Delete old version</span>
-make<span class="w"> </span>docs-delete<span class="w"> </span><span class="nv">VERSION</span><span class="o">=</span>v0.10.0
-</code></pre></div>
-<h5 id="checking-deployed-versions">Checking Deployed Versions<a class="headerlink" href="#checking-deployed-versions" title="Permanent link">¶</a></h5>
-<div class="highlight"><pre><span></span><code>make<span class="w"> </span>docs-list
-<span class="c1"># or</span>
-./scripts/docs-helper.sh<span class="w"> </span>list
-</code></pre></div>
-<h4 id="testing-performed">🧪 Testing Performed<a class="headerlink" href="#testing-performed" title="Permanent link">¶</a></h4>
-<ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Documentation builds without errors</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Mike configuration validated</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Helper script functional</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Makefile targets work correctly</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Workflows have correct triggers</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Permissions properly scoped</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Local testing successful</li>
-</ul>
-<h4 id="migration-notes">📝 Migration Notes<a class="headerlink" href="#migration-notes" title="Permanent link">¶</a></h4>
-<h5 id="for-existing-deployments">For Existing Deployments<a class="headerlink" href="#for-existing-deployments" title="Permanent link">¶</a></h5>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run checks</span>
+<span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">make ci-all</span>
+</code></pre></div><p></p>
+<p><strong>Available CI targets:</strong>
+- <code>make ci-install</code> - Install dependencies (frozen, dev extras)
+- <code>make ci-lint</code> - Run linting
+- <code>make ci-type</code> - Run type checking
+- <code>make ci-test</code> - Run tests
+- <code>make ci-coverage</code> - Run tests with coverage
+- <code>make ci-all</code> - Run all checks (lint + type + test)</p>
+<hr>
+<h3 id="benefits-of-uv-over-tox">Benefits of UV Over Tox<a class="headerlink" href="#benefits-of-uv-over-tox" title="Permanent link">¶</a></h3>
+<h4 id="1-speed">1. <strong>Speed</strong><a class="headerlink" href="#1-speed" title="Permanent link">¶</a></h4>
 <ul>
-<li>No action required</li>
-<li>Existing versions in gh-pages remain unchanged</li>
-<li>New deployments will use the unified workflow</li>
+<li><strong>Tox:</strong> Creates separate virtual environments for each test environment (slow)</li>
+<li><strong>UV:</strong> Single virtual environment, instant command execution</li>
+<li><strong>Result:</strong> 5-10x faster for typical workflows</li>
 </ul>
-<h5 id="for-contributors">For Contributors<a class="headerlink" href="#for-contributors" title="Permanent link">¶</a></h5>
+<h4 id="2-simplicity">2. <strong>Simplicity</strong><a class="headerlink" href="#2-simplicity" title="Permanent link">¶</a></h4>
 <ul>
-<li>Review <code>docs/contributing/documentation-deployment.md</code></li>
-<li>Use helper script or Makefile for local operations</li>
-<li>Test documentation builds before submitting PRs</li>
+<li><strong>Tox:</strong> Requires <code>tox.ini</code> configuration + understanding tox environments</li>
+<li><strong>UV:</strong> Direct command execution + simple Makefile</li>
+<li><strong>Result:</strong> Easier onboarding for new contributors</li>
 </ul>
-<h5 id="for-maintainers_1">For Maintainers<a class="headerlink" href="#for-maintainers_1" title="Permanent link">¶</a></h5>
+<h4 id="3-dependency-resolution">3. <strong>Dependency Resolution</strong><a class="headerlink" href="#3-dependency-resolution" title="Permanent link">¶</a></h4>
 <ul>
-<li>Tag-based releases now automatically deploy documentation</li>
-<li>No manual documentation deployment needed</li>
-<li>Use workflow dispatch for custom deployments if needed</li>
+<li><strong>Tox:</strong> Uses pip for each environment (slow, non-deterministic)</li>
+<li><strong>UV:</strong> Single <code>uv.lock</code> file, deterministic builds</li>
+<li><strong>Result:</strong> Consistent environments across machines and CI</li>
 </ul>
-<h4 id="future-enhancements">🔮 Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">¶</a></h4>
+<h4 id="4-modern-features">4. <strong>Modern Features</strong><a class="headerlink" href="#4-modern-features" title="Permanent link">¶</a></h4>
 <ul>
-<li>PR preview deployments</li>
-<li>Automated cleanup of old versions</li>
-<li>Multi-language support</li>
-<li>Broken link checking</li>
-<li>SEO optimization</li>
-<li>Analytics integration (optional)</li>
-<li>Performance monitoring</li>
-</ul>
-<h4 id="references">📚 References<a class="headerlink" href="#references" title="Permanent link">¶</a></h4>
-<ul>
-<li><a href="https://www.mkdocs.org/">MkDocs Documentation</a></li>
-<li><a href="https://github.com/jimporter/mike">Mike Documentation</a></li>
-<li><a href="https://docs.github.com/en/actions">GitHub Actions Documentation</a></li>
-<li><a href="https://docs.github.com/en/pages">GitHub Pages Documentation</a></li>
+<li><strong>UV:</strong> Built-in caching, workspace support, Python version management</li>
+<li><strong>Tox:</strong> Requires additional tools (pyenv, pip-tools)</li>
 </ul>
 <hr>
-<p><strong>Implementation Date</strong>: 2025-10-24<br>
-<strong>Implemented By</strong>: GitHub Copilot<br>
-<strong>Status</strong>: ✅ Complete and Tested</p>
+<h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h3>
+<h4 id="command-not-found-make">“Command not found: make”<a class="headerlink" href="#command-not-found-make" title="Permanent link">¶</a></h4>
+<p>Install <code>make</code>:
+- <strong>Ubuntu/Debian:</strong> <code>sudo apt install build-essential</code>
+- <strong>macOS:</strong> <code>xcode-select --install</code>
+- <strong>Windows:</strong> Use WSL or install GNU Make</p>
+<h4 id="uv-not-found">“UV not found”<a class="headerlink" href="#uv-not-found" title="Permanent link">¶</a></h4>
+<p>Install UV:
+</p><div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+</code></pre></div><p></p>
+<h4 id="virtual-environment-not-found">“Virtual environment not found”<a class="headerlink" href="#virtual-environment-not-found" title="Permanent link">¶</a></h4>
+<p>Recreate the environment:
+</p><div class="highlight"><pre><span></span><code>make<span class="w"> </span>reset<span class="w">      </span><span class="c1"># Remove .venv</span>
+make<span class="w"> </span>install<span class="w">    </span><span class="c1"># Reinstall dependencies</span>
+</code></pre></div><p></p>
+<h4 id="tests-failing-with-import-errors">“Tests failing with import errors”<a class="headerlink" href="#tests-failing-with-import-errors" title="Permanent link">¶</a></h4>
+<p>Ensure dependencies are installed:
+</p><div class="highlight"><pre><span></span><code>make<span class="w"> </span>install-dev<span class="w">  </span><span class="c1"># Install dev dependencies</span>
+</code></pre></div><p></p>
+<hr>
+<h3 id="migration-checklist">Migration Checklist<a class="headerlink" href="#migration-checklist" title="Permanent link">¶</a></h3>
+<p>If you’re migrating from tox to UV:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Install UV (<code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Remove old virtual environment (<code>rm -rf .venv</code>)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Install dependencies (<code>make install</code>)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Test local commands:</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> <code>make lint</code> - Should pass</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> <code>make type</code> - Should pass</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> <code>make test</code> - Should pass</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> <code>make coverage</code> - Should generate reports</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> <code>make check</code> - Should run all checks</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Update CI/CD workflows (see Phase 5 plan)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Update documentation references</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Remove <code>tox</code> from dependencies (if present)</li>
+</ul>
+<hr>
+<h3 id="additional-resources">Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>UV Documentation:</strong> <a href="https://docs.astral.sh/uv/">https://docs.astral.sh/uv/</a></li>
+<li><strong>UV Installation Modes:</strong> <a href="../uv-installation-modes/"><code>docs/uv-installation-modes.md</code></a></li>
+</ul>
+<h3 id="additional-resources_1">Additional Resources<a class="headerlink" href="#additional-resources_1" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Migration Plan:</strong> <a href="https://github.com/titom73/eos-downloader/blob/main/.github/plans/upgrade-package-manager-uv-v1.md">View on GitHub</a></li>
+<li><strong>Makefile:</strong> <a href="../Makefile"><code>Makefile</code></a> (see all available targets with <code>make help</code>)</li>
+</ul>
+<hr>
+<h3 id="quick-start-examples">Quick Start Examples<a class="headerlink" href="#quick-start-examples" title="Permanent link">¶</a></h3>
+<h4 id="developer-workflow">Developer Workflow<a class="headerlink" href="#developer-workflow" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># First time setup</span>
+make<span class="w"> </span>dev-setup
+
+<span class="c1"># Daily workflow</span>
+make<span class="w"> </span>format<span class="w">        </span><span class="c1"># Format code</span>
+make<span class="w"> </span>check<span class="w">         </span><span class="c1"># Run all checks before commit</span>
+make<span class="w"> </span>coverage<span class="w">      </span><span class="c1"># Check test coverage</span>
+
+<span class="c1"># Specific checks</span>
+make<span class="w"> </span>lint<span class="w">          </span><span class="c1"># Only linting</span>
+make<span class="w"> </span><span class="nb">type</span><span class="w">          </span><span class="c1"># Only type checking</span>
+make<span class="w"> </span><span class="nb">test</span><span class="w">          </span><span class="c1"># Only tests</span>
+</code></pre></div>
+<h4 id="cicd-workflow">CI/CD Workflow<a class="headerlink" href="#cicd-workflow" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># In GitHub Actions</span>
+make<span class="w"> </span>ci-install<span class="w">    </span><span class="c1"># Install dependencies</span>
+make<span class="w"> </span>ci-all<span class="w">        </span><span class="c1"># Run all checks</span>
+</code></pre></div>
+<h4 id="maintenance">Maintenance<a class="headerlink" href="#maintenance" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>clean<span class="w">         </span><span class="c1"># Clean generated files</span>
+make<span class="w"> </span>clean-venv<span class="w">    </span><span class="c1"># Remove virtual environment</span>
+make<span class="w"> </span>reset<span class="w">         </span><span class="c1"># Full reset</span>
+</code></pre></div>
+<hr>
+<h3 id="questions">Questions?<a class="headerlink" href="#questions" title="Permanent link">¶</a></h3>
+<p>If you have questions about the migration:</p>
+<ol>
+<li>Check the <a href="https://docs.astral.sh/uv/">UV documentation</a></li>
+<li>Review the <a href="https://github.com/titom73/eos-downloader/blob/main/.github/plans/upgrade-package-manager-uv-v1.md">migration plan</a></li>
+<li>Open an issue on GitHub</li>
+</ol>
+<p><strong>Happy migrating!</strong> 🚀</p>
 
 
 
@@ -1577,7 +2064,7 @@ make<span class="w"> </span>docs-delete<span class="w"> </span><span class="nv">
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 24, 2025 07:40:43 UTC">October 24, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 4, 2025 16:24:19 UTC">November 4, 2025</span>
   </span>
 
     

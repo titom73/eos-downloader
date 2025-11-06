@@ -10,21 +10,25 @@
       
       
       
+        <link rel="prev" href="../../usage/mapping/">
       
       
-      <link rel="icon" href="../imgs/favicon.ico">
+        <link rel="next" href="../tox-to-uv-migration/">
+      
+      
+      <link rel="icon" href="../../imgs/favicon.ico">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
     
     
       
-        <title>Docker - Arista EOS Downloader</title>
+        <title>UV installation mode - Arista EOS Downloader</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -43,18 +47,18 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../stylesheets/extra.material.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.material.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
     
     
     
-  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
             .gslide-desc { color: #666; user-select: text; }
@@ -83,7 +87,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#docker-image" class="md-skip">
+        <a href="#uv-installation-modes" class="md-skip">
           Skip to content
         </a>
       
@@ -103,7 +107,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Arista EOS Downloader" class="md-header__button md-logo" aria-label="Arista EOS Downloader" data-md-component="logo">
+    <a href="../.." title="Arista EOS Downloader" class="md-header__button md-logo" aria-label="Arista EOS Downloader" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M248 88h80v48h-80zm-8-56c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h16v32H32c-17.7 0-32 14.3-32 32s14.3 32 32 32h96v32h-16c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h96c26.5 0 48-21.5 48-48v-64c0-26.5-21.5-48-48-48h-16v-32h192v32h-16c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h96c26.5 0 48-21.5 48-48v-64c0-26.5-21.5-48-48-48h-16v-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H320v-32h16c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm208 344h8v48h-80v-48zm-256 0h8v48h-80v-48z"></path></svg>
@@ -123,7 +127,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Docker
+              UV installation mode
             
           </span>
         </div>
@@ -239,7 +243,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Arista EOS Downloader" class="md-nav__button md-logo" aria-label="Arista EOS Downloader" data-md-component="logo">
+    <a href="../.." title="Arista EOS Downloader" class="md-nav__button md-logo" aria-label="Arista EOS Downloader" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M248 88h80v48h-80zm-8-56c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h16v32H32c-17.7 0-32 14.3-32 32s14.3 32 32 32h96v32h-16c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h96c26.5 0 48-21.5 48-48v-64c0-26.5-21.5-48-48-48h-16v-32h192v32h-16c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h96c26.5 0 48-21.5 48-48v-64c0-26.5-21.5-48-48-48h-16v-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H320v-32h16c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm208 344h8v48h-80v-48zm-256 0h8v48h-80v-48z"></path></svg>
@@ -269,7 +273,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -343,7 +347,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/eos/" class="md-nav__link">
+      <a href="../../usage/eos/" class="md-nav__link">
         
   
   
@@ -366,7 +370,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/cvp/" class="md-nav__link">
+      <a href="../../usage/cvp/" class="md-nav__link">
         
   
   
@@ -389,7 +393,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/path/" class="md-nav__link">
+      <a href="../../usage/path/" class="md-nav__link">
         
   
   
@@ -412,7 +416,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/environment/" class="md-nav__link">
+      <a href="../../usage/environment/" class="md-nav__link">
         
   
   
@@ -435,7 +439,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/info/" class="md-nav__link">
+      <a href="../../usage/info/" class="md-nav__link">
         
   
   
@@ -458,7 +462,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/mapping/" class="md-nav__link">
+      <a href="../../usage/mapping/" class="md-nav__link">
         
   
   
@@ -485,8 +489,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -498,11 +504,11 @@
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -518,7 +524,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Development
@@ -529,10 +535,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../dev-notes/uv-installation-modes/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    UV installation mode
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -543,6 +569,186 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#uv-installation-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      UV Installation Modes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UV Installation Modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation Modes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation Modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-base-installation-core-dependencies-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Base Installation (Core Dependencies Only)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-documentation-extra" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Documentation Extra
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-development-extra" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Development Extra
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-full-installation-all-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Full Installation (All Extras)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multiple Extras
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison Table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits-of-partial-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefits of Partial Installation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verification
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#warning-virtual_env-mismatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Warning: VIRTUAL_ENV mismatch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning-unsupported-python-request-in-python-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Warning: Unsupported Python request in .python-version
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      See Also
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -555,7 +761,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dev-notes/tox-to-uv-migration/" class="md-nav__link">
+      <a href="../tox-to-uv-migration/" class="md-nav__link">
         
   
   
@@ -679,7 +885,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/models/version/" class="md-nav__link">
+      <a href="../../api/models/version/" class="md-nav__link">
         
   
   
@@ -702,7 +908,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/models/data/" class="md-nav__link">
+      <a href="../../api/models/data/" class="md-nav__link">
         
   
   
@@ -725,7 +931,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/models/custom_types/" class="md-nav__link">
+      <a href="../../api/models/custom_types/" class="md-nav__link">
         
   
   
@@ -802,7 +1008,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/logics/arista_server/" class="md-nav__link">
+      <a href="../../api/logics/arista_server/" class="md-nav__link">
         
   
   
@@ -825,7 +1031,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/logics/arista_xml_server/" class="md-nav__link">
+      <a href="../../api/logics/arista_xml_server/" class="md-nav__link">
         
   
   
@@ -848,7 +1054,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/logics/download/" class="md-nav__link">
+      <a href="../../api/logics/download/" class="md-nav__link">
         
   
   
@@ -879,7 +1085,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/helpers/" class="md-nav__link">
+      <a href="../../api/helpers/" class="md-nav__link">
         
   
   
@@ -902,7 +1108,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/defaults/" class="md-nav__link">
+      <a href="../../api/defaults/" class="md-nav__link">
         
   
   
@@ -932,7 +1138,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../contributing/" class="md-nav__link">
+      <a href="../../contributing/" class="md-nav__link">
         
   
   
@@ -954,7 +1160,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../faq/" class="md-nav__link">
+      <a href="../../faq/" class="md-nav__link">
         
   
   
@@ -994,38 +1200,65 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#docker-image" class="md-nav__link">
+  <a href="#uv-installation-modes" class="md-nav__link">
     <span class="md-ellipsis">
-      Docker Image
+      UV Installation Modes
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Docker Image">
+    <nav class="md-nav" aria-label="UV Installation Modes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#connect-to-your-docker-container" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
-      Connect to your docker container
+      Overview
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-cli-with-docker" class="md-nav__link">
+  <a href="#installation-modes" class="md-nav__link">
     <span class="md-ellipsis">
-      Use CLI with docker
+      Installation Modes
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Use CLI with docker">
+    <nav class="md-nav" aria-label="Installation Modes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#available-tags" class="md-nav__link">
+  <a href="#1-base-installation-core-dependencies-only" class="md-nav__link">
     <span class="md-ellipsis">
-      Available TAGS
+      1. Base Installation (Core Dependencies Only)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-documentation-extra" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Documentation Extra
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-development-extra" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Development Extra
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-full-installation-all-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Full Installation (All Extras)
     </span>
   </a>
   
@@ -1033,6 +1266,93 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multiple Extras
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison Table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits-of-partial-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefits of Partial Installation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verification
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#warning-virtual_env-mismatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Warning: VIRTUAL_ENV mismatch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning-unsupported-python-request-in-python-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Warning: Unsupported Python request in .python-version
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      See Also
+    </span>
+  </a>
   
 </li>
         
@@ -1060,49 +1380,175 @@
   
 
 
-  <h1>Docker</h1>
+  <h1>UV installation mode</h1>
 
-<h2 id="docker-image">Docker Image<a class="headerlink" href="#docker-image" title="Permanent link">¶</a></h2>
-<p>A <a href="https://hub.docker.com/repository/docker/titom73/eos-downloader/tags?page=1&amp;ordering=last_updated">docker image</a> is also available when Python cannot be used.</p>
-<h3 id="connect-to-your-docker-container">Connect to your docker container<a class="headerlink" href="#connect-to-your-docker-container" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>docker<span class="w"> </span>pull<span class="w"> </span>titom73/eos-downloader:edge
-docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>--entrypoint<span class="w"> </span>bash<span class="w"> </span>titom73/eos-downloader:dev
-root@a9a8ceb533df:/local#<span class="w"> </span>ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--help
-$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/download
-$<span class="w"> </span>ardl<span class="w"> </span>--token<span class="w"> </span>xxxx<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--image-format<span class="w"> </span>cEOS<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.28.3M
+<h2 id="uv-installation-modes">UV Installation Modes<a class="headerlink" href="#uv-installation-modes" title="Permanent link">¶</a></h2>
+<p>This document describes the different installation modes available with UV for the eos-downloader project.</p>
+<h3 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h3>
+<p>UV supports flexible installation modes equivalent to pip’s <code>-e .</code> and <code>-e ".[extra]"</code> patterns, allowing you to install only the dependencies you need for your specific use case.</p>
+<h3 id="installation-modes">Installation Modes<a class="headerlink" href="#installation-modes" title="Permanent link">¶</a></h3>
+<h4 id="1-base-installation-core-dependencies-only">1. Base Installation (Core Dependencies Only)<a class="headerlink" href="#1-base-installation-core-dependencies-only" title="Permanent link">¶</a></h4>
+<p><strong>Pip equivalent</strong>: <code>pip install -e .</code></p>
+<p><strong>UV command</strong>:
+</p><div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync
+</code></pre></div><p></p>
+<p><strong>Packages installed</strong>: 31 packages (core dependencies only)</p>
+<p><strong>Includes</strong>:
+- Core application dependencies (click, requests, rich, loguru, tqdm, pydantic, etc.)
+- Runtime requirements for CLI commands (ardl, lard)
+- Essential libraries (cryptography, paramiko, cvprac)</p>
+<p><strong>Use case</strong>:
+- Production deployments
+- Docker containers
+- Minimal installations
+- Users who only need the CLI tools</p>
+<p><strong>Makefile target</strong>:
+</p><div class="highlight"><pre><span></span><code>make<span class="w"> </span>install-base
+</code></pre></div><p></p>
+<h4 id="2-documentation-extra">2. Documentation Extra<a class="headerlink" href="#2-documentation-extra" title="Permanent link">¶</a></h4>
+<p><strong>Pip equivalent</strong>: <code>pip install -e ".[doc]"</code></p>
+<p><strong>UV command</strong>:
+</p><div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>doc
+</code></pre></div><p></p>
+<p><strong>Packages installed</strong>: 75 packages (core + documentation dependencies)</p>
+<p><strong>Additional packages include</strong>:
+- mkdocs and mkdocs-material (documentation site generator)
+- mkdocstrings (API documentation from docstrings)
+- mkdocs plugins (git-revision-date, glightbox, etc.)
+- Markdown extensions (pymdown-extensions)</p>
+<p><strong>Use case</strong>:
+- Building project documentation locally
+- Contributing to documentation
+- Previewing documentation changes</p>
+<p><strong>Makefile target</strong>:
+</p><div class="highlight"><pre><span></span><code>make<span class="w"> </span>install-doc
+</code></pre></div><p></p>
+<h4 id="3-development-extra">3. Development Extra<a class="headerlink" href="#3-development-extra" title="Permanent link">¶</a></h4>
+<p><strong>Pip equivalent</strong>: <code>pip install -e ".[dev]"</code></p>
+<p><strong>UV command</strong>:
+</p><div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev
+</code></pre></div><p></p>
+<p><strong>Packages installed</strong>: 78 packages (core + development dependencies)</p>
+<p><strong>Additional packages include</strong>:
+- Testing tools (pytest, pytest-cov, pytest-html, pytest-dependency)
+- Linting tools (flake8, pylint, pylint-pydantic)
+- Type checking (mypy, types-*)
+- Code formatting (black, isort)
+- Build tools (tox, bumpver)
+- Pre-commit hooks</p>
+<p><strong>Use case</strong>:
+- Active development
+- Running tests
+- Code quality checks
+- Contributing code changes</p>
+<p><strong>Makefile target</strong>:
+</p><div class="highlight"><pre><span></span><code>make<span class="w"> </span>install-dev
+</code></pre></div><p></p>
+<h4 id="4-full-installation-all-extras">4. Full Installation (All Extras)<a class="headerlink" href="#4-full-installation-all-extras" title="Permanent link">¶</a></h4>
+<p><strong>Pip equivalent</strong>: <code>pip install -e ".[dev,doc]"</code> or <code>pip install -e ".[dev]"</code> (if dev includes all)</p>
+<p><strong>UV command</strong>:
+</p><div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--all-extras
+</code></pre></div><p></p>
+<p><strong>Packages installed</strong>: 115 packages (core + dev + doc)</p>
+<p><strong>Includes</strong>: Everything from all extras combined</p>
+<p><strong>Use case</strong>:
+- Full-featured development environment
+- Contributing to both code and documentation
+- Running all project tasks (test, lint, type check, build docs)
+- Recommended for core maintainers</p>
+<p><strong>Makefile target</strong>:
+</p><div class="highlight"><pre><span></span><code>make<span class="w"> </span>install
+</code></pre></div><p></p>
+<h3 id="multiple-extras">Multiple Extras<a class="headerlink" href="#multiple-extras" title="Permanent link">¶</a></h3>
+<p>You can also install multiple specific extras:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev<span class="w"> </span>--extra<span class="w"> </span>doc
 </code></pre></div>
-<h3 id="use-cli-with-docker">Use CLI with docker<a class="headerlink" href="#use-cli-with-docker" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>titom73/eos-downloader:dev<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--help
-Usage:<span class="w"> </span>ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+<p>This gives you fine-grained control over which dependency groups to install.</p>
+<h3 id="comparison-table">Comparison Table<a class="headerlink" href="#comparison-table" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Installation Mode</th>
+<th>Packages</th>
+<th>Pip Equivalent</th>
+<th>UV Command</th>
+<th>Makefile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Base</strong></td>
+<td>31</td>
+<td><code>pip install -e .</code></td>
+<td><code>uv sync</code></td>
+<td><code>make install-base</code></td>
+</tr>
+<tr>
+<td><strong>+ Doc</strong></td>
+<td>75</td>
+<td><code>pip install -e ".[doc]"</code></td>
+<td><code>uv sync --extra doc</code></td>
+<td><code>make install-doc</code></td>
+</tr>
+<tr>
+<td><strong>+ Dev</strong></td>
+<td>78</td>
+<td><code>pip install -e ".[dev]"</code></td>
+<td><code>uv sync --extra dev</code></td>
+<td><code>make install-dev</code></td>
+</tr>
+<tr>
+<td><strong>All</strong></td>
+<td>115</td>
+<td><code>pip install -e ".[dev,doc]"</code></td>
+<td><code>uv sync --all-extras</code></td>
+<td><code>make install</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="benefits-of-partial-installation">Benefits of Partial Installation<a class="headerlink" href="#benefits-of-partial-installation" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Faster installation</strong>: Only install what you need</li>
+<li><strong>Smaller environment</strong>: Reduces disk space and memory usage</li>
+<li><strong>Clearer dependencies</strong>: Explicit about what’s required for each use case</li>
+<li><strong>CI/CD optimization</strong>: Different jobs can use different extras (e.g., test job uses <code>--extra dev</code>, docs job uses <code>--extra doc</code>)</li>
+<li><strong>Docker optimization</strong>: Production images can use base install only</li>
+</ol>
+<h3 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h3>
+<p>After installation, you can verify what’s installed:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># List all installed packages</span>
+uv<span class="w"> </span>pip<span class="w"> </span>list
 
-<span class="w">  </span>Download<span class="w"> </span>EOS<span class="w"> </span>image<span class="w"> </span>from<span class="w"> </span>Arista<span class="w"> </span>website
+<span class="c1"># Count installed packages</span>
+uv<span class="w"> </span>pip<span class="w"> </span>list<span class="w"> </span><span class="p">|</span><span class="w"> </span>wc<span class="w"> </span>-l
 
-Options:
-<span class="w">  </span>--image-type<span class="w"> </span><span class="o">[</span><span class="m">64</span><span class="p">|</span>INT<span class="p">|</span>2GB-INT<span class="p">|</span>cEOS<span class="p">|</span>cEOS64<span class="p">|</span>vEOS<span class="p">|</span>vEOS-lab<span class="p">|</span>EOS-2GB<span class="p">|</span>default<span class="o">]</span>
-<span class="w">                                  </span>EOS<span class="w"> </span>Image<span class="w"> </span><span class="nb">type</span><span class="w">  </span><span class="o">[</span>required<span class="o">]</span>
-<span class="w">  </span>--version<span class="w"> </span>TEXT<span class="w">                  </span>EOS<span class="w"> </span>version<span class="w">  </span><span class="o">[</span>required<span class="o">]</span>
-<span class="w">  </span>--docker-name<span class="w"> </span>TEXT<span class="w">              </span>Docker<span class="w"> </span>image<span class="w"> </span>name<span class="w"> </span><span class="o">(</span>default:<span class="w"> </span>arista/ceos<span class="o">)</span>
-<span class="w">                                  </span><span class="o">[</span>default:<span class="w"> </span>arista/ceos<span class="o">]</span>
-<span class="w">  </span>--output<span class="w"> </span>PATH<span class="w">                   </span>Path<span class="w"> </span>to<span class="w"> </span>save<span class="w"> </span>image<span class="w">  </span><span class="o">[</span>default:<span class="w"> </span>.<span class="o">]</span>
-<span class="w">  </span>--log-level,<span class="w"> </span>--log<span class="w"> </span><span class="o">[</span>debug<span class="p">|</span>info<span class="p">|</span>warning<span class="p">|</span>error<span class="p">|</span>critical<span class="o">]</span>
-<span class="w">                                  </span>Logging<span class="w"> </span>level<span class="w"> </span>of<span class="w"> </span>the<span class="w"> </span><span class="nb">command</span>
-<span class="w">  </span>--eve-ng<span class="w"> </span>/<span class="w"> </span>--no-eve-ng<span class="w">          </span>Run<span class="w"> </span>EVE-NG<span class="w"> </span>vEOS<span class="w"> </span>provisioning<span class="w"> </span><span class="o">(</span>only<span class="w"> </span><span class="k">if</span><span class="w"> </span>CLI
-<span class="w">                                  </span>runs<span class="w"> </span>on<span class="w"> </span>an<span class="w"> </span>EVE-NG<span class="w"> </span>server<span class="o">)</span>
-<span class="w">  </span>--disable-ztp<span class="w"> </span>/<span class="w"> </span>--no-disable-ztp
-<span class="w">                                  </span>Disable<span class="w"> </span>ZTP<span class="w"> </span>process<span class="w"> </span><span class="k">in</span><span class="w"> </span>vEOS<span class="w"> </span>image<span class="w"> </span><span class="o">(</span>only
-<span class="w">                                  </span>available<span class="w"> </span>with<span class="w"> </span>--eve-ng<span class="o">)</span>
-<span class="w">  </span>--import-docker<span class="w"> </span>/<span class="w"> </span>--no-import-docker
-<span class="w">                                  </span>Import<span class="w"> </span>docker<span class="w"> </span>image<span class="w"> </span><span class="o">(</span>only<span class="w"> </span>available<span class="w"> </span>with
-<span class="w">                                  </span>--image_type<span class="w"> </span>cEOSlab<span class="o">)</span>
-<span class="w">  </span>--help<span class="w">                          </span>Show<span class="w"> </span>this<span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span>exit.
+<span class="c1"># Check if a specific package is installed</span>
+uv<span class="w"> </span>pip<span class="w"> </span>show<span class="w"> </span>pytest<span class="w">  </span><span class="c1"># Will show info if installed, error if not</span>
 </code></pre></div>
-<h5 id="available-tags">Available TAGS<a class="headerlink" href="#available-tags" title="Permanent link">¶</a></h5>
+<h3 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">¶</a></h3>
+<p>UV respects the following environment variables from <code>.envrc</code> (loaded by direnv):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># API token for Arista downloads</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">ARISTA_TOKEN</span><span class="o">=</span><span class="s2">"your-token-here"</span>
+
+<span class="c1"># Prevent pyenv/UV VIRTUAL_ENV conflicts</span>
+<span class="nb">unset</span><span class="w"> </span>VIRTUAL_ENV
+</code></pre></div>
+<h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h3>
+<h4 id="warning-virtual_env-mismatch">Warning: VIRTUAL_ENV mismatch<a class="headerlink" href="#warning-virtual_env-mismatch" title="Permanent link">¶</a></h4>
+<p>If you see:
+</p><div class="highlight"><pre><span></span><code>warning: `VIRTUAL_ENV=...` does not match the project environment path `.venv`
+</code></pre></div><p></p>
+<p><strong>Solution</strong>: Add <code>unset VIRTUAL_ENV</code> to your <code>.envrc</code> file</p>
+<h4 id="warning-unsupported-python-request-in-python-version">Warning: Unsupported Python request in .python-version<a class="headerlink" href="#warning-unsupported-python-request-in-python-version" title="Permanent link">¶</a></h4>
+<p>If you see:
+</p><div class="highlight"><pre><span></span><code>warning: Ignoring unsupported Python request `eos-downloader` in version file
+</code></pre></div><p></p>
+<p><strong>Solution</strong>: Update <code>.python-version</code> to contain actual Python version (e.g., <code>3.13</code>) instead of project name</p>
+<h3 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">¶</a></h3>
 <ul>
-<li><code>edge</code>: Latest version built from the main branch</li>
-<li><code>latest</code>: Latest stable Version</li>
-<li><code>semver</code>: Version built from git tag</li>
-<li><code>latest-dind</code>: Latest stable Version with docker CLI</li>
-<li><code>semver-dind</code>: Version built from git tag with docker CLI</li>
+<li><a href="https://docs.astral.sh/uv/">UV Documentation</a></li>
+<li><a href="https://docs.astral.sh/uv/getting-started/installation/">UV Installation Guide</a></li>
+<li><a href="../tox-to-uv-migration/">Tox to UV Migration Guide</a></li>
 </ul>
 
 
@@ -1124,7 +1570,7 @@ Options:
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 3, 2023 09:31:06 UTC">February 3, 2023</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 4, 2025 16:24:19 UTC">November 4, 2025</span>
   </span>
 
     
@@ -1219,10 +1665,10 @@ Options:
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.top", "content.tabs.link", "content.code.copy", "toc.follow", "navigation.indexes", "content.tabs.link"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": ["stable"], "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.top", "content.tabs.link", "content.code.copy", "toc.follow", "navigation.indexes", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": ["stable"], "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
       
         <script src="https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.2.1/tablesort.min.js"></script>
       
