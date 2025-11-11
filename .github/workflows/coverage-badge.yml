@@ -38,7 +38,7 @@ jobs:
           python-version: ${{ steps.versions.outputs.python-version }}
 
       - name: Install UV
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v7
         with:
           version: ${{ steps.versions.outputs.uv-version }}
           enable-cache: true
