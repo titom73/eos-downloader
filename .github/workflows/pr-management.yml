@@ -26,7 +26,7 @@ jobs:
       python-versions: ${{ steps.set-versions.outputs.versions }}
       uv-version: ${{ steps.set-versions.outputs.uv-version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Load Python and UV versions from JSON
         id: set-versions
@@ -44,7 +44,7 @@ jobs:
     needs: [setup]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install UV
         uses: astral-sh/setup-uv@v7
@@ -70,7 +70,7 @@ jobs:
       matrix:
         python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
@@ -85,7 +85,7 @@ jobs:
         python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
@@ -116,7 +116,7 @@ jobs:
         python: ${{ fromJson(needs.setup.outputs.python-versions) }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -146,7 +146,7 @@ jobs:
         python: ${{ fromJson(needs.setup.outputs.python-versions) }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -176,7 +176,7 @@ jobs:
         python: ${{ fromJson(needs.setup.outputs.python-versions) }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -206,7 +206,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Load default Python version
         id: python-version
