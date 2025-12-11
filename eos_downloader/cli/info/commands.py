@@ -39,7 +39,7 @@ from eos_downloader.models.types import AristaPackage, ReleaseType, AristaMappin
 from eos_downloader.logics.arista_xml_server import AristaXmlQuerier
 from eos_downloader.models.version import EosVersion, CvpVersion
 from eos_downloader.cli.utils import console_configuration
-from eos_downloader.cli.utils import cli_logging
+from eos_downloader.logging_config import configure_logging
 from eos_downloader.exceptions import AuthenticationError
 
 # """
@@ -96,7 +96,7 @@ def versions(
     token = ctx.obj["token"]
     debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
-    cli_logging(log_level)
+    configure_logging(level=log_level.upper())
 
     try:
         querier = AristaXmlQuerier(token=token)
@@ -223,7 +223,7 @@ def latest(
     token = ctx.obj["token"]
     debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
-    cli_logging(log_level)
+    configure_logging(level=log_level.upper())
 
     try:
         querier = AristaXmlQuerier(token=token)
@@ -337,7 +337,7 @@ def mapping(
     # Only print log level for non-JSON formats to avoid contaminating JSON output
     if format != "json":
         console.print(f"Log Level is: {log_level}")
-    cli_logging(log_level)
+    configure_logging(level=log_level.upper())
 
     if not hasattr(software_mapping, mapping_pkg_name):
         console.print(f"[red]Unknown package type: {mapping_pkg_name}[/red]")

@@ -39,7 +39,6 @@ All server interactions are performed over HTTPS and follow Arista's API specifi
 from __future__ import annotations
 
 import base64
-import logging
 import json
 from typing import Dict, Union, Any
 
@@ -128,7 +127,7 @@ class AristaServer:
         self._download_server = download_server
         self._session_id = None
 
-        logging.info(f"Initialized AristaServer with headers: {self._headers}")
+        logger.info(f"Initialized AristaServer with headers: {self._headers}")
 
     def authenticate(self, token: Union[str, None] = None) -> bool:
         """Authenticate to the API server using access token.
@@ -170,7 +169,7 @@ class AristaServer:
             "Invalid access token",
         ]:
             error_msg = result.json()["status"]["message"]
-            logging.critical(f"Authentication failed: {error_msg}")
+            logger.critical(f"Authentication failed: {error_msg}")
             raise eos_downloader.exceptions.AuthenticationError(
                 f"Authentication failed: {error_msg}. "
                 "Please verify your token at https://www.arista.com/en/users/profile"
@@ -179,7 +178,7 @@ class AristaServer:
         try:
             if "data" in result.json():
                 self._session_id = result.json()["data"]["session_code"]
-                logging.info(f"Authenticated with session ID: {self._session_id}")
+                logger.info(f"Authenticated with session ID: {self._session_id}")
                 return True
         except KeyError as error:
             logger.error(
@@ -210,9 +209,9 @@ class AristaServer:
         The XML data is expected to be in the response JSON under data.xml path.
         """
 
-        logging.info(f"Getting XML data from server {self._session_server}")
+        logger.info(f"Getting XML data from server {self._session_server}")
         if self._session_id is None:
-            logging.debug("Not authenticated to server, start authentication process")
+            logger.debug("Not authenticated to server, start authentication process")
             self.authenticate()
         jsonpost = {"sessionCode": self._session_id}
         result = requests.post(
@@ -223,7 +222,7 @@ class AristaServer:
         )
         try:
             folder_tree = result.json()["data"]["xml"]
-            logging.debug("XML data received from Arista server")
+            logger.debug("XML data received from Arista server")
             root_element = ET.fromstring(folder_tree)
             if root_element is None:
                 logger.error("Failed to parse XML data from server response")
@@ -262,9 +261,9 @@ class AristaServer:
             If server request times out
         """
 
-        logging.info(f"Getting download URL for {remote_file_path}")
+        logger.info(f"Getting download URL for {remote_file_path}")
         if self._session_id is None:
-            logging.debug("Not authenticated to server, start authentication process")
+            logger.debug("Not authenticated to server, start authentication process")
             self.authenticate()
         jsonpost = {"sessionCode": self._session_id, "filePath": remote_file_path}
         result = requests.post(
@@ -274,8 +273,7 @@ class AristaServer:
             headers=self._headers,
         )
         if "data" in result.json() and "url" in result.json()["data"]:
-            # logger.debug('URL to download file is: {}', result.json())
-            logging.info("Download URL received from server")
-            logging.debug(f'URL to download file is: {result.json()["data"]["url"]}')
+            logger.info("Download URL received from server")
+            logger.debug(f'URL to download file is: {result.json()["data"]["url"]}')
             return result.json()["data"]["url"]
         return None

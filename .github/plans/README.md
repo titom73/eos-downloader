@@ -48,6 +48,7 @@ Files follow the pattern: `[purpose]-[component]-[version].md`
 - `upgrade-` - Package or system upgrade
 - `architecture-` - Architectural decision or design
 - `infrastructure-` - Infrastructure changes
+- `technical-debt-analysis-` - Technical debt analysis and remediation plans
 - `data-` - Data migration or transformation
 - `process-` - Process improvement
 - `design-` - Design system or UI/UX changes
@@ -74,7 +75,13 @@ Or manually use the template from: `.github/prompts/create-implementation-plan.p
 |------|--------|---------|---------|
 | [feature-cache-download-docker-v1.md](feature-cache-download-docker-v1.md) | ![Completed](https://img.shields.io/badge/status-Completed-brightgreen) | Smart caching for downloads and Docker imports | 1.0 |
 | [test-coverage-improvement-v1.md](test-coverage-improvement-v1.md) | ![Planned](https://img.shields.io/badge/status-Planned-blue) | Increase unit test coverage to >80% | 1.0 |
-| [upgrade-package-manager-uv-v1.md](upgrade-package-manager-uv-v1.md) | ![Planned](https://img.shields.io/badge/status-Planned-blue) | Migrate to UV package manager for 10-100x faster dependency management | 1.0 |
+| [upgrade-package-manager-uv-v1.md](upgrade-package-manager-uv-v1.md) | ![Completed](https://img.shields.io/badge/status-Completed-brightgreen) | Migrate to UV package manager for 10-100x faster dependency management | 1.0 |
+| [technical-debt-analysis-dec-2025.md](technical-debt-analysis-dec-2025.md) | ![In Progress](https://img.shields.io/badge/status-In%20Progress-yellow) | Comprehensive technical debt analysis and remediation plan | 1.0 |
+| [technical-debt-summary-dec-2025.md](technical-debt-summary-dec-2025.md) | ![In Progress](https://img.shields.io/badge/status-In%20Progress-yellow) | Quick reference for technical debt status | 1.0 |
+| [immediate-actions-tech-debt.md](immediate-actions-tech-debt.md) | ![In Progress](https://img.shields.io/badge/status-In%20Progress-yellow) | 5 actionable quick wins with complete implementation details | 1.0 |
+| [github-issues-tech-debt.md](github-issues-tech-debt.md) | ![Ready](https://img.shields.io/badge/status-Ready-blue) | Pre-formatted GitHub issues for all 10 technical debt items | 1.0 |
+| [execution-plan-tech-debt.md](execution-plan-tech-debt.md) | ![Ready](https://img.shields.io/badge/status-Ready-blue) | 8-week execution roadmap with daily tasks, KPIs, and success criteria | 1.0 |
+| [INDEX.md](INDEX.md) | ![Ready](https://img.shields.io/badge/status-Ready-blue) | Master index for navigating all technical debt documentation | 1.0 |
 
 ## Guidelines
 

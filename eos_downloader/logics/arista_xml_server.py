@@ -11,9 +11,9 @@ Classes:
 
 from __future__ import annotations
 
-import logging
 import xml.etree.ElementTree as ET
 from typing import ClassVar, Union, List, Dict
+from loguru import logger
 
 import eos_downloader.logics.arista_server
 import eos_downloader.models.version
@@ -46,27 +46,27 @@ class AristaXmlBase:
         -------
         None
         """
-        logging.info("Initializing AristXmlBase.")
+        logger.info("Initializing AristXmlBase.")
         self.server = eos_downloader.logics.arista_server.AristaServer(token=token)
         if xml_path is not None:
             try:
                 self.xml_data = ET.parse(xml_path)
             except ET.ParseError as error:
-                logging.error(f"Error while parsing XML data: {error}")
+                logger.error(f"Error while parsing XML data: {error}")
         else:
             if self.server.authenticate():
                 data = self._get_xml_root()
                 if data is None:
-                    logging.error("Unable to get XML data from Arista server")
+                    logger.error("Unable to get XML data from Arista server")
                     raise ValueError("Unable to get XML data from Arista server")
                 # Ensure the XML data has a valid root element
                 if data.getroot() is None:
-                    logging.error("XML data has no root element")
+                    logger.error("XML data has no root element")
                     raise ValueError("XML data has no root element")
                 # At this point, we've validated that data has a valid root
                 self.xml_data = data  # type: ignore[assignment]
             else:
-                logging.error("Unable to authenticate to Arista server")
+                logger.error("Unable to authenticate to Arista server")
                 raise ValueError("Unable to authenticate to Arista server")
 
     def _get_xml_root(self) -> Union[ET.ElementTree, None]:
@@ -78,11 +78,11 @@ class AristaXmlBase:
         Union[ET.ElementTree, None]
             The XML root element tree if successful, None otherwise.
         """
-        logging.info("Getting XML root from Arista server.")
+        logger.info("Getting XML root from Arista server.")
         try:
             return self.server.get_xml_data()
         except Exception as error:  # pylint: disable=broad-except
-            logging.error(f"Error while getting XML data from Arista server: {error}")
+            logger.error(f"Error while getting XML data from Arista server: {error}")
             return None
 
 
@@ -125,7 +125,7 @@ class AristaXmlQuerier(AristaXmlBase):
         [EosVersion('4.29.0F-INT'), EosVersion('4.29.1F-INT'), ...]
         """
 
-        logging.info(f"Getting available versions for {package} package")
+        logger.info(f"Getting available versions for {package} package")
 
         xpath_query = './/dir[@label="Active Releases"]//dir[@label]'
         regexp = eos_downloader.models.version.EosVersion.regex_version
@@ -312,7 +312,7 @@ class AristaXmlObject(AristaXmlBase):
         Union[str, None]
             Filename to search for on Arista.com.
         """
-        logging.info(
+        logger.info(
             f"Building filename for {self.image_type} package: {self.search_version}."
         )
         try:
@@ -321,7 +321,7 @@ class AristaXmlObject(AristaXmlBase):
             )
             return filename
         except ValueError as e:
-            logging.error(f"Error: {e}")
+            logger.error(f"Error: {e}")
         return None
 
     def hash_filename(self) -> Union[str, None]:
@@ -334,7 +334,7 @@ class AristaXmlObject(AristaXmlBase):
             Filename to search for on Arista.com.
         """
 
-        logging.info(f"Building hash filename for {self.software} package.")
+        logger.info(f"Building hash filename for {self.software} package.")
 
         if self.filename is not None:
             return f"{self.filename}.{self.checksum_file_extension}"
@@ -355,7 +355,7 @@ class AristaXmlObject(AristaXmlBase):
             Path from XML if found, None otherwise.
         """
 
-        logging.info(f"Building path from XML for {search_file}.")
+        logger.info(f"Building path from XML for {search_file}.")
 
         # Build xpath with provided file
         xpath_query = self.base_xpath_filepath.format(search_file)
@@ -363,7 +363,7 @@ class AristaXmlObject(AristaXmlBase):
         path_element = self.xml_data.find(xpath_query)
 
         if path_element is not None:
-            logging.debug(f'found path: {path_element.get("path")} for {search_file}')
+            logger.debug(f'found path: {path_element.get("path")} for {search_file}')
 
         # Return the path if found, otherwise return None
         return path_element.get("path") if path_element is not None else None
@@ -383,7 +383,7 @@ class AristaXmlObject(AristaXmlBase):
             URL to download the file.
         """
 
-        logging.info(f"Getting URL for {xml_path}.")
+        logger.info(f"Getting URL for {xml_path}.")
 
         return self.server.get_url(xml_path)
 
@@ -405,7 +405,7 @@ class AristaXmlObject(AristaXmlBase):
         ValueError
             If filename or hash file is not found.
         """
-        logging.info(f"Getting URLs for {self.software} package.")
+        logger.info(f"Getting URLs for {self.software} package.")
 
         urls = {}
 
@@ -414,7 +414,7 @@ class AristaXmlObject(AristaXmlBase):
 
         for role in self.supported_role_types:
             file_path = None
-            logging.debug(f"working on {role}")
+            logger.debug(f"working on {role}")
             hash_filename = self.hash_filename()
             if hash_filename is None:
                 raise ValueError("Hash file not found")
@@ -423,9 +423,9 @@ class AristaXmlObject(AristaXmlBase):
             elif role == self.checksum_file_extension:
                 file_path = self.path_from_xml(hash_filename)
             if file_path is not None:
-                logging.info(f"Adding {role} with {file_path} to urls dict")
+                logger.info(f"Adding {role} with {file_path} to urls dict")
                 urls[role] = self._url(file_path)
-        logging.debug(f"URLs dict contains: {urls}")
+        logger.debug(f"URLs dict contains: {urls}")
         return urls
 
 

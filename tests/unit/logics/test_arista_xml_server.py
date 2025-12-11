@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import os
 import pytest
-import logging
+from loguru import logger
 from eos_downloader.models.version import EosVersion, CvpVersion
 from unittest.mock import patch
 from eos_downloader.logics.arista_xml_server import (
@@ -335,7 +335,7 @@ def test_arista_xml_object_urls(xml_path):
             xml_path=xml_path,
         )
         urls = arista_xml_object.urls
-        logging.warning(f"URLs are: {urls}")
+        logger.warning(f"URLs are: {urls}")
         expected_urls = {
             "image": "https://arista.com/path/to/EOS-4.29.2F.swi",
             "sha512sum": "https://arista.com/path/to/EOS-4.29.2F.swi.sha512sum",
