@@ -20,7 +20,7 @@ import click
 # Local imports
 import eos_downloader.defaults
 import eos_downloader.logics.arista_server
-from eos_downloader.cli.utils import cli_logging
+from eos_downloader.logging_config import configure_logging, get_logger
 
 
 @click.command()
@@ -61,7 +61,8 @@ def xml(ctx: click.Context, output: str, log_level: str) -> None:
         INFO: XML file saved under output.xml
     """
 
-    log = cli_logging(log_level)
+    configure_logging(level=log_level.upper())
+    log = get_logger()
     token = ctx.obj["token"]
     server = eos_downloader.logics.arista_server.AristaServer(
         token=token, session_server=eos_downloader.defaults.DEFAULT_SERVER_SESSION

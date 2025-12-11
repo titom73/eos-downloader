@@ -11,7 +11,7 @@ import subprocess
 import click
 from rich.console import Console
 
-from eos_downloader.cli.utils import cli_logging, console_configuration
+from eos_downloader.cli.utils import console_configuration
 from eos_downloader.models.data import RTYPE_FEATURE, RTYPES
 from eos_downloader.models.types import ReleaseType
 from eos_downloader.logics.arista_xml_server import AristaXmlQuerier, AristaXmlObjects
@@ -46,9 +46,6 @@ def initialize(ctx: click.Context) -> tuple[Console, str, bool, str]:
     # Log token usage securely (masked)
     if token and debug:
         logger.debug(f"Using token: {mask_token(token)}")
-
-    # Legacy logging for backward compatibility
-    cli_logging(log_level)
 
     return console, token, debug, log_level
 

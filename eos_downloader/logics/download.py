@@ -35,9 +35,9 @@ import subprocess
 from typing import Union, Literal, Dict, Optional
 from pathlib import Path
 
-import logging
 import requests
 from tqdm import tqdm
+from loguru import logger
 
 import eos_downloader.models.types
 import eos_downloader.defaults
@@ -80,10 +80,8 @@ class SoftManager:
         self.file["sha512sum"] = None
         self.dry_run = dry_run
         self.force_download = force_download
-        logging.info(
-            "SoftManager initialized%s%s",
-            " in dry-run mode" if dry_run else "",
-            " with force download" if force_download else "",
+        logger.info(
+            f"SoftManager initialized{' in dry-run mode' if dry_run else ''}{' with force download' if force_download else ''}"
         )
 
     def _file_exists_and_valid(
@@ -117,12 +115,12 @@ class SoftManager:
         """
         # Check if file exists
         if not file_path.exists():
-            logging.debug(f"File not found in cache: {file_path}")  # noqa: E713
+            logger.debug(f"File not found in cache: {file_path}")  # noqa: E713
             return False
 
         # If no checksum validation requested, file is valid
         if check_type == "skip" or checksum_file is None:
-            logging.info(f"File found in cache (no validation): {file_path}")
+            logger.info(f"File found in cache (no validation): {file_path}")
             return True
 
         # Validate checksum if requested
@@ -144,13 +142,13 @@ class SoftManager:
                 self.file[check_type] = original_checksum
 
             if is_valid:
-                logging.info(f"File found in cache (checksum valid): {file_path}")
+                logger.info(f"File found in cache (checksum valid): {file_path}")
                 return True
 
-            logging.warning(f"Cached file checksum invalid: {file_path}")
+            logger.warning(f"Cached file checksum invalid: {file_path}")
             return False
         except (ValueError, FileNotFoundError, OSError) as e:
-            logging.warning(f"Checksum validation failed: {e}")
+            logger.warning(f"Checksum validation failed: {e}")
             return False
 
     @staticmethod
@@ -207,7 +205,7 @@ class SoftManager:
         try:
             os.makedirs(path, exist_ok=True)
         except OSError as e:
-            logging.critical(f"Error creating folder: {e}")
+            logger.critical(f"Error creating folder: {e}")
 
     def _compute_hash_md5sum(self, file: str, hash_expected: str) -> bool:
         """
@@ -236,7 +234,7 @@ class SoftManager:
                 hash_md5.update(chunk)
         if hash_md5.hexdigest() == hash_expected:
             return True
-        logging.warning(
+        logger.warning(
             f"Downloaded file is corrupt: local md5 ({hash_md5.hexdigest()}) is different to md5 from arista ({hash_expected})"
         )
         return False
@@ -266,10 +264,10 @@ class SoftManager:
         --------
         >>> client.checksum('sha512sum')  # Returns True if checksum matches
         """
-        logging.info(f"Checking checksum for {self.file['name']} using {check_type}")
+        logger.info(f"Checking checksum for {self.file['name']} using {check_type}")
 
         if self.dry_run:
-            logging.debug("Dry-run mode enabled, skipping checksum verification")
+            logger.debug("Dry-run mode enabled, skipping checksum verification")
             return True
 
         if check_type == "sha512sum":
@@ -277,10 +275,10 @@ class SoftManager:
             hash512sum = self.file["sha512sum"]
             file_name = self.file["name"]
 
-            logging.debug(f"checksum sha512sum file is: {hash512sum}")
+            logger.debug(f"checksum sha512sum file is: {hash512sum}")
 
             if file_name is None or hash512sum is None:
-                logging.error("File or checksum not found")
+                logger.error("File or checksum not found")
                 raise ValueError("File or checksum not found")
 
             with open(hash512sum, "r", encoding="utf-8") as f:
@@ -292,7 +290,7 @@ class SoftManager:
                         break
                     hash_sha512.update(chunk)
             if hash_sha512.hexdigest() != hash_expected:
-                logging.error(
+                logger.error(
                     f"Checksum failed for {self.file['name']}: computed {hash_sha512.hexdigest()} - expected {hash_expected}"
                 )
                 raise ValueError("Incorrect checksum")
@@ -315,7 +313,7 @@ class SoftManager:
                 raise ValueError("Filename is None. Please fix it")
 
             if not self._compute_hash_md5sum(file_name, hash_expected=hash_expected):
-                logging.error(
+                logger.error(
                     f"Checksum failed for {self.file['name']}: expected {hash_expected}"
                 )
 
@@ -323,7 +321,7 @@ class SoftManager:
 
             return True
 
-        logging.error(f"Checksum type {check_type} not yet supported")
+        logger.error(f"Checksum type {check_type} not yet supported")
         raise ValueError(f"Checksum type {check_type} not yet supported")
 
     def download_file(
@@ -371,11 +369,11 @@ class SoftManager:
         # Check cache unless force flag is set
         if not force and not self.force_download:
             if full_path.exists():
-                logging.info(f"Using cached file: {full_path}")
+                logger.info(f"Using cached file: {full_path}")
                 return str(full_path)
 
         # Log download action
-        logging.info(
+        logger.info(
             f"{'[DRY-RUN] Would download' if self.dry_run else 'Downloading'} {filename} from {url}"
         )
 
@@ -393,7 +391,7 @@ class SoftManager:
             rich_downloader.download(urls=[url], dest_dir=file_path)
             return os.path.join(file_path, filename)
 
-        logging.error(f"Cannot download file {file_path}")
+        logger.error(f"Cannot download file {file_path}")
         return None
 
     def downloads(
@@ -442,13 +440,13 @@ class SoftManager:
         >>> cached  # Will be False
         False
         """
-        logging.info(
+        logger.info(
             f"Processing files for {object_arista.version} "
             f"(force_download={self.force_download})"
         )
 
         if len(object_arista.urls) == 0:
-            logging.error(
+            logger.error(
                 f"No URLs found for download of version {object_arista.version}. "
                 f"The requested version or image type may not exist on Arista servers."
             )
@@ -461,7 +459,7 @@ class SoftManager:
         all_files_cached = True
 
         for file_type, url in sorted(object_arista.urls.items(), reverse=True):
-            logging.debug(f"Processing {file_type} from {url}")
+            logger.debug(f"Processing {file_type} from {url}")
             if file_type == "image":
                 filename = object_arista.filename
                 self.file["name"] = filename
@@ -469,10 +467,10 @@ class SoftManager:
                 filename = object_arista.hash_filename()
                 self.file[file_type] = filename
             if url is None:
-                logging.error(f"URL not found for {file_type}")
+                logger.error(f"URL not found for {file_type}")
                 raise ValueError(f"URL not found for {file_type}")
             if filename is None:
-                logging.error(f"Filename not found for {file_type}")
+                logger.error(f"Filename not found for {file_type}")
                 raise ValueError(f"Filename not found for {file_type}")
             if not self.dry_run:
                 # Check if file is already cached before download
@@ -495,9 +493,9 @@ class SoftManager:
             else:
                 full_path = Path(file_path) / filename
                 if full_path.exists() and not self.force_download:
-                    logging.info(f"[DRY-RUN] Would use cached file: {filename}")
+                    logger.info(f"[DRY-RUN] Would use cached file: {filename}")
                 else:
-                    logging.info(
+                    logger.info(
                         f"[DRY-RUN] Would download file {filename} "
                         f"for version {object_arista.version}"
                     )
@@ -536,7 +534,7 @@ class SoftManager:
         for cmd in ["docker", "podman"]:
             # Check if command is available
             if not shutil.which(cmd):
-                logging.debug(f"{cmd} command not found in PATH")  # noqa: E713
+                logger.debug(f"{cmd} command not found in PATH")  # noqa: E713
                 continue
 
             try:
@@ -551,28 +549,28 @@ class SoftManager:
 
                 # If output is not empty, image exists
                 if result.stdout.strip():
-                    logging.info(
+                    logger.info(
                         f"Docker image {image_name}:{image_tag} "  # noqa: E231
                         f"found in local registry"
                     )
                     return True
 
-                logging.debug(
+                logger.debug(
                     f"Docker image {image_name}:{image_tag} "  # noqa: E231
                     f"not found in local registry"  # noqa: E713
                 )
                 return False
 
             except subprocess.TimeoutExpired:
-                logging.warning(f"{cmd} command timed out after 5 seconds")
+                logger.warning(f"{cmd} command timed out after 5 seconds")
                 continue
 
             except (subprocess.SubprocessError, OSError) as e:
-                logging.debug(f"Error checking {cmd} images: {e}")
+                logger.debug(f"Error checking {cmd} images: {e}")
                 continue
 
         # If we get here, neither docker nor podman worked
-        logging.warning("Unable to check Docker images (docker/podman not available)")
+        logger.warning("Unable to check Docker images (docker/podman not available)")
         return False
 
     def import_docker(
@@ -626,14 +624,14 @@ class SoftManager:
         # Check cache unless force flag is set
         if not force and not self.force_download:
             if self._docker_image_exists(docker_name, docker_tag):
-                logging.info(
+                logger.info(
                     f"Docker image {docker_name}:{docker_tag} already "  # noqa: E231
                     f"exists locally. Use --force to re-import."
                 )
                 return True
 
         # Log import action
-        logging.info(
+        logger.info(
             f"{'[DRY-RUN] Would import' if self.dry_run else 'Importing'} "
             f"{docker_name}:{docker_tag}"  # noqa: E231
         )
@@ -655,15 +653,15 @@ class SoftManager:
                 str(local_file_path),
                 f"{docker_name}:{docker_tag}",
             ]
-            logging.debug(f"Executing: {' '.join(cmd_args)}")
+            logger.debug(f"Executing: {' '.join(cmd_args)}")
             subprocess.run(cmd_args, check=True, capture_output=True, text=True)
-            logging.info(
+            logger.info(
                 f"Docker image {docker_name}:{docker_tag} "  # noqa: E231
                 f"imported successfully"
             )
             return False  # Image was imported (not from cache)
         except subprocess.CalledProcessError as e:
-            logging.error(f"Error importing docker image: {e.stderr}")
+            logger.error(f"Error importing docker image: {e.stderr}")
             raise RuntimeError(f"Docker import failed: {e.stderr}") from e
 
     # pylint: disable=too-many-branches
@@ -695,7 +693,7 @@ class SoftManager:
         # EVE-NG provisioning page for vEOS
         # https://www.eve-ng.net/index.php/documentation/howtos/howto-add-arista-veos/
 
-        logging.info(
+        logger.info(
             f"Provisioning EVE-NG with {object_arista.version} / {object_arista.filename}"
         )
 
@@ -705,7 +703,7 @@ class SoftManager:
         eos_filename = object_arista.filename
 
         if len(object_arista.urls) == 0:
-            logging.error(
+            logger.error(
                 f"No URLs found for download of version {object_arista.version}. "
                 f"The requested version or image type may not exist on Arista servers."
             )
@@ -715,7 +713,7 @@ class SoftManager:
             )
 
         for file_type, url in sorted(object_arista.urls.items(), reverse=True):
-            logging.debug(f"Downloading {file_type} from {url}")
+            logger.debug(f"Downloading {file_type} from {url}")
             if file_type == "image":
                 fname = object_arista.filename
                 if fname is not None:
@@ -723,24 +721,24 @@ class SoftManager:
                     if noztp:
                         filename = f"{os.path.splitext(fname)[0]}-noztp{os.path.splitext(fname)[1]}"
                     eos_filename = filename
-                    logging.debug(f"filename is {filename}")
+                    logger.debug(f"filename is {filename}")
                     self.file["name"] = filename
             else:
                 filename = object_arista.hash_filename()
                 if filename is not None:
                     self.file[file_type] = filename
             if url is None:
-                logging.error(f"URL not found for {file_type}")
+                logger.error(f"URL not found for {file_type}")
                 raise ValueError(f"URL not found for {file_type}")
             if filename is None:
-                logging.error(f"Filename not found for {file_type}")
+                logger.error(f"Filename not found for {file_type}")
                 raise ValueError(f"Filename not found for {file_type}")
 
             if not os.path.exists(file_path):
-                logging.warning(f"creating folder on eve-ng server: {file_path}")
+                logger.warning(f"creating folder on eve-ng server: {file_path}")
                 self._create_destination_folder(path=file_path)
 
-            logging.debug(
+            logger.debug(
                 f"downloading file {filename} for version {object_arista.version}"
             )
             self.download_file(url, file_path, filename, rich_interface=True)
@@ -771,11 +769,11 @@ class SoftManager:
                 text=True,
             )
         else:
-            logging.info(
+            logger.info(
                 f"{'[DRY-RUN] Would convert' if self.dry_run else 'Converting'} VMDK to QCOW2 format: {vmdk_path} to {qcow2_path} "
             )
 
-        logging.info("Applying unl_wrapper to fix permissions")
+        logger.info("Applying unl_wrapper to fix permissions")
         if not self.dry_run:
             unl_wrapper_path = "/opt/unetlab/wrappers/unl_wrapper"
             if os.path.exists(unl_wrapper_path):
@@ -786,9 +784,9 @@ class SoftManager:
                     text=True,
                 )
             else:
-                logging.warning(f"unl_wrapper not found at {unl_wrapper_path}")
+                logger.warning(f"unl_wrapper not found at {unl_wrapper_path}")
         else:
-            logging.info("[DRY-RUN] Would execute unl_wrapper to fix permissions")
+            logger.info("[DRY-RUN] Would execute unl_wrapper to fix permissions")
         # os.system(f"rm -f {file_downloaded}")
 
         # if noztp:

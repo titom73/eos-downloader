@@ -60,7 +60,6 @@ from __future__ import annotations
 
 import re
 import typing
-import logging
 from typing import Any, Optional, Pattern, ClassVar
 
 from loguru import logger
@@ -158,21 +157,21 @@ class SemVer(BaseModel):
         SemVer(major=1, minor=2, patch=3)
         """
 
-        logging.debug(f"Creating SemVer object from string: {semver}")
+        logger.debug(f"Creating SemVer object from string: {semver}")
 
         if cls.regex_version.match(semver):
             matches = cls.regex_version.match(semver)
             # assert matches is not None
             assert matches is not None
-            logging.debug(f"Matches version: {matches}")
+            logger.debug(f"Matches version: {matches}")
             return cls(**matches.groupdict())
         if cls.regex_branch.match(semver):
             matches = cls.regex_branch.match(semver)
             # assert matches is not None
             assert matches is not None
-            logging.debug(f"Matches branch: {matches}")
+            logger.debug(f"Matches branch: {matches}")
             return cls(**matches.groupdict())
-        logging.error(f"Error occured with {semver}")
+        logger.error(f"Error occured with {semver}")
         return SemVer()
 
     @property
@@ -248,7 +247,7 @@ class SemVer(BaseModel):
             ):
                 comparison_flag = 1
             if comparison_flag != 0:
-                logging.debug(
+                logger.debug(
                     f"Comparison flag {self.model_dump()[key]} with {other.model_dump()[key]}: {comparison_flag}"
                 )
                 return comparison_flag
@@ -366,7 +365,7 @@ class SemVer(BaseModel):
         bool
             True if current version is in provided branch, otherwise False.
         """
-        logging.info(f"Checking if {self} is in branch {branch_str}")
+        logger.info(f"Checking if {self} is in branch {branch_str}")
         try:
             branch = SemVer.from_str(branch_str)
         except Exception as error:  # pylint: disable = broad-exception-caught
