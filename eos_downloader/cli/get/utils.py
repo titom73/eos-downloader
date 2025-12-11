@@ -16,6 +16,8 @@ from eos_downloader.models.data import RTYPE_FEATURE, RTYPES
 from eos_downloader.models.types import ReleaseType
 from eos_downloader.logics.arista_xml_server import AristaXmlQuerier, AristaXmlObjects
 from eos_downloader.exceptions import AuthenticationError
+from eos_downloader.logging_config import configure_logging, get_logger
+from eos_downloader.helpers.security import mask_token, validate_arista_token
 
 
 def initialize(ctx: click.Context) -> tuple[Console, str, bool, str]:
@@ -36,6 +38,16 @@ def initialize(ctx: click.Context) -> tuple[Console, str, bool, str]:
     token = ctx.obj["token"]
     debug = ctx.obj["debug"]
     log_level = ctx.obj["log_level"]
+
+    # Configure centralized logging
+    configure_logging(level=log_level.upper())
+    logger = get_logger()
+
+    # Log token usage securely (masked)
+    if token and debug:
+        logger.debug(f"Using token: {mask_token(token)}")
+
+    # Legacy logging for backward compatibility
     cli_logging(log_level)
 
     return console, token, debug, log_level

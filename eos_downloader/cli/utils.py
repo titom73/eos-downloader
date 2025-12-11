@@ -16,6 +16,9 @@ from rich import pretty
 from rich.logging import RichHandler
 from rich.console import Console
 
+from eos_downloader.logging_config import configure_logging, get_logger
+from eos_downloader.helpers.security import mask_token
+
 
 class AliasedGroup(click.Group):
     """
@@ -55,6 +58,10 @@ def cli_logging(level: str = "error") -> logging.Logger:
 
     Returns:
         logging.Logger: A configured logger instance.
+
+    Note:
+        This is the legacy logging function. For new code, prefer using
+        `configure_logging()` from `eos_downloader.logging_config`.
     """
 
     FORMAT = "%(message)s"
