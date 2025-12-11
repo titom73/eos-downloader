@@ -75,6 +75,7 @@ dev = [
   "pytest-html>=3.1.1",
   "pytest-metadata>=1.11.0",
   "pylint-pydantic>=0.2.4",
+  "responses>=0.25.0",
   "tox>=4.11",
   "types-PyYAML",
   "types-paramiko",
@@ -192,3 +193,8 @@ exclude_lines = [
 [tool.isort]
 profile = "black"
 line_length = 165
+
+[dependency-groups]
+dev = [
+    "responses>=0.25.8",
+]
