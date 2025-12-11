@@ -33,16 +33,13 @@ from eos_downloader.defaults import DEFAULT_SOFTWARE_FOLDER_TREE, DEFAULT_SERVER
 def setup_api_mocks() -> None:
     """Set up common API mocks for session and catalog endpoints."""
     responses.add(
-        responses.POST,
-        DEFAULT_SERVER_SESSION,
-        json=MOCK_SESSION_RESPONSE,
-        status=200
+        responses.POST, DEFAULT_SERVER_SESSION, json=MOCK_SESSION_RESPONSE, status=200
     )
     responses.add(
         responses.POST,
         DEFAULT_SOFTWARE_FOLDER_TREE,
         json={"data": {"xml": MOCK_XML_CATALOG}},
-        status=200
+        status=200,
     )
 
 
@@ -81,7 +78,9 @@ class TestVersionDiscoveryWorkflow:
 
         assert len(versions) >= 2, "Should find versions in 4.32 branch"
         for version in versions:
-            assert version.branch == "4.32", f"Version {version} should be in 4.32 branch"
+            assert (
+                version.branch == "4.32"
+            ), f"Version {version} should be in 4.32 branch"
 
     @responses.activate
     def test_discover_versions_filtered_by_rtype(
@@ -145,9 +144,7 @@ class TestVersionComparison:
                 branches[v.branch] = []
             branches[v.branch].append(v)
 
-        latest_per_branch = {
-            branch: max(vers) for branch, vers in branches.items()
-        }
+        latest_per_branch = {branch: max(vers) for branch, vers in branches.items()}
 
         assert str(latest_per_branch["4.32"]) == "4.32.3M"
         assert str(latest_per_branch["4.31"]) == "4.31.5M"
@@ -165,7 +162,7 @@ class TestAuthenticationWorkflow:
             responses.POST,
             DEFAULT_SERVER_SESSION,
             json={"error": "Unauthorized"},
-            status=401
+            status=401,
         )
 
         with pytest.raises(Exception):

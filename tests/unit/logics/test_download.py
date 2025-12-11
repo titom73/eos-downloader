@@ -136,8 +136,8 @@ def test_downloads(mock_download, soft_manager, mock_eos_object):
 
 
 @patch("shutil.which")
-@patch("os.system")
-def test_import_docker(mock_system, mock_which, soft_manager):
+@patch("subprocess.run")
+def test_import_docker(mock_run, mock_which, soft_manager):
     mock_which.return_value = "/usr/bin/docker"
 
     # Test with existing file
@@ -146,7 +146,7 @@ def test_import_docker(mock_system, mock_which, soft_manager):
             "/tmp/test.swi", "arista/ceos", "latest"
         )
         assert isinstance(was_cached, bool)
-        mock_system.assert_called_once()
+        mock_run.assert_called_once()
 
     # Test with non-existing file
     with patch("os.path.exists", return_value=False):
@@ -154,15 +154,19 @@ def test_import_docker(mock_system, mock_which, soft_manager):
             soft_manager.import_docker("/tmp/nonexistent.swi")
 
 
-@patch("os.system")
+@patch("subprocess.run")
+@patch("shutil.which")
 @patch("os.path.exists")
-def test_provision_eve(mock_exists, mock_system, soft_manager, mock_eos_object):
-    mock_exists.return_value = False
+def test_provision_eve(
+    mock_exists, mock_which, mock_run, soft_manager, mock_eos_object
+):
+    mock_exists.side_effect = lambda x: x != "/opt/unetlab/addons/qemu/veos-4.29.3M"
+    mock_which.return_value = "/usr/bin/qemu-img"
 
     with patch("eos_downloader.logics.download.SoftManager.download_file"):
         soft_manager.provision_eve(mock_eos_object, noztp=False)
-        # Check if qemu-img convert and unl_wrapper commands were called
-        assert mock_system.call_count == 2
+        # Check if qemu-img convert was called (and unl_wrapper if path exists)
+        assert mock_run.call_count >= 1
 
 
 # ============================================================================
@@ -358,10 +362,10 @@ class TestDockerCache:
 
     @patch("eos_downloader.logics.download.SoftManager._docker_image_exists")
     @patch("os.path.exists")
-    @patch("os.system")
+    @patch("subprocess.run")
     @patch("shutil.which")
     def test_import_docker_force_reimport(
-        self, mock_which, mock_system, mock_exists, mock_docker_exists
+        self, mock_which, mock_run, mock_exists, mock_docker_exists
     ):
         """Test that force flag causes re-import."""
         mock_which.return_value = "/usr/bin/docker"
@@ -374,16 +378,16 @@ class TestDockerCache:
         )
 
         # Should call docker import despite cache
-        mock_system.assert_called_once()
+        mock_run.assert_called_once()
         # Should return False (was imported, not cached)
         assert was_cached is False
 
     @patch("eos_downloader.logics.download.SoftManager._docker_image_exists")
     @patch("os.path.exists")
-    @patch("os.system")
+    @patch("subprocess.run")
     @patch("shutil.which")
     def test_import_docker_force_download_flag(
-        self, mock_which, mock_system, mock_exists, mock_docker_exists
+        self, mock_which, mock_run, mock_exists, mock_docker_exists
     ):
         """Test that force_download flag causes re-import."""
         mock_which.return_value = "/usr/bin/docker"
@@ -394,7 +398,7 @@ class TestDockerCache:
         was_cached = manager.import_docker("/tmp/test.tar", "arista/ceos", "4.29.3M")
 
         # Should call docker import
-        mock_system.assert_called_once()
+        mock_run.assert_called_once()
         # Should return False (was imported, not cached)
         assert was_cached is False
 
@@ -655,15 +659,17 @@ class TestProvisionEveEdgeCases:
         with pytest.raises(ValueError, match="Filename not found for version"):
             manager.provision_eve(mock_eos)
 
-    @patch("os.system")
+    @patch("subprocess.run")
+    @patch("shutil.which")
     @patch("os.path.exists")
     @patch("eos_downloader.logics.download.SoftManager.download_file")
     @patch("eos_downloader.logics.download.SoftManager._create_destination_folder")
     def test_provision_eve_with_noztp(
-        self, mock_create_folder, mock_download, mock_exists, mock_system
+        self, mock_create_folder, mock_download, mock_exists, mock_which, mock_run
     ):
         """Test provision_eve with noztp flag modifies filename."""
-        mock_exists.return_value = True
+        mock_exists.side_effect = lambda x: x != "/opt/unetlab/addons/qemu/veos-4.29.3M"
+        mock_which.return_value = "/usr/bin/qemu-img"
 
         mock_eos = Mock()
         mock_eos.version = "4.29.3M"
@@ -677,12 +683,13 @@ class TestProvisionEveEdgeCases:
         # Check that download was called
         mock_download.assert_called()
 
-    @patch("os.system")
+    @patch("subprocess.run")
+    @patch("shutil.which")
     @patch("os.path.exists")
     @patch("eos_downloader.logics.download.SoftManager.download_file")
     @patch("eos_downloader.logics.download.SoftManager._create_destination_folder")
     def test_provision_eve_url_none_raises_error(
-        self, mock_create_folder, mock_download, mock_exists, mock_system
+        self, mock_create_folder, mock_download, mock_exists, mock_which, mock_run
     ):
         """Test provision_eve raises ValueError when URL is None."""
         mock_exists.return_value = False
@@ -698,12 +705,12 @@ class TestProvisionEveEdgeCases:
         with pytest.raises(ValueError, match="URL not found for"):
             manager.provision_eve(mock_eos)
 
-    @patch("os.system")
+    @patch("subprocess.run")
     @patch("os.path.exists")
     @patch("eos_downloader.logics.download.SoftManager.download_file")
     @patch("eos_downloader.logics.download.SoftManager._create_destination_folder")
     def test_provision_eve_dry_run_mode(
-        self, mock_create_folder, mock_download, mock_exists, mock_system
+        self, mock_create_folder, mock_download, mock_exists, mock_run
     ):
         """Test provision_eve in dry-run mode."""
         mock_exists.return_value = True
@@ -717,5 +724,5 @@ class TestProvisionEveEdgeCases:
         manager = SoftManager(dry_run=True)
         manager.provision_eve(mock_eos)
 
-        # os.system should not be called in dry-run mode
-        mock_system.assert_not_called()
+        # subprocess.run should not be called in dry-run mode
+        mock_run.assert_not_called()

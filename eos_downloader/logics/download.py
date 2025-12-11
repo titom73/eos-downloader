@@ -643,25 +643,28 @@ class SoftManager:
             return False
 
         # Check if docker is available
-        if not shutil.which("docker"):
+        docker_path = shutil.which("docker")
+        if not docker_path:
             raise FileNotFoundError("Docker binary not found in PATH")
 
-        # Proceed with import
+        # Proceed with import using subprocess.run for security (no shell injection)
         try:
-            cmd = (
-                f"$(which docker) import {local_file_path} "
-                f"{docker_name}:{docker_tag}"  # noqa: E231
-            )
-            logging.debug(f"Executing: {cmd}")
-            os.system(cmd)
+            cmd_args = [
+                docker_path,
+                "import",
+                str(local_file_path),
+                f"{docker_name}:{docker_tag}",
+            ]
+            logging.debug(f"Executing: {' '.join(cmd_args)}")
+            subprocess.run(cmd_args, check=True, capture_output=True, text=True)
             logging.info(
                 f"Docker image {docker_name}:{docker_tag} "  # noqa: E231
                 f"imported successfully"
             )
             return False  # Image was imported (not from cache)
-        except Exception as e:
-            logging.error(f"Error importing docker image: {e}")
-            raise e
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Error importing docker image: {e.stderr}")
+            raise RuntimeError(f"Docker import failed: {e.stderr}") from e
 
     # pylint: disable=too-many-branches
     def provision_eve(
@@ -743,20 +746,47 @@ class SoftManager:
             self.download_file(url, file_path, filename, rich_interface=True)
 
         # Convert to QCOW2 format
-        file_qcow2 = os.path.join(file_path, "hda.qcow2")
+        if eos_filename is None:
+            raise ValueError("EOS filename not found for QCOW2 conversion")
+        vmdk_path = os.path.join(file_path, eos_filename)
+        qcow2_path = os.path.join(file_path, "hda.qcow2")
 
         if not self.dry_run:
-            os.system(
-                f"$(which qemu-img) convert -f vmdk -O qcow2 {file_path}/{eos_filename} {file_path}/{file_qcow2}"
+            qemu_img_path = shutil.which("qemu-img")
+            if not qemu_img_path:
+                raise FileNotFoundError("qemu-img binary not found in PATH")
+            subprocess.run(
+                [
+                    qemu_img_path,
+                    "convert",
+                    "-f",
+                    "vmdk",
+                    "-O",
+                    "qcow2",
+                    vmdk_path,
+                    qcow2_path,
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
             )
         else:
             logging.info(
-                f"{'[DRY-RUN] Would convert' if self.dry_run else 'Converting'} VMDK to QCOW2 format: {file_path}/{eos_filename} to {file_qcow2} "
+                f"{'[DRY-RUN] Would convert' if self.dry_run else 'Converting'} VMDK to QCOW2 format: {vmdk_path} to {qcow2_path} "
             )
 
         logging.info("Applying unl_wrapper to fix permissions")
         if not self.dry_run:
-            os.system("/opt/unetlab/wrappers/unl_wrapper -a fixpermissions")
+            unl_wrapper_path = "/opt/unetlab/wrappers/unl_wrapper"
+            if os.path.exists(unl_wrapper_path):
+                subprocess.run(
+                    [unl_wrapper_path, "-a", "fixpermissions"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+            else:
+                logging.warning(f"unl_wrapper not found at {unl_wrapper_path}")
         else:
             logging.info("[DRY-RUN] Would execute unl_wrapper to fix permissions")
         # os.system(f"rm -f {file_downloaded}")

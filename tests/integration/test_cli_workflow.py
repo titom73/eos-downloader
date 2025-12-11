@@ -27,16 +27,13 @@ from eos_downloader.defaults import DEFAULT_SOFTWARE_FOLDER_TREE, DEFAULT_SERVER
 def setup_cli_api_mocks() -> None:
     """Set up common API mocks for CLI tests."""
     responses.add(
-        responses.POST,
-        DEFAULT_SERVER_SESSION,
-        json=MOCK_SESSION_RESPONSE,
-        status=200
+        responses.POST, DEFAULT_SERVER_SESSION, json=MOCK_SESSION_RESPONSE, status=200
     )
     responses.add(
         responses.POST,
         DEFAULT_SOFTWARE_FOLDER_TREE,
         json={"data": {"xml": MOCK_XML_CATALOG}},
-        status=200
+        status=200,
     )
 
 
@@ -65,7 +62,11 @@ class TestCLIInfoCommands:
             catch_exceptions=False,
         )
 
-        assert result.exit_code == 0 or "versions" in result.output.lower() or len(result.output) > 0
+        assert (
+            result.exit_code == 0
+            or "versions" in result.output.lower()
+            or len(result.output) > 0
+        )
 
     @responses.activate
     def test_info_eos_with_branch_filter(
@@ -120,7 +121,11 @@ class TestCLIErrorHandling:
             ["info", "eos"],
         )
 
-        assert result.exit_code != 0 or "token" in result.output.lower() or "error" in result.output.lower()
+        assert (
+            result.exit_code != 0
+            or "token" in result.output.lower()
+            or "error" in result.output.lower()
+        )
 
     @responses.activate
     def test_invalid_token_error(
@@ -132,7 +137,7 @@ class TestCLIErrorHandling:
             responses.POST,
             DEFAULT_SERVER_SESSION,
             json={"error": "Unauthorized"},
-            status=401
+            status=401,
         )
 
         result = cli_runner.invoke(

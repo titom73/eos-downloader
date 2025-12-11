@@ -134,6 +134,6 @@ def validate_arista_token(token: Optional[str]) -> bool:
 
     # Allow alphanumeric, hyphens, and underscores
     # This covers most token formats
-    pattern = r'^[a-zA-Z0-9_-]+$'
+    pattern = r"^[a-zA-Z0-9_-]+$"
 
     return bool(re.match(pattern, token))

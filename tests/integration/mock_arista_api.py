@@ -76,17 +76,13 @@ MOCK_DOWNLOAD_RESPONSE = {
         "url": "https://download.arista.com/mock/EOS-4.32.3M.swi",
         "size": 1024000,
         "md5sum": "abc123def456",
-        "sha512sum": "sha512abcdef1234567890"
+        "sha512sum": "sha512abcdef1234567890",
     }
 }
 
 MOCK_SESSION_RESPONSE = {
-    "status": {
-        "message": "Session created successfully"
-    },
-    "data": {
-        "session_code": "mock-session-12345"
-    }
+    "status": {"message": "Session created successfully"},
+    "data": {"session_code": "mock-session-12345"},
 }
 
 
@@ -143,21 +139,21 @@ def mock_arista_api_responses(mock_xml_catalog: str, mock_eos_image_content: byt
             responses.POST,
             DEFAULT_SERVER_SESSION,
             json=MOCK_SESSION_RESPONSE,
-            status=200
+            status=200,
         )
 
         rsps.add(
             responses.POST,
             DEFAULT_SOFTWARE_FOLDER_TREE,
             json={"data": {"xml": mock_xml_catalog}},
-            status=200
+            status=200,
         )
 
         rsps.add(
             responses.POST,
             DEFAULT_DOWNLOAD_URL,
             json=MOCK_DOWNLOAD_RESPONSE,
-            status=200
+            status=200,
         )
 
         rsps.add(
@@ -165,7 +161,7 @@ def mock_arista_api_responses(mock_xml_catalog: str, mock_eos_image_content: byt
             "https://download.arista.com/mock/EOS-4.32.3M.swi",
             body=mock_eos_image_content,
             status=200,
-            content_type="application/octet-stream"
+            content_type="application/octet-stream",
         )
 
         rsps.add(
@@ -173,7 +169,7 @@ def mock_arista_api_responses(mock_xml_catalog: str, mock_eos_image_content: byt
             "https://download.arista.com/mock/EOS-4.32.3M.swi.md5sum",
             body="abc123def456  EOS-4.32.3M.swi\n",
             status=200,
-            content_type="text/plain"
+            content_type="text/plain",
         )
 
         yield rsps
@@ -187,13 +183,13 @@ def mock_arista_api_auth_error():
             responses.POST,
             DEFAULT_SERVER_SESSION,
             json={"error": "Unauthorized"},
-            status=401
+            status=401,
         )
         rsps.add(
             responses.POST,
             DEFAULT_SOFTWARE_FOLDER_TREE,
             json={"error": "Unauthorized"},
-            status=401
+            status=401,
         )
         yield rsps
 
@@ -206,14 +202,14 @@ def mock_arista_api_rate_limit():
             responses.POST,
             DEFAULT_SERVER_SESSION,
             json=MOCK_SESSION_RESPONSE,
-            status=200
+            status=200,
         )
         rsps.add(
             responses.POST,
             DEFAULT_SOFTWARE_FOLDER_TREE,
             json={"error": "Rate limit exceeded"},
             status=429,
-            headers={"Retry-After": "60"}
+            headers={"Retry-After": "60"},
         )
         yield rsps
 
@@ -225,7 +221,7 @@ def mock_arista_api_network_error():
         rsps.add(
             responses.POST,
             DEFAULT_SOFTWARE_FOLDER_TREE,
-            body=responses.ConnectionError("Network unreachable")
+            body=responses.ConnectionError("Network unreachable"),
         )
         yield rsps
 
@@ -251,5 +247,5 @@ def integration_test_data() -> dict[str, Any]:
                 "cEOS": "cEOS-lab-4.32.3M.tar.xz",
                 "cEOS64": "cEOS64-lab-4.32.3M.tar.xz",
             }
-        }
+        },
     }
