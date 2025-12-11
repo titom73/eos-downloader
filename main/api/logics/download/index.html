@@ -1400,7 +1400,8 @@ or a rich interface with enhanced visual feedback.</p>
 
                   <details class="quote">
                     <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-                    <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">67</span>
+                    <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">66</span>
+<span class="normal">67</span>
 <span class="normal">68</span>
 <span class="normal">69</span>
 <span class="normal">70</span>
@@ -1418,10 +1419,7 @@ or a rich interface with enhanced visual feedback.</p>
 <span class="normal">82</span>
 <span class="normal">83</span>
 <span class="normal">84</span>
-<span class="normal">85</span>
-<span class="normal">86</span>
-<span class="normal">87</span>
-<span class="normal">88</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">85</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Initialize SoftManager.</span>
 
@@ -1438,10 +1436,8 @@ or a rich interface with enhanced visual feedback.</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="s2">"sha512sum"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span> <span class="o">=</span> <span class="n">dry_run</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">force_download</span> <span class="o">=</span> <span class="n">force_download</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="s2">"SoftManager initialized</span><span class="si">%s%s</span><span class="s2">"</span><span class="p">,</span>
-        <span class="s2">" in dry-run mode"</span> <span class="k">if</span> <span class="n">dry_run</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span>
-        <span class="s2">" with force download"</span> <span class="k">if</span> <span class="n">force_download</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"SoftManager initialized</span><span class="si">{</span><span class="s1">' in dry-run mode'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">dry_run</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}{</span><span class="s1">' with force download'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">force_download</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span>
 </code></pre></div></td></tr></tbody></table></div>
                   </details>
@@ -1571,7 +1567,10 @@ or a rich interface with enhanced visual feedback.</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">245</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
 <span class="normal">246</span>
 <span class="normal">247</span>
 <span class="normal">248</span>
@@ -1651,10 +1650,7 @@ or a rich interface with enhanced visual feedback.</p>
 <span class="normal">322</span>
 <span class="normal">323</span>
 <span class="normal">324</span>
-<span class="normal">325</span>
-<span class="normal">326</span>
-<span class="normal">327</span>
-<span class="normal">328</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">checksum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">check_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"md5sum"</span><span class="p">,</span> <span class="s2">"sha512sum"</span><span class="p">,</span> <span class="s2">"md5"</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="normal">325</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">checksum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">check_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"md5sum"</span><span class="p">,</span> <span class="s2">"sha512sum"</span><span class="p">,</span> <span class="s2">"md5"</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Verifies the integrity of a downloaded file using a specified checksum algorithm.</span>
 
@@ -1679,10 +1675,10 @@ or a rich interface with enhanced visual feedback.</p>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; client.checksum('sha512sum')  # Returns True if checksum matches</span>
 <span class="sd">    """</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Checking checksum for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2"> using </span><span class="si">{</span><span class="n">check_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Checking checksum for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2"> using </span><span class="si">{</span><span class="n">check_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Dry-run mode enabled, skipping checksum verification"</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Dry-run mode enabled, skipping checksum verification"</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">if</span> <span class="n">check_type</span> <span class="o">==</span> <span class="s2">"sha512sum"</span><span class="p">:</span>
@@ -1690,10 +1686,10 @@ or a rich interface with enhanced visual feedback.</p>
         <span class="n">hash512sum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="s2">"sha512sum"</span><span class="p">]</span>
         <span class="n">file_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="s2">"name"</span><span class="p">]</span>
 
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"checksum sha512sum file is: </span><span class="si">{</span><span class="n">hash512sum</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"checksum sha512sum file is: </span><span class="si">{</span><span class="n">hash512sum</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">file_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">hash512sum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"File or checksum not found"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"File or checksum not found"</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"File or checksum not found"</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">hash512sum</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -1705,7 +1701,7 @@ or a rich interface with enhanced visual feedback.</p>
                     <span class="k">break</span>
                 <span class="n">hash_sha512</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">hash_sha512</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span> <span class="o">!=</span> <span class="n">hash_expected</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"Checksum failed for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2">: computed </span><span class="si">{</span><span class="n">hash_sha512</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span><span class="si">}</span><span class="s2"> - expected </span><span class="si">{</span><span class="n">hash_expected</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Incorrect checksum"</span><span class="p">)</span>
@@ -1728,7 +1724,7 @@ or a rich interface with enhanced visual feedback.</p>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Filename is None. Please fix it"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_hash_md5sum</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">hash_expected</span><span class="o">=</span><span class="n">hash_expected</span><span class="p">):</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"Checksum failed for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2">: expected </span><span class="si">{</span><span class="n">hash_expected</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
 
@@ -1736,7 +1732,7 @@ or a rich interface with enhanced visual feedback.</p>
 
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Checksum type </span><span class="si">{</span><span class="n">check_type</span><span class="si">}</span><span class="s2"> not yet supported"</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Checksum type </span><span class="si">{</span><span class="n">check_type</span><span class="si">}</span><span class="s2"> not yet supported"</span><span class="p">)</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Checksum type </span><span class="si">{</span><span class="n">check_type</span><span class="si">}</span><span class="s2"> not yet supported"</span><span class="p">)</span>
 </code></pre></div></td></tr></tbody></table></div>
             </details>
@@ -1898,7 +1894,10 @@ or a rich interface with enhanced visual feedback.</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">330</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
 <span class="normal">331</span>
 <span class="normal">332</span>
 <span class="normal">333</span>
@@ -1963,10 +1962,7 @@ or a rich interface with enhanced visual feedback.</p>
 <span class="normal">392</span>
 <span class="normal">393</span>
 <span class="normal">394</span>
-<span class="normal">395</span>
-<span class="normal">396</span>
-<span class="normal">397</span>
-<span class="normal">398</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">download_file</span><span class="p">(</span>
+<span class="normal">395</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">download_file</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -2011,11 +2007,11 @@ or a rich interface with enhanced visual feedback.</p>
     <span class="c1"># Check cache unless force flag is set</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_download</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">full_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Using cached file: </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Using cached file: </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">full_path</span><span class="p">)</span>
 
     <span class="c1"># Log download action</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'[DRY-RUN] Would download'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'Downloading'</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span>
 
@@ -2033,7 +2029,7 @@ or a rich interface with enhanced visual feedback.</p>
         <span class="n">rich_downloader</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">urls</span><span class="o">=</span><span class="p">[</span><span class="n">url</span><span class="p">],</span> <span class="n">dest_dir</span><span class="o">=</span><span class="n">file_path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Cannot download file </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Cannot download file </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">None</span>
 </code></pre></div></td></tr></tbody></table></div>
             </details>
@@ -2170,7 +2166,10 @@ unless force_download is enabled.</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">400</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
 <span class="normal">401</span>
 <span class="normal">402</span>
 <span class="normal">403</span>
@@ -2274,10 +2273,7 @@ unless force_download is enabled.</p>
 <span class="normal">501</span>
 <span class="normal">502</span>
 <span class="normal">503</span>
-<span class="normal">504</span>
-<span class="normal">505</span>
-<span class="normal">506</span>
-<span class="normal">507</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">downloads</span><span class="p">(</span>
+<span class="normal">504</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">downloads</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">object_arista</span><span class="p">:</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">logics</span><span class="o">.</span><span class="n">arista_xml_server</span><span class="o">.</span><span class="n">AristaXmlObjects</span><span class="p">,</span>
     <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -2323,13 +2319,13 @@ unless force_download is enabled.</p>
 <span class="sd">    &gt;&gt;&gt; cached  # Will be False</span>
 <span class="sd">    False</span>
 <span class="sd">    """</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"Processing files for </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2"> "</span>
         <span class="sa">f</span><span class="s2">"(force_download=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">force_download</span><span class="si">}</span><span class="s2">)"</span>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_arista</span><span class="o">.</span><span class="n">urls</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"No URLs found for download of version </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">. "</span>
             <span class="sa">f</span><span class="s2">"The requested version or image type may not exist on Arista servers."</span>
         <span class="p">)</span>
@@ -2342,7 +2338,7 @@ unless force_download is enabled.</p>
     <span class="n">all_files_cached</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">for</span> <span class="n">file_type</span><span class="p">,</span> <span class="n">url</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">object_arista</span><span class="o">.</span><span class="n">urls</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processing </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processing </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s2">"image"</span><span class="p">:</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">object_arista</span><span class="o">.</span><span class="n">filename</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="s2">"name"</span><span class="p">]</span> <span class="o">=</span> <span class="n">filename</span>
@@ -2350,10 +2346,10 @@ unless force_download is enabled.</p>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">object_arista</span><span class="o">.</span><span class="n">hash_filename</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">file_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">filename</span>
         <span class="k">if</span> <span class="n">url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"URL not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"URL not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"URL not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filename not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filename not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filename not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">:</span>
             <span class="c1"># Check if file is already cached before download</span>
@@ -2376,9 +2372,9 @@ unless force_download is enabled.</p>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">full_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">filename</span>
             <span class="k">if</span> <span class="n">full_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_download</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[DRY-RUN] Would use cached file: </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[DRY-RUN] Would use cached file: </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"[DRY-RUN] Would download file </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> "</span>
                     <span class="sa">f</span><span class="s2">"for version </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">"</span>
                 <span class="p">)</span>
@@ -2553,7 +2549,10 @@ False if image was imported</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">579</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">576</span>
+<span class="normal">577</span>
+<span class="normal">578</span>
+<span class="normal">579</span>
 <span class="normal">580</span>
 <span class="normal">581</span>
 <span class="normal">582</span>
@@ -2690,14 +2689,14 @@ False if image was imported</p>
     <span class="c1"># Check cache unless force flag is set</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_download</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_image_exists</span><span class="p">(</span><span class="n">docker_name</span><span class="p">,</span> <span class="n">docker_tag</span><span class="p">):</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"Docker image </span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2"> already "</span>  <span class="c1"># noqa: E231</span>
                 <span class="sa">f</span><span class="s2">"exists locally. Use --force to re-import."</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
 
     <span class="c1"># Log import action</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'[DRY-RUN] Would import'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'Importing'</span><span class="si">}</span><span class="s2"> "</span>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2">"</span>  <span class="c1"># noqa: E231</span>
     <span class="p">)</span>
@@ -2707,25 +2706,28 @@ False if image was imported</p>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="c1"># Check if docker is available</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"docker"</span><span class="p">):</span>
+    <span class="n">docker_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"docker"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">docker_path</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">"Docker binary not found in PATH"</span><span class="p">)</span>
 
-    <span class="c1"># Proceed with import</span>
+    <span class="c1"># Proceed with import using subprocess.run for security (no shell injection)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">cmd</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"$(which docker) import </span><span class="si">{</span><span class="n">local_file_path</span><span class="si">}</span><span class="s2"> "</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2">"</span>  <span class="c1"># noqa: E231</span>
-        <span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Executing: </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="n">cmd_args</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">docker_path</span><span class="p">,</span>
+            <span class="s2">"import"</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">local_file_path</span><span class="p">),</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Executing: </span><span class="si">{</span><span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmd_args</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd_args</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"Docker image </span><span class="si">{</span><span class="n">docker_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">docker_tag</span><span class="si">}</span><span class="s2"> "</span>  <span class="c1"># noqa: E231</span>
             <span class="sa">f</span><span class="s2">"imported successfully"</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># Image was imported (not from cache)</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error importing docker image: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">e</span>
+    <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error importing docker image: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">stderr</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Docker import failed: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">stderr</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 </code></pre></div></td></tr></tbody></table></div>
             </details>
     </div>
@@ -2939,7 +2941,34 @@ False if image was imported</p>
 <span class="normal">759</span>
 <span class="normal">760</span>
 <span class="normal">761</span>
-<span class="normal">762</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">provision_eve</span><span class="p">(</span>
+<span class="normal">762</span>
+<span class="normal">763</span>
+<span class="normal">764</span>
+<span class="normal">765</span>
+<span class="normal">766</span>
+<span class="normal">767</span>
+<span class="normal">768</span>
+<span class="normal">769</span>
+<span class="normal">770</span>
+<span class="normal">771</span>
+<span class="normal">772</span>
+<span class="normal">773</span>
+<span class="normal">774</span>
+<span class="normal">775</span>
+<span class="normal">776</span>
+<span class="normal">777</span>
+<span class="normal">778</span>
+<span class="normal">779</span>
+<span class="normal">780</span>
+<span class="normal">781</span>
+<span class="normal">782</span>
+<span class="normal">783</span>
+<span class="normal">784</span>
+<span class="normal">785</span>
+<span class="normal">786</span>
+<span class="normal">787</span>
+<span class="normal">788</span>
+<span class="normal">789</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">provision_eve</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">object_arista</span><span class="p">:</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">logics</span><span class="o">.</span><span class="n">arista_xml_server</span><span class="o">.</span><span class="n">EosXmlObject</span><span class="p">,</span>
     <span class="n">noztp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -2967,7 +2996,7 @@ False if image was imported</p>
     <span class="c1"># EVE-NG provisioning page for vEOS</span>
     <span class="c1"># https://www.eve-ng.net/index.php/documentation/howtos/howto-add-arista-veos/</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"Provisioning EVE-NG with </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span>
 
@@ -2977,7 +3006,7 @@ False if image was imported</p>
     <span class="n">eos_filename</span> <span class="o">=</span> <span class="n">object_arista</span><span class="o">.</span><span class="n">filename</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_arista</span><span class="o">.</span><span class="n">urls</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"No URLs found for download of version </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">. "</span>
             <span class="sa">f</span><span class="s2">"The requested version or image type may not exist on Arista servers."</span>
         <span class="p">)</span>
@@ -2987,7 +3016,7 @@ False if image was imported</p>
         <span class="p">)</span>
 
     <span class="k">for</span> <span class="n">file_type</span><span class="p">,</span> <span class="n">url</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">object_arista</span><span class="o">.</span><span class="n">urls</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Downloading </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Downloading </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s2">"image"</span><span class="p">:</span>
             <span class="n">fname</span> <span class="o">=</span> <span class="n">object_arista</span><span class="o">.</span><span class="n">filename</span>
             <span class="k">if</span> <span class="n">fname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -2995,45 +3024,72 @@ False if image was imported</p>
                 <span class="k">if</span> <span class="n">noztp</span><span class="p">:</span>
                     <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">-noztp</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
                 <span class="n">eos_filename</span> <span class="o">=</span> <span class="n">filename</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"filename is </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"filename is </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="s2">"name"</span><span class="p">]</span> <span class="o">=</span> <span class="n">filename</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">object_arista</span><span class="o">.</span><span class="n">hash_filename</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">file_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">filename</span>
         <span class="k">if</span> <span class="n">url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"URL not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"URL not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"URL not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filename not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filename not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filename not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"creating folder on eve-ng server: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"creating folder on eve-ng server: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_create_destination_folder</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">file_path</span><span class="p">)</span>
 
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"downloading file </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> for version </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">rich_interface</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Convert to QCOW2 format</span>
-    <span class="n">file_qcow2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">"hda.qcow2"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">eos_filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"EOS filename not found for QCOW2 conversion"</span><span class="p">)</span>
+    <span class="n">vmdk_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">eos_filename</span><span class="p">)</span>
+    <span class="n">qcow2_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">"hda.qcow2"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">:</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"$(which qemu-img) convert -f vmdk -O qcow2 </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">eos_filename</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">file_qcow2</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">qemu_img_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"qemu-img"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">qemu_img_path</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">"qemu-img binary not found in PATH"</span><span class="p">)</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">qemu_img_path</span><span class="p">,</span>
+                <span class="s2">"convert"</span><span class="p">,</span>
+                <span class="s2">"-f"</span><span class="p">,</span>
+                <span class="s2">"vmdk"</span><span class="p">,</span>
+                <span class="s2">"-O"</span><span class="p">,</span>
+                <span class="s2">"qcow2"</span><span class="p">,</span>
+                <span class="n">vmdk_path</span><span class="p">,</span>
+                <span class="n">qcow2_path</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'[DRY-RUN] Would convert'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'Converting'</span><span class="si">}</span><span class="s2"> VMDK to QCOW2 format: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">eos_filename</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">file_qcow2</span><span class="si">}</span><span class="s2"> "</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'[DRY-RUN] Would convert'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'Converting'</span><span class="si">}</span><span class="s2"> VMDK to QCOW2 format: </span><span class="si">{</span><span class="n">vmdk_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">qcow2_path</span><span class="si">}</span><span class="s2"> "</span>
         <span class="p">)</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Applying unl_wrapper to fix permissions"</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Applying unl_wrapper to fix permissions"</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">:</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">"/opt/unetlab/wrappers/unl_wrapper -a fixpermissions"</span><span class="p">)</span>
+        <span class="n">unl_wrapper_path</span> <span class="o">=</span> <span class="s2">"/opt/unetlab/wrappers/unl_wrapper"</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">unl_wrapper_path</span><span class="p">):</span>
+            <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">unl_wrapper_path</span><span class="p">,</span> <span class="s2">"-a"</span><span class="p">,</span> <span class="s2">"fixpermissions"</span><span class="p">],</span>
+                <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unl_wrapper not found at </span><span class="si">{</span><span class="n">unl_wrapper_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"[DRY-RUN] Would execute unl_wrapper to fix permissions"</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"[DRY-RUN] Would execute unl_wrapper to fix permissions"</span><span class="p">)</span>
 </code></pre></div></td></tr></tbody></table></div>
             </details>
     </div>

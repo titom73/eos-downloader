@@ -1523,27 +1523,27 @@
 <span class="sd">    -------</span>
 <span class="sd">    None</span>
 <span class="sd">    """</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Initializing AristXmlBase."</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Initializing AristXmlBase."</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">server</span> <span class="o">=</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">logics</span><span class="o">.</span><span class="n">arista_server</span><span class="o">.</span><span class="n">AristaServer</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="n">token</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">xml_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">xml_data</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">ET</span><span class="o">.</span><span class="n">ParseError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error while parsing XML data: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error while parsing XML data: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">authenticate</span><span class="p">():</span>
             <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_xml_root</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Unable to get XML data from Arista server"</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Unable to get XML data from Arista server"</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Unable to get XML data from Arista server"</span><span class="p">)</span>
             <span class="c1"># Ensure the XML data has a valid root element</span>
             <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"XML data has no root element"</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"XML data has no root element"</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"XML data has no root element"</span><span class="p">)</span>
             <span class="c1"># At this point, we've validated that data has a valid root</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">xml_data</span> <span class="o">=</span> <span class="n">data</span>  <span class="c1"># type: ignore[assignment]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Unable to authenticate to Arista server"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Unable to authenticate to Arista server"</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Unable to authenticate to Arista server"</span><span class="p">)</span>
 </code></pre></div></td></tr></tbody></table></div>
                   </details>
@@ -1960,7 +1960,7 @@ It returns URL for the following items: ‘image’, ‘md5sum’, and ‘sha512
 <span class="sd">        Filename to search for on Arista.com.</span>
 <span class="sd">    """</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Building hash filename for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">software</span><span class="si">}</span><span class="s2"> package."</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Building hash filename for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">software</span><span class="si">}</span><span class="s2"> package."</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">checksum_file_extension</span><span class="si">}</span><span class="s2">"</span>
@@ -2084,7 +2084,7 @@ It returns URL for the following items: ‘image’, ‘md5sum’, and ‘sha512
 <span class="sd">        Path from XML if found, None otherwise.</span>
 <span class="sd">    """</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Building path from XML for </span><span class="si">{</span><span class="n">search_file</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Building path from XML for </span><span class="si">{</span><span class="n">search_file</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
 
     <span class="c1"># Build xpath with provided file</span>
     <span class="n">xpath_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_xpath_filepath</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">search_file</span><span class="p">)</span>
@@ -2092,7 +2092,7 @@ It returns URL for the following items: ‘image’, ‘md5sum’, and ‘sha512
     <span class="n">path_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml_data</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">xpath_query</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">path_element</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">'found path: </span><span class="si">{</span><span class="n">path_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span><span class="si">}</span><span class="s1"> for </span><span class="si">{</span><span class="n">search_file</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">'found path: </span><span class="si">{</span><span class="n">path_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span><span class="si">}</span><span class="s1"> for </span><span class="si">{</span><span class="n">search_file</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
     <span class="c1"># Return the path if found, otherwise return None</span>
     <span class="k">return</span> <span class="n">path_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span> <span class="k">if</span> <span class="n">path_element</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
@@ -2196,27 +2196,27 @@ It returns URL for the following items: ‘image’, ‘md5sum’, and ‘sha512
 <span class="sd">    -------</span>
 <span class="sd">    None</span>
 <span class="sd">    """</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Initializing AristXmlBase."</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Initializing AristXmlBase."</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">server</span> <span class="o">=</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">logics</span><span class="o">.</span><span class="n">arista_server</span><span class="o">.</span><span class="n">AristaServer</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="n">token</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">xml_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">xml_data</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">ET</span><span class="o">.</span><span class="n">ParseError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error while parsing XML data: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error while parsing XML data: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">authenticate</span><span class="p">():</span>
             <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_xml_root</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Unable to get XML data from Arista server"</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Unable to get XML data from Arista server"</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Unable to get XML data from Arista server"</span><span class="p">)</span>
             <span class="c1"># Ensure the XML data has a valid root element</span>
             <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"XML data has no root element"</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"XML data has no root element"</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"XML data has no root element"</span><span class="p">)</span>
             <span class="c1"># At this point, we've validated that data has a valid root</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">xml_data</span> <span class="o">=</span> <span class="n">data</span>  <span class="c1"># type: ignore[assignment]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Unable to authenticate to Arista server"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Unable to authenticate to Arista server"</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Unable to authenticate to Arista server"</span><span class="p">)</span>
 </code></pre></div></td></tr></tbody></table></div>
                   </details>
@@ -2483,7 +2483,7 @@ It returns URL for the following items: ‘image’, ‘md5sum’, and ‘sha512
 <span class="sd">    [EosVersion('4.29.0F-INT'), EosVersion('4.29.1F-INT'), ...]</span>
 <span class="sd">    """</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Getting available versions for </span><span class="si">{</span><span class="n">package</span><span class="si">}</span><span class="s2"> package"</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Getting available versions for </span><span class="si">{</span><span class="n">package</span><span class="si">}</span><span class="s2"> package"</span><span class="p">)</span>
 
     <span class="n">xpath_query</span> <span class="o">=</span> <span class="s1">'.//dir[@label="Active Releases"]//dir[@label]'</span>
     <span class="n">regexp</span> <span class="o">=</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">EosVersion</span><span class="o">.</span><span class="n">regex_version</span>
