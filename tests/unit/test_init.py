@@ -45,15 +45,23 @@ class TestErrorMessages:
 
     def test_msg_token_expired_content(self) -> None:
         """Test MSG_TOKEN_EXPIRED contains expected content."""
-        assert "API token has expired" in MSG_TOKEN_EXPIRED
-        assert "arista.com" in MSG_TOKEN_EXPIRED
-        assert "Regenerate Token" in MSG_TOKEN_EXPIRED
+        expected_phrases = [
+            "API token has expired",
+            "arista.com",
+            "Regenerate Token",
+        ]
+        for phrase in expected_phrases:
+            assert phrase in MSG_TOKEN_EXPIRED, f"Expected '{phrase}' in MSG_TOKEN_EXPIRED"
 
     def test_msg_token_invalid_content(self) -> None:
         """Test MSG_TOKEN_INVALID contains expected content."""
-        assert "API token is incorrect" in MSG_TOKEN_INVALID
-        assert "arista.com" in MSG_TOKEN_INVALID
-        assert "Access Token" in MSG_TOKEN_INVALID
+        expected_phrases = [
+            "API token is incorrect",
+            "arista.com",
+            "Access Token",
+        ]
+        for phrase in expected_phrases:
+            assert phrase in MSG_TOKEN_INVALID, f"Expected '{phrase}' in MSG_TOKEN_INVALID"
 
     def test_msg_invalid_data_content(self) -> None:
         """Test MSG_INVALID_DATA contains expected content."""
