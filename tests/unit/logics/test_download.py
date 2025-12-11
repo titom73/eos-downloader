@@ -438,3 +438,284 @@ class TestCacheIntegration:
         # Should complete without actual download
         assert path == "/tmp"
         assert was_cached is True  # File exists and dry-run, so cached
+
+
+class TestChecksumMethods:
+    """Test suite for checksum validation methods."""
+
+    def test_checksum_dry_run_mode(self):
+        """Test that checksum returns True in dry-run mode."""
+        manager = SoftManager(dry_run=True)
+        result = manager.checksum("sha512sum")
+        assert result is True
+
+    def test_checksum_sha512sum_file_or_hash_none(self):
+        """Test checksum raises ValueError when file or hash is None."""
+        manager = SoftManager()
+        manager.file = {"name": None, "sha512sum": None}
+
+        with pytest.raises(ValueError, match="File or checksum not found"):
+            manager.checksum("sha512sum")
+
+    def test_checksum_md5sum_file_none(self):
+        """Test checksum raises ValueError when md5sum file is None."""
+        manager = SoftManager()
+        manager.file = {"name": "test.swi", "md5sum": None}
+
+        with pytest.raises(ValueError, match="md5sum is not found"):
+            manager.checksum("md5sum")
+
+    def test_checksum_unsupported_type(self):
+        """Test checksum raises ValueError for unsupported check type."""
+        manager = SoftManager()
+        manager.file = {"name": "test.swi"}
+
+        with pytest.raises(ValueError, match="Checksum type .* not yet supported"):
+            manager.checksum("crc32")
+
+    def test_checksum_md5_alias(self, tmp_path):
+        """Test that 'md5' is accepted as alias for 'md5sum'."""
+        test_file = tmp_path / "test.swi"
+        test_file.write_bytes(b"test content")
+
+        md5_file = tmp_path / "test.swi.md5"
+        expected_hash = "9a0364b9e99bb480dd25e1f0284c8555"
+        md5_file.write_text(f"{expected_hash}  test.swi")
+
+        manager = SoftManager()
+        manager.file = {
+            "name": str(test_file),
+            "md5sum": str(md5_file),
+        }
+
+        with patch.object(manager, "_compute_hash_md5sum", return_value=True):
+            result = manager.checksum("md5")
+            assert result is True
+
+    def test_checksum_md5sum_filename_none(self, tmp_path):
+        """Test checksum raises ValueError when filename is None."""
+        md5_file = tmp_path / "test.swi.md5"
+        md5_file.write_text("abc123  test.swi")
+
+        manager = SoftManager()
+        manager.file = {
+            "name": None,
+            "md5sum": str(md5_file),
+        }
+
+        with pytest.raises(ValueError, match="Filename is None"):
+            manager.checksum("md5sum")
+
+
+class TestDownloadFileEdgeCases:
+    """Test suite for download_file edge cases."""
+
+    def test_download_file_url_is_false(self):
+        """Test download_file returns None when URL is False."""
+        manager = SoftManager()
+        result = manager.download_file(
+            url=False,
+            file_path="/tmp",
+            filename="test.swi",
+            rich_interface=False,
+        )
+        assert result is None
+
+    def test_download_file_dry_run_returns_path(self):
+        """Test download_file returns path in dry-run mode."""
+        manager = SoftManager(dry_run=True)
+        result = manager.download_file(
+            url="http://test.com/file.swi",
+            file_path="/tmp",
+            filename="test.swi",
+            rich_interface=False,
+        )
+        assert result == "/tmp/test.swi"
+
+
+class TestDownloadsEdgeCases:
+    """Test suite for downloads method edge cases."""
+
+    def test_downloads_empty_urls_raises_error(self):
+        """Test that downloads raises ValueError when urls is empty."""
+        mock_eos = Mock()
+        mock_eos.version = "4.29.3M"
+        mock_eos.filename = "test.swi"
+        mock_eos.urls = {}
+
+        manager = SoftManager()
+
+        with pytest.raises(ValueError, match="Filename not found for version"):
+            manager.downloads(mock_eos, "/tmp")
+
+    def test_downloads_url_none_raises_error(self):
+        """Test that downloads raises ValueError when URL is None."""
+        mock_eos = Mock()
+        mock_eos.version = "4.29.3M"
+        mock_eos.filename = "test.swi"
+        mock_eos.urls = {"image": None}
+        mock_eos.hash_filename = Mock(return_value="test.swi.md5")
+
+        manager = SoftManager()
+
+        with pytest.raises(ValueError, match="URL not found for"):
+            manager.downloads(mock_eos, "/tmp")
+
+    def test_downloads_filename_none_raises_error(self):
+        """Test that downloads raises ValueError when filename is None."""
+        mock_eos = Mock()
+        mock_eos.version = "4.29.3M"
+        mock_eos.filename = None
+        mock_eos.urls = {"image": "http://test.com/test.swi"}
+        mock_eos.hash_filename = Mock(return_value=None)
+
+        manager = SoftManager()
+
+        with pytest.raises(ValueError, match="Filename not found for"):
+            manager.downloads(mock_eos, "/tmp")
+
+    @patch("pathlib.Path.exists")
+    def test_downloads_dry_run_not_cached(self, mock_exists):
+        """Test dry-run mode with non-cached file reports correctly."""
+        mock_exists.return_value = False
+
+        mock_eos = Mock()
+        mock_eos.version = "4.29.3M"
+        mock_eos.filename = "test.swi"
+        mock_eos.urls = {"image": "http://test.com/test.swi"}
+        mock_eos.hash_filename = Mock(return_value="test.swi.md5")
+
+        manager = SoftManager(dry_run=True)
+        path, was_cached = manager.downloads(mock_eos, "/tmp")
+
+        assert path == "/tmp"
+        assert was_cached is False
+
+
+class TestDockerImageEdgeCases:
+    """Test suite for Docker image handling edge cases."""
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_docker_image_exists_subprocess_error(self, mock_which, mock_run):
+        """Test graceful handling of subprocess errors."""
+        mock_which.return_value = "/usr/bin/docker"
+        mock_run.side_effect = subprocess.SubprocessError("Command failed")
+
+        result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
+        assert result is False
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_docker_image_exists_os_error(self, mock_which, mock_run):
+        """Test graceful handling of OS errors."""
+        mock_which.return_value = "/usr/bin/docker"
+        mock_run.side_effect = OSError("Permission denied")
+
+        result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
+        assert result is False
+
+
+class TestImportDockerEdgeCases:
+    """Test suite for import_docker method edge cases."""
+
+    @patch("os.path.exists")
+    @patch("shutil.which")
+    def test_import_docker_no_docker_binary(self, mock_which, mock_exists):
+        """Test that import_docker raises FileNotFoundError when docker not found."""
+        mock_exists.return_value = True
+        mock_which.return_value = None
+
+        manager = SoftManager()
+
+        with pytest.raises(FileNotFoundError, match="Docker binary not found"):
+            manager.import_docker("/tmp/test.tar", "arista/ceos", "4.29.3M")
+
+    def test_import_docker_dry_run_returns_false(self):
+        """Test import_docker returns False in dry-run mode."""
+        manager = SoftManager(dry_run=True)
+
+        with patch("os.path.exists", return_value=True):
+            result = manager.import_docker("/tmp/test.tar", "arista/ceos", "4.29.3M")
+            assert result is False
+
+
+class TestProvisionEveEdgeCases:
+    """Test suite for provision_eve method edge cases."""
+
+    def test_provision_eve_empty_urls_raises_error(self):
+        """Test that provision_eve raises ValueError when urls is empty."""
+        mock_eos = Mock()
+        mock_eos.version = "4.29.3M"
+        mock_eos.filename = "test.vmdk"
+        mock_eos.urls = {}
+
+        manager = SoftManager()
+
+        with pytest.raises(ValueError, match="Filename not found for version"):
+            manager.provision_eve(mock_eos)
+
+    @patch("os.system")
+    @patch("os.path.exists")
+    @patch("eos_downloader.logics.download.SoftManager.download_file")
+    @patch("eos_downloader.logics.download.SoftManager._create_destination_folder")
+    def test_provision_eve_with_noztp(
+        self, mock_create_folder, mock_download, mock_exists, mock_system
+    ):
+        """Test provision_eve with noztp flag modifies filename."""
+        mock_exists.return_value = True
+
+        mock_eos = Mock()
+        mock_eos.version = "4.29.3M"
+        mock_eos.filename = "vEOS-lab-4.29.3M.vmdk"
+        mock_eos.urls = {"image": "http://test.com/vEOS-lab-4.29.3M.vmdk"}
+        mock_eos.hash_filename = Mock(return_value="vEOS-lab-4.29.3M.vmdk.md5")
+
+        manager = SoftManager()
+        manager.provision_eve(mock_eos, noztp=True)
+
+        # Check that download was called
+        mock_download.assert_called()
+
+    @patch("os.system")
+    @patch("os.path.exists")
+    @patch("eos_downloader.logics.download.SoftManager.download_file")
+    @patch("eos_downloader.logics.download.SoftManager._create_destination_folder")
+    def test_provision_eve_url_none_raises_error(
+        self, mock_create_folder, mock_download, mock_exists, mock_system
+    ):
+        """Test provision_eve raises ValueError when URL is None."""
+        mock_exists.return_value = False
+
+        mock_eos = Mock()
+        mock_eos.version = "4.29.3M"
+        mock_eos.filename = "vEOS-lab-4.29.3M.vmdk"
+        mock_eos.urls = {"image": None}
+        mock_eos.hash_filename = Mock(return_value="vEOS-lab-4.29.3M.vmdk.md5")
+
+        manager = SoftManager()
+
+        with pytest.raises(ValueError, match="URL not found for"):
+            manager.provision_eve(mock_eos)
+
+    @patch("os.system")
+    @patch("os.path.exists")
+    @patch("eos_downloader.logics.download.SoftManager.download_file")
+    @patch("eos_downloader.logics.download.SoftManager._create_destination_folder")
+    def test_provision_eve_dry_run_mode(
+        self, mock_create_folder, mock_download, mock_exists, mock_system
+    ):
+        """Test provision_eve in dry-run mode."""
+        mock_exists.return_value = True
+
+        mock_eos = Mock()
+        mock_eos.version = "4.29.3M"
+        mock_eos.filename = "vEOS-lab-4.29.3M.vmdk"
+        mock_eos.urls = {"image": "http://test.com/vEOS-lab-4.29.3M.vmdk"}
+        mock_eos.hash_filename = Mock(return_value=None)
+
+        manager = SoftManager(dry_run=True)
+        manager.provision_eve(mock_eos)
+
+        # os.system should not be called in dry-run mode
+        mock_system.assert_not_called()
