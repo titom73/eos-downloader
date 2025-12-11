@@ -1,54 +1,54 @@
-# Actions Immédiates - Dette Technique eos-downloader
-**Date**: 11 décembre 2025  
-**Priorité**: CRITIQUE  
-**Document parent**: [technical-debt-analysis-dec-2025.md](technical-debt-analysis-dec-2025.md)
+# Immediate Actions - Technical Debt eos-downloader
+**Date**: December 11, 2025
+**Priority**: CRITICAL
+**Parent Document**: [technical-debt-analysis-dec-2025.md](technical-debt-analysis-dec-2025.md)
 
 ---
 
-## 🚀 Quick Start - Actions à Faire Maintenant
+## 🚀 Quick Start - Actions to Do Now
 
-Ce document liste les **actions concrètes et immédiates** pour commencer la remédiation de la dette technique. Toutes ces tâches peuvent être réalisées **cette semaine**.
+This document lists **concrete and immediate actions** to start technical debt remediation. All these tasks can be completed **this week**.
 
 ---
 
-## ✅ Tâche 1: Support Python 3.12 (⏱️ 2 heures)
+## ✅ Task 1: Python 3.12 Support (⏱️ 2 hours)
 
-### Objectif
-Ajouter le support officiel de Python 3.12 au projet.
+### Objective
+Add official support for Python 3.12 to the project.
 
 ### Actions
 ```bash
-# 1. Éditer le fichier de configuration
+# 1. Edit configuration file
 nano .github/python-versions.json
 
-# Modifier pour inclure Python 3.12:
+# Modify to include Python 3.12:
 {
   "versions": ["3.9", "3.10", "3.11", "3.12", "3.13"],
   "uv_version": "latest"
 }
 
-# 2. Synchroniser avec pyproject.toml
+# 2. Sync with pyproject.toml
 uv run python .github/scripts/sync-python-versions.py
 
-# 3. Vérifier que tout est correct
+# 3. Verify correctness
 git diff pyproject.toml
 
-# 4. Commit et push
+# 4. Commit and push
 git add .github/python-versions.json pyproject.toml
 git commit -m "feat: Add Python 3.12 support"
 git push
 ```
 
 ### Validation
-- [ ] CI GitHub Actions teste Python 3.12
-- [ ] Tous les tests passent pour Python 3.12
-- [ ] pyproject.toml inclut Python 3.12 dans classifiers
+- [ ] GitHub Actions CI tests Python 3.12
+- [ ] All tests pass for Python 3.12
+- [ ] pyproject.toml includes Python 3.12 in classifiers
 
-### Issue GitHub à créer
+### GitHub Issue to Create
 ```markdown
 **Title**: Add Python 3.12 support
 **Labels**: enhancement, python
-**Description**: 
+**Description**:
 The project currently supports Python 3.9, 3.10, 3.11, and 3.13 but is missing Python 3.12.
 
 **Tasks**:
@@ -60,20 +60,20 @@ The project currently supports Python 3.9, 3.10, 3.11, and 3.13 but is missing P
 
 ---
 
-## ✅ Tâche 2: Masquage des Tokens dans les Logs (⏱️ 3 heures)
+## ✅ Task 2: Token Masking in Logs (⏱️ 3 hours)
 
-### Objectif
-Empêcher l'exposition accidentelle de tokens Arista dans les logs.
+### Objective
+Prevent accidental exposure of Arista tokens in logs.
 
 ### Actions
 
-#### Étape 1: Créer le module de sécurité
+#### Step 1: Create Security Module
 ```bash
-# Créer le fichier
+# Create file
 touch eos_downloader/helpers/security.py
 ```
 
-**Contenu de `eos_downloader/helpers/security.py`**:
+**Content of `eos_downloader/helpers/security.py`**:
 ```python
 #!/usr/bin/env python
 # coding: utf-8 -*-
@@ -85,19 +85,19 @@ from typing import Optional
 def mask_token(token: Optional[str], show_chars: int = 4) -> str:
     """
     Mask a token for safe logging.
-    
+
     Parameters
     ----------
     token : Optional[str]
         The token to mask
     show_chars : int, optional
         Number of characters to show at start and end, by default 4
-        
+
     Returns
     -------
     str
         Masked token in format: "abcd...wxyz"
-        
+
     Examples
     --------
     >>> mask_token("abcdefghijklmnopqrstuvwxyz")
@@ -109,24 +109,24 @@ def mask_token(token: Optional[str], show_chars: int = 4) -> str:
     """
     if not token or len(token) < show_chars * 2:
         return "***"
-    
+
     return f"{token[:show_chars]}...{token[-show_chars:]}"
 
 
 def validate_arista_token(token: Optional[str]) -> bool:
     """
     Validate Arista token format.
-    
+
     Parameters
     ----------
     token : Optional[str]
         Token to validate
-        
+
     Returns
     -------
     bool
         True if token is valid
-        
+
     Raises
     ------
     ValueError
@@ -134,21 +134,21 @@ def validate_arista_token(token: Optional[str]) -> bool:
     """
     if not token:
         raise ValueError("Token cannot be empty")
-    
+
     if len(token) < 20:
         raise ValueError(
             "Token too short. Arista tokens are typically longer than 20 characters."
         )
-    
+
     return True
 ```
 
-#### Étape 2: Créer les tests
+#### Step 2: Create Tests
 ```bash
 touch tests/unit/helpers/test_security.py
 ```
 
-**Contenu de `tests/unit/helpers/test_security.py`**:
+**Content of `tests/unit/helpers/test_security.py`**:
 ```python
 """Tests for security utilities."""
 
@@ -158,76 +158,76 @@ from eos_downloader.helpers.security import mask_token, validate_arista_token
 
 class TestTokenMasking:
     """Test token masking functionality."""
-    
+
     def test_mask_long_token(self):
         """Test masking a long token."""
         token = "abcdefghijklmnopqrstuvwxyz0123456789"
         masked = mask_token(token)
-        
+
         assert "abcd" in masked
         assert "6789" in masked
         assert "..." in masked
         assert len(masked) < len(token)
-    
+
     def test_mask_empty_token(self):
         """Test masking an empty token."""
         assert mask_token("") == "***"
         assert mask_token(None) == "***"
-    
+
     def test_mask_short_token(self):
         """Test masking a very short token."""
         assert mask_token("abc") == "***"
-    
+
     def test_custom_show_chars(self):
         """Test masking with custom number of visible chars."""
         token = "abcdefghijklmnop"
         masked = mask_token(token, show_chars=2)
-        
+
         assert "ab" in masked
         assert "op" in masked
 
 
 class TestTokenValidation:
     """Test token validation."""
-    
+
     def test_valid_token(self):
         """Test validation of a valid token."""
         token = "a" * 25  # Token long enough
         assert validate_arista_token(token) is True
-    
+
     def test_empty_token(self):
         """Test validation of empty token."""
         with pytest.raises(ValueError, match="cannot be empty"):
             validate_arista_token("")
-        
+
         with pytest.raises(ValueError, match="cannot be empty"):
             validate_arista_token(None)
-    
+
     def test_short_token(self):
         """Test validation of too short token."""
         with pytest.raises(ValueError, match="too short"):
             validate_arista_token("short")
 ```
 
-#### Étape 3: Utiliser dans le code existant
+#### Step 3: Use in Existing Code
 
-**Modifier `eos_downloader/cli/cli.py`**:
+**Modify `eos_downloader/cli/cli.py`**:
 ```python
-# Ajouter l'import
+# Add import
 from eos_downloader.helpers.security import mask_token, validate_arista_token
 
-# Dans la fonction ardl()
+# In ardl() function
 @click.option("--token", ...)
 def ardl(ctx: click.Context, token: str, log_level: str, debug_enabled: bool) -> None:
     """Arista Network Download CLI"""
-    
-    # Valider et masquer le token
+
+    # Validate and mask token
     if token:
         try:
             validate_arista_token(token)
             logger.info(f"Using token: {mask_token(token)}")
-            
-            # Warning si token passé en CLI au lieu de variable d'environnement
+
+            # Warning if token passed via CLI instead of env var
             if not os.environ.get('ARISTA_TOKEN'):
                 logger.warning(
                     "⚠️  Token passed via CLI is less secure. "
@@ -240,19 +240,19 @@ def ardl(ctx: click.Context, token: str, log_level: str, debug_enabled: bool) ->
 
 ### Validation
 ```bash
-# Exécuter les tests
+# Run tests
 pytest tests/unit/helpers/test_security.py -v
 
-# Vérifier que le token est masqué dans les logs
+# Verify token is masked in logs
 ardl --token "test_token_1234567890" info eos --debug 2>&1 | grep -i token
-# Devrait afficher: "test...7890" et non le token complet
+# Should display: "test...7890" and not the full token
 ```
 
-### Issue GitHub à créer
+### GitHub Issue to Create
 ```markdown
 **Title**: Implement token masking for secure logging
 **Labels**: security, enhancement
-**Description**: 
+**Description**:
 Prevent accidental exposure of Arista API tokens in logs and terminal output.
 
 **Security Impact**: Medium - prevents credential leakage
@@ -267,31 +267,31 @@ Prevent accidental exposure of Arista API tokens in logs and terminal output.
 
 ---
 
-## ✅ Tâche 3: Pre-commit Hook detect-secrets (⏱️ 1 heure)
+## ✅ Task 3: detect-secrets Pre-commit Hook (⏱️ 1 hour)
 
-### Objectif
-Empêcher les commits de secrets accidentels.
+### Objective
+Prevent accidental commits of secrets.
 
 ### Actions
 
-#### Étape 1: Installer detect-secrets
+#### Step 1: Install detect-secrets
 ```bash
 uv pip install detect-secrets
 ```
 
-#### Étape 2: Créer baseline
+#### Step 2: Create Baseline
 ```bash
-# Scanner le projet et créer baseline
+# Scan project and create baseline
 detect-secrets scan > .secrets.baseline
 
-# Auditer les secrets détectés
+# Audit detected secrets
 detect-secrets audit .secrets.baseline
 ```
 
-#### Étape 3: Configurer pre-commit
-**Modifier `.pre-commit-config.yaml`**:
+#### Step 3: Configure Pre-commit
+**Modify `.pre-commit-config.yaml`**:
 ```yaml
-# Ajouter à la fin du fichier
+# Add to end of file
 - repo: https://github.com/Yelp/detect-secrets
   rev: v1.4.0
   hooks:
@@ -300,27 +300,27 @@ detect-secrets audit .secrets.baseline
       exclude: package.lock.json
 ```
 
-#### Étape 4: Installer le hook
+#### Step 4: Install Hook
 ```bash
 pre-commit install
 ```
 
 ### Validation
 ```bash
-# Tester le hook
+# Test the hook
 echo "api_key = 'sk-test123456789'" > test_secret.py
 git add test_secret.py
-git commit -m "test"  # Devrait échouer
+git commit -m "test"  # Should fail
 
-# Nettoyer
+# Cleanup
 rm test_secret.py
 ```
 
-### Issue GitHub à créer
+### GitHub Issue to Create
 ```markdown
 **Title**: Add detect-secrets pre-commit hook
 **Labels**: security, devops
-**Description**: 
+**Description**:
 Prevent accidental commits of secrets and credentials.
 
 **Tasks**:
@@ -333,30 +333,30 @@ Prevent accidental commits of secrets and credentials.
 
 ---
 
-## ✅ Tâche 4: Nettoyer __pycache__ (⏱️ 30 minutes)
+## ✅ Task 4: Clean __pycache__ (⏱️ 30 minutes)
 
-### Objectif
-S'assurer qu'aucun fichier `__pycache__` n'est tracké dans git.
+### Objective
+Ensure no `__pycache__` files are tracked in git.
 
 ### Actions
 
-#### Étape 1: Vérifier
+#### Step 1: Verify
 ```bash
-# Vérifier si des __pycache__ sont trackés
+# Check if any __pycache__ are tracked
 git ls-files | grep __pycache__
 ```
 
-#### Étape 2: Nettoyer (si nécessaire)
+#### Step 2: Clean (if needed)
 ```bash
-# Si des fichiers sont trouvés, les retirer
+# If files found, remove them
 find . -type d -name __pycache__ -exec git rm -r --cached {} + 2>/dev/null
 
-# Commit le changement
+# Commit change
 git commit -m "chore: Remove __pycache__ directories from git tracking"
 ```
 
-#### Étape 3: Ajouter commande Makefile
-**Modifier `Makefile`**:
+#### Step 3: Add Makefile Command
+**Modify `Makefile`**:
 ```makefile
 .PHONY: clean-pycache
 clean-pycache: ## Clean all __pycache__ directories and .pyc files
@@ -371,8 +371,8 @@ clean-all: clean clean-pycache ## Clean everything (build artifacts + cache)
 	@echo "✓ All cleaned"
 ```
 
-#### Étape 4: Vérifier .gitignore
-**Vérifier que `.gitignore` contient**:
+#### Step 4: Verify .gitignore
+**Verify `.gitignore` contains**:
 ```gitignore
 # Python cache
 __pycache__/
@@ -384,28 +384,28 @@ __pycache__/
 
 ### Validation
 ```bash
-# Aucun __pycache__ ne devrait être listé
+# No __pycache__ should be listed
 git ls-files | grep __pycache__ || echo "✓ Clean"
 
-# Tester la commande make
+# Test make command
 make clean-pycache
 ```
 
 ---
 
-## ✅ Tâche 5: Créer Module de Configuration Logging Centralisé (⏱️ 2 heures)
+## ✅ Task 5: Create Centralized Logging Config Module (⏱️ 2 hours)
 
-### Objectif
-Centraliser la configuration du logging pour faciliter la migration vers loguru.
+### Objective
+Centralize logging configuration to facilitate migration to loguru.
 
 ### Actions
 
-#### Étape 1: Créer le module
+#### Step 1: Create Module
 ```bash
 touch eos_downloader/logging_config.py
 ```
 
-**Contenu de `eos_downloader/logging_config.py`**:
+**Content of `eos_downloader/logging_config.py`**:
 ```python
 #!/usr/bin/env python
 # coding: utf-8 -*-
@@ -429,7 +429,7 @@ def configure_logging(
 ) -> None:
     """
     Configure global logging settings.
-    
+
     Parameters
     ----------
     level : str, optional
@@ -438,7 +438,7 @@ def configure_logging(
         Path to log file, by default None (console only)
     rotation : str, optional
         Log file rotation size, by default "10 MB"
-        
+
     Examples
     --------
     >>> configure_logging(level="DEBUG")
@@ -446,7 +446,7 @@ def configure_logging(
     """
     # Remove default handler
     logger.remove()
-    
+
     # Add console handler with formatting
     logger.add(
         sys.stderr,
@@ -454,7 +454,7 @@ def configure_logging(
         level=level,
         colorize=True,
     )
-    
+
     # Add file handler if specified
     if log_file:
         logger.add(
@@ -465,7 +465,7 @@ def configure_logging(
             retention="1 week",
             compression="zip",
         )
-    
+
     logger.info(f"Logging configured at level: {level}")
 
 
@@ -473,12 +473,12 @@ def configure_logging(
 __all__ = ["logger", "configure_logging"]
 ```
 
-#### Étape 2: Créer les tests
+#### Step 2: Create Tests
 ```bash
 touch tests/unit/test_logging_config.py
 ```
 
-**Contenu de `tests/unit/test_logging_config.py`**:
+**Content of `tests/unit/test_logging_config.py`**:
 ```python
 """Tests for logging configuration."""
 
@@ -489,27 +489,27 @@ from eos_downloader.logging_config import logger, configure_logging
 
 class TestLoggingConfiguration:
     """Test logging configuration."""
-    
+
     def test_logger_available(self):
         """Test that logger is available."""
         assert logger is not None
-    
+
     def test_configure_basic(self):
         """Test basic logging configuration."""
         configure_logging(level="INFO")
         # Should not raise
-    
+
     def test_configure_with_file(self, tmp_path):
         """Test logging configuration with file output."""
         log_file = tmp_path / "test.log"
         configure_logging(level="DEBUG", log_file=log_file)
-        
+
         logger.info("Test message")
-        
+
         assert log_file.exists()
         content = log_file.read_text()
         assert "Test message" in content
-    
+
     def test_different_levels(self):
         """Test different logging levels."""
         for level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
@@ -517,12 +517,12 @@ class TestLoggingConfiguration:
             # Should not raise
 ```
 
-#### Étape 3: Migration plan pour modules existants
-**Créer `.github/plans/logging-migration-checklist.md`**:
+#### Step 3: Migration Plan for Existing Modules
+**Create `.github/plans/logging-migration-checklist.md`**:
 ```markdown
-# Migration Logging vers Configuration Centralisée
+# Logging Migration to Centralized Configuration
 
-## Modules à Migrer
+## Modules to Migrate
 
 - [ ] eos_downloader/models/version.py
 - [ ] eos_downloader/logics/arista_server.py
@@ -530,79 +530,79 @@ class TestLoggingConfiguration:
 - [ ] eos_downloader/logics/download.py
 - [ ] eos_downloader/cli/utils.py
 
-## Pattern de Migration
+## Migration Pattern
 
-### Avant
+### Before
 ```python
 import logging
 logging.debug("message")
 ```
 
-### Après
+### After
 ```python
 from eos_downloader.logging_config import logger
 logger.debug("message")
 ```
 
 ## Validation
-- [ ] Tous les tests passent
-- [ ] Logs sont cohérents
-- [ ] Aucun import de `logging` standard restant
+- [ ] All tests pass
+- [ ] Logs are consistent
+- [ ] No standard `logging` imports remaining
 ```
 
 ### Validation
 ```bash
-# Exécuter les tests
+# Run tests
 pytest tests/unit/test_logging_config.py -v
 
-# Tester l'import
+# Test import
 python -c "from eos_downloader.logging_config import logger; logger.info('Test')"
 ```
 
 ---
 
-## 📋 Checklist Complète
+## 📋 Complete Checklist
 
-Marquer chaque tâche une fois terminée:
+Mark each task once completed:
 
-### Cette Semaine
-- [ ] Tâche 1: Support Python 3.12 (2h)
-- [ ] Tâche 2: Masquage tokens (3h)
-- [ ] Tâche 3: detect-secrets (1h)
-- [ ] Tâche 4: Nettoyer __pycache__ (30min)
-- [ ] Tâche 5: Module logging centralisé (2h)
+### This Week
+- [ ] Task 1: Python 3.12 Support (2h)
+- [ ] Task 2: Token Masking (3h)
+- [ ] Task 3: detect-secrets (1h)
+- [ ] Task 4: Clean __pycache__ (30min)
+- [ ] Task 5: Centralized Logging Module (2h)
 
-### Validation Globale
-- [ ] Tous les tests passent: `pytest`
+### Global Validation
+- [ ] All tests pass: `pytest`
 - [ ] Linting OK: `make lint`
 - [ ] Type checking OK: `make type`
-- [ ] CI GitHub Actions passe
-- [ ] Documentation mise à jour
+- [ ] GitHub Actions CI passes
+- [ ] Documentation updated
 
 ---
 
-## 🎯 Après Ces Actions
+## 🎯 After These Actions
 
-Une fois ces 5 tâches terminées, vous aurez:
+Once these 5 tasks are completed, you will have:
 
-✅ **+5% de couverture** (nouvelles fonctionnalités testées)  
-✅ **Sécurité renforcée** (tokens masqués, detect-secrets)  
-✅ **Support étendu** (Python 3.12)  
-✅ **Base propre** (pas de cache git)  
-✅ **Architecture améliorée** (logging centralisé)  
+✅ **+5% coverage** (new features tested)
+✅ **Enhanced security** (masked tokens, detect-secrets)
+✅ **Extended support** (Python 3.12)
+✅ **Clean base** (no git cache)
+✅ **Improved architecture** (centralized logging)
 
-**Temps total estimé**: ~9 heures (1-2 jours)  
-**Impact**: 🔴 Élevé - Fondations solides pour la suite
+**Estimated Total Time**: ~9 hours (1-2 days)
+**Impact**: 🔴 High - Solid foundation for future work
 
 ---
 
 ## 📞 Support
 
-**Questions?** Ouvrir une discussion GitHub  
-**Bugs?** Créer une issue avec label `technical-debt`  
-**Document parent**: [technical-debt-analysis-dec-2025.md](technical-debt-analysis-dec-2025.md)
+**Questions?** Open a GitHub discussion
+**Bugs?** Create an issue with label `technical-debt`
+**Parent Document**: [technical-debt-analysis-dec-2025.md](technical-debt-analysis-dec-2025.md)
 
 ---
 
-**Créé**: 11 décembre 2025  
-**Status**: 🔄 Actions en attente
+**Created**: December 11, 2025
+**Status**: 🔄 Actions Pending

@@ -1,105 +1,105 @@
-# Analyse de la Dette Technique - eos-downloader
-**Date**: 11 décembre 2025  
-**Projet**: eos-downloader v0.14.0  
-**Auteur**: Analyse automatisée
+# Technical Debt Analysis - eos-downloader
+**Date**: December 11, 2025
+**Project**: eos-downloader v0.14.0
+**Author**: Automated Analysis
 
 ---
 
-## 📊 Résumé Exécutif
+## 📊 Executive Summary
 
-Le projet **eos-downloader** est globalement en bonne santé avec une couverture de tests de **86%** et une architecture moderne utilisant UV pour la gestion des dépendances. Cependant, plusieurs axes d'amélioration ont été identifiés pour renforcer la maintenabilité, la qualité et la sécurité du code.
+The **eos-downloader** project is generally healthy with a test coverage of **86%** and a modern architecture using UV for dependency management. However, several areas for improvement have been identified to strengthen code maintainability, quality, and security.
 
-### Métriques Globales
-- **Couverture de tests**: 86.01% (990/1151 lignes)
-- **Versions Python supportées**: 3.9, 3.10, 3.11, 3.13 (3.12 manquant)
-- **Lignes de code**: ~1151 (production) + tests
-- **État général**: ✅ Bon - Quelques améliorations nécessaires
+### Global Metrics
+- **Test Coverage**: 86.01% (990/1151 lines)
+- **Supported Python Versions**: 3.9, 3.10, 3.11, 3.13 (3.12 missing)
+- **Lines of Code**: ~1151 (production) + tests
+- **General Status**: ✅ Good - Some improvements needed
 
 ---
 
-## 🎯 Tableau Récapitulatif des Dettes Techniques
+## 🎯 Technical Debt Summary Table
 
-| # | Dette Technique | Ease | Impact | Risk | Priorité |
+| # | Technical Debt | Ease | Impact | Risk | Priority |
 |---|----------------|------|--------|------|----------|
-| 1 | [Gestion incohérente du logging (loguru + logging)](#1-gestion-incohérente-du-logging) | 2 | 4 | 🟡 | **Haute** |
-| 2 | [Couverture de tests insuffisante (86%)](#2-couverture-de-tests-insuffisante) | 3 | 5 | 🔴 | **Critique** |
-| 3 | [Support Python 3.12 manquant](#3-support-python-312-manquant) | 1 | 3 | 🟢 | Moyenne |
-| 4 | [Dépendances cycliques dans cli.py](#4-dépendances-cycliques-dans-clipy) | 3 | 4 | 🟡 | **Haute** |
-| 5 | [Fichiers __pycache__ potentiellement commités](#5-fichiers-__pycache__-dans-le-dépôt) | 1 | 2 | 🟢 | Basse |
-| 6 | [Documentation technique manquante](#6-documentation-technique-manquante) | 2 | 3 | 🟡 | Moyenne |
-| 7 | [Manque de tests d'intégration End-to-End](#7-manque-de-tests-dintégration-end-to-end) | 4 | 4 | 🟡 | Moyenne |
-| 8 | [Configuration tox.ini redondante](#8-configuration-toxini-redondante) | 2 | 2 | 🟢 | Basse |
-| 9 | [Gestion des secrets et sécurité](#9-gestion-des-secrets-et-sécurité) | 2 | 5 | 🔴 | **Haute** |
-| 10 | [Optimisation des workflows CI/CD](#10-optimisation-des-workflows-cicd) | 2 | 3 | 🟢 | Moyenne |
+| 1 | [Inconsistent logging management (loguru + logging)](#1-inconsistent-logging-management) | 2 | 4 | 🟡 | **High** |
+| 2 | [Insufficient test coverage (86%)](#2-insufficient-test-coverage) | 3 | 5 | 🔴 | **Critical** |
+| 3 | [Missing Python 3.12 support](#3-missing-python-312-support) | 1 | 3 | 🟢 | Medium |
+| 4 | [Cyclic dependencies in cli.py](#4-cyclic-dependencies-in-clipy) | 3 | 4 | 🟡 | **High** |
+| 5 | [__pycache__ files potentially committed](#5-__pycache__-files-in-repository) | 1 | 2 | 🟢 | Low |
+| 6 | [Missing technical documentation](#6-missing-technical-documentation) | 2 | 3 | 🟡 | Medium |
+| 7 | [Lack of End-to-End integration tests](#7-lack-of-end-to-end-integration-tests) | 4 | 4 | 🟡 | Medium |
+| 8 | [Redundant tox.ini configuration](#8-redundant-toxini-configuration) | 2 | 2 | 🟢 | Low |
+| 9 | [Secret management and security](#9-secret-management-and-security) | 2 | 5 | 🔴 | **High** |
+| 10 | [CI/CD workflow optimization](#10-cicd-workflow-optimization) | 2 | 3 | 🟢 | Medium |
 
-**Légende**:
-- **Ease**: 1=Trivial, 5=Complexe
-- **Impact**: 1=Minimal, 5=Critique  
-- **Risk**: 🟢 Faible | 🟡 Moyen | 🔴 Élevé
+**Legend**:
+- **Ease**: 1=Trivial, 5=Complex
+- **Impact**: 1=Minimal, 5=Critical
+- **Risk**: 🟢 Low | 🟡 Medium | 🔴 High
 
 ---
 
-## 📋 Détails des Dettes Techniques
+## 📋 Technical Debt Details
 
-### 1. Gestion incohérente du logging
+### 1. Inconsistent logging management
 **Ease**: 2/5 | **Impact**: 4/5 | **Risk**: 🟡
 
 #### Overview
-Le projet utilise deux bibliothèques de logging différentes (`logging` standard et `loguru`), créant une incohérence dans la gestion des logs.
+The project uses two different logging libraries (standard `logging` and `loguru`), creating inconsistency in log management.
 
-#### Problème Identifié
+#### Identified Problem
 ```python
-# Fichiers utilisant logging standard
+# Files using standard logging
 - eos_downloader/logics/arista_xml_server.py
 - eos_downloader/logics/download.py
 - eos_downloader/cli/utils.py
 - eos_downloader/logics/arista_server.py
 
-# Fichiers utilisant loguru
+# Files using loguru
 - eos_downloader/models/version.py
 - eos_downloader/logics/arista_server.py (mix!)
 ```
 
 #### Impact
-- Configuration de logging fragmentée et difficile à maintenir
-- Logs inconsistants entre modules
-- Difficulté à centraliser la gestion des logs
-- Confusion pour les contributeurs
+- Fragmented and difficult to maintain logging configuration
+- Inconsistent logs between modules
+- Difficulty centralizing log management
+- Confusion for contributors
 
-#### Solution Proposée
+#### Proposed Solution
 
-**Option 1: Standardiser sur loguru (Recommandé)**
+**Option 1: Standardize on loguru (Recommended)**
 ```python
-# Remplacer tous les imports
-# Avant:
+# Replace all imports
+# Before:
 import logging
 logging.debug("message")
 
-# Après:
+# After:
 from loguru import logger
 logger.debug("message")
 ```
 
-**Option 2: Standardiser sur logging standard**
-- Retirer loguru des dépendances
-- Uniformiser avec le module logging
+**Option 2: Standardize on standard logging**
+- Remove loguru from dependencies
+- Standardize with the logging module
 
-#### Étapes d'implémentation
-1. **Audit complet** des fichiers utilisant logging/loguru
-2. **Choisir une bibliothèque** (recommandation: loguru pour sa simplicité)
-3. **Créer un module centralisé** `eos_downloader/logging_config.py`
-4. **Migrer progressivement** module par module
-5. **Mettre à jour la documentation** avec les conventions de logging
-6. **Ajouter des tests** pour la configuration de logging
+#### Implementation Steps
+1. **Full audit** of files using logging/loguru
+2. **Choose a library** (recommendation: loguru for its simplicity)
+3. **Create a centralized module** `eos_downloader/logging_config.py`
+4. **Migrate progressively** module by module
+5. **Update documentation** with logging conventions
+6. **Add tests** for logging configuration
 
-#### Tests de validation
+#### Validation Tests
 ```python
 # tests/unit/test_logging_config.py
 def test_logger_configuration():
     """Verify logger is properly configured."""
     from eos_downloader.logging_config import logger
     assert logger is not None
-    
+
 def test_all_modules_use_same_logger():
     """Ensure all modules use the same logging system."""
     # Scan imports and verify consistency
@@ -107,52 +107,52 @@ def test_all_modules_use_same_logger():
 
 ---
 
-### 2. Couverture de tests insuffisante
+### 2. Insufficient test coverage
 **Ease**: 3/5 | **Impact**: 5/5 | **Risk**: 🔴
 
 #### Overview
-La couverture actuelle est de **86.01%**, mais certains modules critiques manquent de tests adéquats.
+Current coverage is **86.01%**, but some critical modules lack adequate tests.
 
-#### Modules sous-testés identifiés
+#### Identified Under-tested Modules
 ```xml
-<!-- Depuis coverage.xml -->
-- tools.py: 50% couverture (2/4 lignes)
-- __init__.py: 83.3% couverture (15/18 lignes)
-- Plusieurs lignes non couvertes dans download.py et arista_server.py
+<!-- From coverage.xml -->
+- tools.py: 50% coverage (2/4 lines)
+- __init__.py: 83.3% coverage (15/18 lines)
+- Several uncovered lines in download.py and arista_server.py
 ```
 
 #### Impact
-- Risque de régressions non détectées
-- Difficulté à refactorer en toute confiance
-- Manque de documentation vivante (tests as documentation)
-- Ne respecte pas l'objectif de >90% pour un projet critique
+- Risk of undetected regressions
+- Difficulty refactoring with confidence
+- Lack of living documentation (tests as documentation)
+- Does not meet the >90% goal for a critical project
 
-#### Solution Proposée
+#### Proposed Solution
 
-**Phase 1: Atteindre 90% de couverture**
+**Phase 1: Reach 90% coverage**
 ```python
-# Priorités:
-1. tools.py: Ajouter tests pour toutes les fonctions
-2. __init__.py: Tester les cas limites (lignes 49-51)
-3. CLI commands: Augmenter la couverture des commandes
-4. Cas d'erreur: Tester tous les chemins d'exception
+# Priorities:
+1. tools.py: Add tests for all functions
+2. __init__.py: Test edge cases (lines 49-51)
+3. CLI commands: Increase command coverage
+4. Error cases: Test all exception paths
 ```
 
-**Phase 2: Tests manquants critiques**
-- Tests de `SoftManager` avec différents backends (Docker/Podman)
-- Tests de téléchargement avec interruption réseau
-- Tests de validation de checksums (md5sum/sha512sum)
-- Tests de gestion du cache et force_download
+**Phase 2: Critical missing tests**
+- `SoftManager` tests with different backends (Docker/Podman)
+- Download tests with network interruption
+- Checksum validation tests (md5sum/sha512sum)
+- Cache management and force_download tests
 
-#### Étapes d'implémentation
-1. **Analyser le rapport de couverture HTML** (htmlcov/index.html)
-2. **Créer un plan de tests** par module prioritaire
-3. **Implémenter les tests manquants**:
+#### Implementation Steps
+1. **Analyze HTML coverage report** (htmlcov/index.html)
+2. **Create a test plan** per priority module
+3. **Implement missing tests**:
    ```bash
-   # Par module
+   # Per module
    pytest tests/unit/test_tools.py --cov=eos_downloader.tools --cov-report=term-missing
    ```
-4. **Ajouter des tests paramétrés** pour couvrir plus de cas:
+4. **Add parameterized tests** to cover more cases:
    ```python
    @pytest.mark.parametrize("version,expected", [
        ("4.29.3M", True),
@@ -162,51 +162,51 @@ La couverture actuelle est de **86.01%**, mais certains modules critiques manque
    def test_version_validation(version, expected):
        ...
    ```
-5. **Configurer une règle de couverture stricte** dans pyproject.toml:
+5. **Configure strict coverage rule** in pyproject.toml:
    ```toml
    [tool.coverage.report]
    fail_under = 90
    ```
 
-#### Tests de validation
+#### Validation Tests
 ```bash
-# Objectif: Couverture >= 90%
+# Goal: Coverage >= 90%
 pytest --cov=eos_downloader --cov-report=term-missing --cov-fail-under=90
 
-# Vérifier les branches non testées
+# Check untested branches
 pytest --cov=eos_downloader --cov-branch --cov-report=html
 ```
 
 ---
 
-### 3. Support Python 3.12 manquant
+### 3. Missing Python 3.12 support
 **Ease**: 1/5 | **Impact**: 3/5 | **Risk**: 🟢
 
 #### Overview
-Le projet supporte Python 3.9, 3.10, 3.11 et 3.13, mais **Python 3.12 est absent**.
+The project supports Python 3.9, 3.10, 3.11, and 3.13, but **Python 3.12 is missing**.
 
-#### Problème Identifié
+#### Identified Problem
 ```toml
 # pyproject.toml
 classifiers = [
   'Programming Language :: Python :: 3.9',
   'Programming Language :: Python :: 3.10',
   'Programming Language :: Python :: 3.11',
-  'Programming Language :: Python :: 3.13',  # 3.12 est manquant!
+  'Programming Language :: Python :: 3.13',  # 3.12 is missing!
 ]
 ```
 
 #### Impact
-- Utilisateurs sur Python 3.12 ne savent pas si le projet est compatible
-- Tests CI ne couvrent pas Python 3.12
-- Risque de bugs non détectés sur cette version
+- Users on Python 3.12 don't know if the project is compatible
+- CI tests do not cover Python 3.12
+- Risk of undetected bugs on this version
 
-#### Solution Proposée
+#### Proposed Solution
 
-**Ajouter Python 3.12 au support officiel**
+**Add Python 3.12 to official support**
 
-#### Étapes d'implémentation
-1. **Mettre à jour `.github/python-versions.json`**:
+#### Implementation Steps
+1. **Update `.github/python-versions.json`**:
    ```json
    {
      "versions": ["3.9", "3.10", "3.11", "3.12", "3.13"],
@@ -214,38 +214,38 @@ classifiers = [
    }
    ```
 
-2. **Synchroniser pyproject.toml** (automatique via script):
+2. **Sync pyproject.toml** (automatic via script):
    ```bash
    uv run python .github/scripts/sync-python-versions.py
    ```
 
-3. **Vérifier la compatibilité**:
+3. **Verify compatibility**:
    ```bash
-   # Tester localement avec Python 3.12
+   # Test locally with Python 3.12
    uv run --python 3.12 pytest
-   
-   # Vérifier les dépendances
+
+   # Check dependencies
    uv run --python 3.12 pip check
    ```
 
-4. **Valider dans CI** (automatique après mise à jour du JSON)
+4. **Validate in CI** (automatic after JSON update)
 
-#### Tests de validation
+#### Validation Tests
 ```bash
-# Les workflows CI testeront automatiquement Python 3.12
-# Vérifier que tous les tests passent
+# CI workflows will automatically test Python 3.12
+# Verify all tests pass
 pytest --python-version=3.12
 ```
 
 ---
 
-### 4. Dépendances cycliques dans cli.py
+### 4. Cyclic dependencies in cli.py
 **Ease**: 3/5 | **Impact**: 4/5 | **Risk**: 🟡
 
 #### Overview
-Le fichier `cli.py` contient des directives pylint pour ignorer les imports cycliques.
+The `cli.py` file contains pylint directives to ignore cyclic imports.
 
-#### Problème Identifié
+#### Identified Problem
 ```python
 # eos_downloader/cli/cli.py
 # pylint: disable=cyclic-import
@@ -256,240 +256,240 @@ from eos_downloader.cli.get import commands as get_commands
 ```
 
 #### Impact
-- Architecture fragile difficile à maintenir
-- Risque de bugs liés aux imports
-- Complexité accrue pour les nouveaux contributeurs
-- Indicateur d'un design qui pourrait être amélioré
+- Fragile architecture difficult to maintain
+- Risk of import-related bugs
+- Increased complexity for new contributors
+- Indicator of a design that could be improved
 
-#### Solution Proposée
+#### Proposed Solution
 
-**Restructurer l'architecture des commandes CLI**
+**Restructure CLI command architecture**
 
-**Option 1: Lazy imports (Solution rapide)**
+**Option 1: Lazy imports (Quick fix)**
 ```python
 # cli.py
 @click.group()
 def cli():
     pass
 
-# Importer au moment de l'enregistrement
+# Import at registration time
 def register_commands():
     from eos_downloader.cli.debug import commands as debug_commands
     from eos_downloader.cli.info import commands as info_commands
     from eos_downloader.cli.get import commands as get_commands
-    
+
     cli.add_command(debug_commands.debug)
     cli.add_command(info_commands.info)
     cli.add_command(get_commands.get)
 ```
 
-**Option 2: Plugin system (Solution robuste)**
+**Option 2: Plugin system (Robust solution)**
 ```python
-# Découvrir automatiquement les commandes via entry points
-# Plus maintenable à long terme
+# Automatically discover commands via entry points
+# More maintainable in the long run
 ```
 
-#### Étapes d'implémentation
-1. **Analyser les dépendances** avec un outil comme `pydeps`:
+#### Implementation Steps
+1. **Analyze dependencies** with a tool like `pydeps`:
    ```bash
    uv pip install pydeps
    pydeps eos_downloader/cli --show-cycles
    ```
 
-2. **Identifier les imports circulaires** exacts
+2. **Identify exact circular imports**
 
-3. **Choisir la stratégie** (lazy imports recommandé pour démarrer)
+3. **Choose strategy** (lazy imports recommended to start)
 
-4. **Refactorer progressivement**:
-   - Créer `cli/registry.py` pour centraliser l'enregistrement
-   - Migrer les commandes une par une
-   - Retirer les `pylint: disable`
+4. **Refactor progressively**:
+   - Create `cli/registry.py` to centralize registration
+   - Migrate commands one by one
+   - Remove `pylint: disable`
 
-5. **Valider** qu'il n'y a plus de cycles:
+5. **Validate** no more cycles:
    ```bash
    pylint eos_downloader/cli/ --disable=all --enable=cyclic-import
    ```
 
-#### Tests de validation
+#### Validation Tests
 ```python
 # tests/unit/cli/test_cli_structure.py
 def test_no_cyclic_imports():
     """Ensure CLI has no cyclic imports."""
     import importlib
-    # Test que tous les modules peuvent être importés sans erreur
+    # Test that all modules can be imported without error
     importlib.import_module('eos_downloader.cli.cli')
 ```
 
 ---
 
-### 5. Fichiers __pycache__ dans le dépôt
+### 5. __pycache__ files in repository
 **Ease**: 1/5 | **Impact**: 2/5 | **Risk**: 🟢
 
 #### Overview
-Des dossiers `__pycache__/` apparaissent dans la structure du workspace, suggérant qu'ils pourraient être commités.
+`__pycache__/` folders appear in the workspace structure, suggesting they might be committed.
 
-#### Problème Identifié
+#### Identified Problem
 ```
 eos_downloader/__pycache__/
 tests/__pycache__/
-# Ces dossiers ne devraient jamais être dans git
+# These folders should never be in git
 ```
 
 #### Impact
-- Pollution du dépôt git
-- Conflits potentiels lors des merges
-- Augmentation de la taille du dépôt
+- Git repository pollution
+- Potential conflicts during merges
+- Increased repository size
 
-#### Solution Proposée
+#### Proposed Solution
 
-**Nettoyer et renforcer .gitignore**
+**Clean and reinforce .gitignore**
 
-#### Étapes d'implémentation
-1. **Vérifier si commités**:
+#### Implementation Steps
+1. **Check if committed**:
    ```bash
    git ls-files | grep __pycache__
    ```
 
-2. **Si commités, les retirer**:
+2. **If committed, remove them**:
    ```bash
-   # Retirer de git mais garder localement
+   # Remove from git but keep locally
    find . -type d -name __pycache__ -exec git rm -r --cached {} +
-   
-   # Commit le changement
+
+   # Commit change
    git commit -m "chore: Remove __pycache__ directories from git"
    ```
 
-3. **Vérifier .gitignore** (déjà correct):
+3. **Check .gitignore** (already correct):
    ```gitignore
    __pycache__/
    *.py[cod]
    *$py.class
    ```
 
-4. **Nettoyer localement**:
+4. **Clean locally**:
    ```bash
-   # Ajouter au Makefile
+   # Add to Makefile
    clean-pycache:
        find . -type d -name __pycache__ -exec rm -rf {} +
        find . -type f -name "*.pyc" -delete
        find . -type f -name "*.pyo" -delete
    ```
 
-#### Tests de validation
+#### Validation Tests
 ```bash
-# S'assurer qu'aucun __pycache__ n'est tracké
+# Ensure no __pycache__ is tracked
 git status --ignored | grep __pycache__ || echo "✓ Clean"
 ```
 
 ---
 
-### 6. Documentation technique manquante
+### 6. Missing technical documentation
 **Ease**: 2/5 | **Impact**: 3/5 | **Risk**: 🟡
 
 #### Overview
-Manque de documentation pour l'architecture interne, les patterns de conception et les guides de développement détaillés.
+Lack of documentation for internal architecture, design patterns, and detailed development guides.
 
-#### Documentation manquante identifiée
-- ✅ README.md (existe et est bon)
-- ✅ Contributing guide (existe)
+#### Identified Missing Documentation
+- ✅ README.md (exists and is good)
+- ✅ Contributing guide (exists)
 - ❌ Architecture Decision Records (ADR)
-- ❌ Guide de debugging
-- ❌ Guide de release
-- ❌ Diagrammes d'architecture
-- ❌ Documentation API complète (endpoints Arista)
+- ❌ Debugging guide
+- ❌ Release guide
+- ❌ Architecture diagrams
+- ❌ Complete API documentation (Arista endpoints)
 
 #### Impact
-- Courbe d'apprentissage élevée pour nouveaux contributeurs
-- Décisions d'architecture non documentées
-- Duplication d'effort (réinventer la roue)
+- High learning curve for new contributors
+- Undocumented architecture decisions
+- Duplication of effort (reinventing the wheel)
 
-#### Solution Proposée
+#### Proposed Solution
 
-**Créer une documentation technique complète**
+**Create comprehensive technical documentation**
 
-#### Étapes d'implémentation
-1. **Créer le dossier de documentation technique**:
+#### Implementation Steps
+1. **Create technical documentation folder**:
    ```
    docs/dev-notes/
-   ├── architecture.md          # Vue d'ensemble
+   ├── architecture.md          # Overview
    ├── adr/                     # Architecture Decision Records
    │   ├── 001-use-uv.md
    │   ├── 002-logging-strategy.md
    │   └── template.md
-   ├── debugging-guide.md       # Comment débugger
-   ├── release-process.md       # Process de release
-   └── api-reference.md         # API Arista détaillée
+   ├── debugging-guide.md       # How to debug
+   ├── release-process.md       # Release process
+   └── api-reference.md         # Detailed Arista API
    ```
 
-2. **Créer les ADRs pour décisions importantes**:
+2. **Create ADRs for important decisions**:
    ```markdown
-   # ADR-002: Standardisation du Logging sur Loguru
-   
+   # ADR-002: Standardization of Logging on Loguru
+
    ## Status
    Proposed
-   
+
    ## Context
-   Le projet utilise actuellement deux systèmes de logging...
-   
+   The project currently uses two logging systems...
+
    ## Decision
-   Standardiser sur Loguru pour...
-   
+   Standardize on Loguru for...
+
    ## Consequences
-   - Migration nécessaire de tous les modules
-   - Configuration centralisée
+   - Migration of all modules required
+   - Centralized configuration
    ```
 
-3. **Documenter l'architecture**:
+3. **Document architecture**:
    ```markdown
-   # Architecture de eos-downloader
-   
-   ## Vue d'ensemble
+   # eos-downloader Architecture
+
+   ## Overview
    - CLI Layer (Click)
    - Logic Layer (Download, XML parsing)
    - Model Layer (Version, Data)
    ```
 
-4. **Ajouter des diagrammes**:
+4. **Add diagrams**:
    ```bash
-   # Utiliser Mermaid dans Markdown
-   # GitHub et MkDocs supportent Mermaid nativement
+   # Use Mermaid in Markdown
+   # GitHub and MkDocs support Mermaid natively
    ```
 
-#### Tests de validation
+#### Validation Tests
 ```bash
-# Vérifier que la documentation build correctement
+# Verify documentation builds correctly
 uv run mkdocs build --strict
 
-# Vérifier les liens cassés
+# Check broken links
 uv run mkdocs build 2>&1 | grep -i "warning\|error"
 ```
 
 ---
 
-### 7. Manque de tests d'intégration End-to-End
+### 7. Lack of End-to-End integration tests
 **Ease**: 4/5 | **Impact**: 4/5 | **Risk**: 🟡
 
 #### Overview
-Le projet dispose de tests unitaires solides mais manque de tests d'intégration complets qui valident le workflow utilisateur de bout en bout.
+The project has solid unit tests but lacks comprehensive integration tests that validate the user workflow from end to end.
 
-#### Tests manquants identifiés
-- ❌ Workflow complet: téléchargement → vérification → import Docker
-- ❌ Workflow complet: téléchargement → installation EVE-NG
-- ❌ Tests avec une vraie API Arista (ou mock complet)
-- ❌ Tests de performance pour gros téléchargements
-- ❌ Tests de résilience (interruption réseau, retry)
+#### Identified Missing Tests
+- ❌ Complete workflow: download → verification → Docker import
+- ❌ Complete workflow: download → EVE-NG installation
+- ❌ Tests with a real Arista API (or full mock)
+- ❌ Performance tests for large downloads
+- ❌ Resilience tests (network interruption, retry)
 
 #### Impact
-- Bugs potentiels dans l'intégration entre composants
-- Workflow utilisateur non validé automatiquement
-- Confiance réduite dans les releases
+- Potential bugs in integration between components
+- User workflow not automatically validated
+- Reduced confidence in releases
 
-#### Solution Proposée
+#### Proposed Solution
 
-**Implémenter une suite de tests d'intégration**
+**Implement an integration test suite**
 
-#### Étapes d'implémentation
-1. **Créer la structure de tests d'intégration**:
+#### Implementation Steps
+1. **Create integration test structure**:
    ```
    tests/
    ├── integration/
@@ -501,17 +501,17 @@ Le projet dispose de tests unitaires solides mais manque de tests d'intégration
    │       └── sample_files/
    ```
 
-2. **Implémenter des fixtures réutilisables**:
+2. **Implement reusable fixtures**:
    ```python
    # tests/integration/fixtures/mock_arista_api.py
    @pytest.fixture
    def mock_arista_server(tmp_path):
        """Mock complete Arista API server."""
-       # Utiliser responses ou httpretty
+       # Use responses or httpretty
        pass
    ```
 
-3. **Créer des tests de workflow complet**:
+3. **Create complete workflow tests**:
    ```python
    # tests/integration/test_download_workflow.py
    @pytest.mark.integration
@@ -526,7 +526,7 @@ Le projet dispose de tests unitaires solides mais manque de tests d'intégration
        pass
    ```
 
-4. **Marquer les tests d'intégration**:
+4. **Mark integration tests**:
    ```python
    # pytest.ini or pyproject.toml
    [tool.pytest.ini_options]
@@ -537,7 +537,7 @@ Le projet dispose de tests unitaires solides mais manque de tests d'intégration
    ]
    ```
 
-5. **Configurer CI pour les tests d'intégration**:
+5. **Configure CI for integration tests**:
    ```yaml
    # .github/workflows/integration-tests.yml
    integration-tests:
@@ -550,26 +550,26 @@ Le projet dispose de tests unitaires solides mais manque de tests d'intégration
          run: pytest -m integration
    ```
 
-#### Tests de validation
+#### Validation Tests
 ```bash
-# Exécuter tous les tests d'intégration
+# Run all integration tests
 pytest -m integration -v
 
-# Exécuter avec Docker
+# Run with Docker
 pytest -m "integration and requires_docker"
 ```
 
 ---
 
-### 8. Configuration tox.ini redondante
+### 8. Redundant tox.ini configuration
 **Ease**: 2/5 | **Impact**: 2/5 | **Risk**: 🟢
 
 #### Overview
-Le fichier `tox.ini` agit principalement comme un proxy vers le `Makefile` qui utilise UV directement. Cette redondance pourrait être simplifiée.
+The `tox.ini` file acts primarily as a proxy to the `Makefile` which uses UV directly. This redundancy could be simplified.
 
-#### Problème Identifié
+#### Identified Problem
 ```ini
-# tox.ini délègue tout au Makefile
+# tox.ini delegates everything to Makefile
 [testenv:lint]
 commands = make lint
 
@@ -578,89 +578,89 @@ commands = make test
 ```
 
 #### Impact
-- Confusion pour les contributeurs (utiliser tox ou make?)
-- Maintenance de deux fichiers de configuration
-- Overhead de tox si tout est délégué
+- Confusion for contributors (use tox or make?)
+- Maintenance of two configuration files
+- Tox overhead if everything is delegated
 
-#### Solution Proposée
+#### Proposed Solution
 
-**Option 1: Garder tox.ini pour la compatibilité (Recommandé)**
-- Maintenir tox.ini comme wrapper léger
-- Documenter clairement que make est l'interface principale
-- Utile pour les outils qui s'attendent à tox
+**Option 1: Keep tox.ini for compatibility (Recommended)**
+- Maintain tox.ini as a lightweight wrapper
+- Clearly document that make is the primary interface
+- Useful for tools expecting tox
 
-**Option 2: Supprimer tox.ini complètement**
-- Utiliser uniquement UV + Makefile
-- Mettre à jour la documentation
-- Plus simple mais peut casser des workflows existants
+**Option 2: Remove tox.ini completely**
+- Use only UV + Makefile
+- Update documentation
+- Simpler but may break existing workflows
 
-#### Étapes d'implémentation (Option 1)
-1. **Ajouter un commentaire explicatif** dans tox.ini:
+#### Implementation Steps (Option 1)
+1. **Add explanatory comment** in tox.ini:
    ```ini
    # tox.ini - Compatibility wrapper
    # For direct usage, prefer: make <command>
    # This file maintains backward compatibility with tox-based tools
    ```
 
-2. **Documenter dans contributing.md**:
+2. **Document in contributing.md**:
    ```markdown
    ## Running Tests
-   
+
    **Recommended**: Use make commands directly (faster)
    ```bash
    make test
    make lint
    ```
-   
+
    **Alternative**: Use tox (slower, but compatible with tox-based tools)
    ```bash
    tox -e test
    ```
    ```
 
-3. **Optimiser tox.ini** pour réduire l'overhead:
+3. **Optimize tox.ini** to reduce overhead:
    ```ini
    [tox]
-   skipsdist = true  # Déjà fait
-   skip_install = true  # Pour certains environnements
+   skipsdist = true  # Already done
+   skip_install = true  # For some environments
    ```
 
-#### Tests de validation
+#### Validation Tests
 ```bash
-# Vérifier que les deux méthodes fonctionnent
+# Verify both methods work
 make test
 tox -e test
 
-# Comparer les temps d'exécution
+# Compare execution times
 time make test
 time tox -e test
 ```
 
 ---
 
-### 9. Gestion des secrets et sécurité
+### 9. Secret management and security
 **Ease**: 2/5 | **Impact**: 5/5 | **Risk**: 🔴
 
 #### Overview
-Le projet manipule des tokens d'API Arista sensibles. La gestion actuelle de ces secrets doit être renforcée.
+The project handles sensitive Arista API tokens. Current management of these secrets needs strengthening.
 
-#### Problèmes potentiels identifiés
-- Token passé en ligne de commande (visible dans historique shell)
-- Pas de validation de format de token
-- Pas de guide sur la rotation des tokens
-- Logs pourraient contenir des tokens accidentellement
+#### Identified Potential Problems
+- Token passed in command line (visible in shell history)
+- No token format validation
+- No guide on token rotation
+- Logs could accidentally contain tokens
 
 #### Impact
-- Risque d'exposition de credentials
-- Conformité sécurité compromise
-- Vulnérabilité aux audits de sécurité
+- Risk of credential exposure
+- Compromised security compliance
+- Vulnerability to security audits
 
-#### Solution Proposée
+#### Proposed Solution
 
-**Renforcer la gestion des secrets**
+**Strengthen secret management**
 
-#### Étapes d'implémentation
-1. **Masquer les tokens dans les logs**:
+#### Implementation Steps
+1. **Mask tokens in logs**:
    ```python
    # eos_downloader/helpers/security.py
    def mask_token(token: str) -> str:
@@ -668,42 +668,42 @@ Le projet manipule des tokens d'API Arista sensibles. La gestion actuelle de ces
        if not token or len(token) < 8:
            return "***"
        return f"{token[:4]}...{token[-4:]}"
-   
-   # Usage dans le code
+
+   # Usage in code
    logger.info(f"Using token: {mask_token(token)}")
    ```
 
-2. **Ajouter validation de token**:
+2. **Add token validation**:
    ```python
    def validate_arista_token(token: str) -> bool:
        """Validate Arista token format."""
        if not token:
            raise ValueError("Token cannot be empty")
-       if len(token) < 20:  # Arista tokens sont longs
+       if len(token) < 20:  # Arista tokens are long
            raise ValueError("Token too short")
-       # Ajouter d'autres validations si nécessaire
+       # Add other validations if necessary
        return True
    ```
 
-3. **Documenter les bonnes pratiques**:
+3. **Document best practices**:
    ```markdown
    # docs/usage/security.md
-   
-   ## Gestion Sécurisée des Tokens
-   
-   ### ❌ À éviter
+
+   ## Secure Token Management
+
+   ### ❌ Avoid
    ```bash
-   ardl --token YOUR_TOKEN_HERE get eos  # Token visible dans historique
+   ardl --token YOUR_TOKEN_HERE get eos  # Token visible in history
    ```
-   
-   ### ✅ Recommandé
+
+   ### ✅ Recommended
    ```bash
    export ARISTA_TOKEN="your-token"
-   ardl get eos  # Token lu depuis variable d'environnement
+   ardl get eos  # Token read from environment variable
    ```
    ```
 
-4. **Ajouter un warning si token passé en CLI**:
+4. **Add warning if token passed in CLI**:
    ```python
    # cli.py
    if token and not os.environ.get('ARISTA_TOKEN'):
@@ -713,9 +713,9 @@ Le projet manipule des tokens d'API Arista sensibles. La gestion actuelle de ces
        )
    ```
 
-5. **Scanner le code pour tokens hardcodés**:
+5. **Scan code for hardcoded tokens**:
    ```bash
-   # Ajouter pre-commit hook
+   # Add pre-commit hook
    # .pre-commit-config.yaml
    - repo: https://github.com/Yelp/detect-secrets
      rev: v1.4.0
@@ -723,17 +723,17 @@ Le projet manipule des tokens d'API Arista sensibles. La gestion actuelle de ces
        - id: detect-secrets
    ```
 
-6. **Ajouter un guide de rotation de token**:
+6. **Add token rotation guide**:
    ```markdown
-   ## Rotation des Tokens
-   
-   1. Générer nouveau token sur arista.com
-   2. Tester avec nouvelle valeur
-   3. Mettre à jour dans environnements
-   4. Révoquer ancien token
+   ## Token Rotation
+
+   1. Generate new token on arista.com
+   2. Test with new value
+   3. Update in environments
+   4. Revoke old token
    ```
 
-#### Tests de validation
+#### Validation Tests
 ```python
 # tests/unit/test_security.py
 def test_token_masking():
@@ -754,18 +754,18 @@ def test_token_validation():
 
 ---
 
-### 10. Optimisation des workflows CI/CD
+### 10. CI/CD workflow optimization
 **Ease**: 2/5 | **Impact**: 3/5 | **Risk**: 🟢
 
 #### Overview
-Les workflows GitHub Actions peuvent être optimisés pour réduire les temps d'exécution et améliorer l'efficacité.
+GitHub Actions workflows can be optimized to reduce execution times and improve efficiency.
 
-#### Opportunités d'optimisation identifiées
+#### Identified Optimization Opportunities
 
-**1. Cache UV plus agressif**
+**1. More aggressive UV cache**
 ```yaml
-# Actuellement: cache activé de base
-# Amélioration: Cacher aussi les builds compilés
+# Currently: basic cache enabled
+# Improvement: Cache compiled builds too
 - name: Cache UV packages
   uses: actions/cache@v4
   with:
@@ -775,35 +775,35 @@ Les workflows GitHub Actions peuvent être optimisés pour réduire les temps d'
     key: uv-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
 ```
 
-**2. Matrice de tests parallèle**
+**2. Parallel test matrix**
 ```yaml
-# Optimiser la matrice pour tester en parallèle
+# Optimize matrix to test in parallel
 strategy:
-  fail-fast: false  # Continuer même si une version échoue
+  fail-fast: false  # Continue even if one version fails
   matrix:
     python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-    os: [ubuntu-latest, macos-latest, windows-latest]  # Si nécessaire
+    os: [ubuntu-latest, macos-latest, windows-latest]  # If necessary
 ```
 
-**3. Tests conditionnels**
+**3. Conditional tests**
 ```yaml
-# Ne pas exécuter tous les tests pour chaque changement
+# Do not run all tests for every change
 on:
   pull_request:
     paths:
       - 'eos_downloader/**'
       - 'tests/**'
-      # Ignorer les changements de docs seulement
+      # Ignore doc-only changes
 ```
 
-#### Étapes d'implémentation
-1. **Analyser les temps d'exécution actuels**:
+#### Implementation Steps
+1. **Analyze current execution times**:
    ```bash
-   # Dans GitHub Actions, regarder la durée de chaque job
-   # Identifier les jobs les plus lents
+   # In GitHub Actions, look at duration of each job
+   # Identify slowest jobs
    ```
 
-2. **Implémenter le cache amélioré**:
+2. **Implement improved cache**:
    ```yaml
    # .github/workflows/pr-management.yml
    - name: Cache dependencies
@@ -817,7 +817,7 @@ on:
          ${{ runner.os }}-uv-
    ```
 
-3. **Optimiser les triggers**:
+3. **Optimize triggers**:
    ```yaml
    on:
      pull_request:
@@ -827,18 +827,18 @@ on:
          - '.github/plans/**'
    ```
 
-4. **Paralléliser les tests indépendants**:
+4. **Parallelize independent tests**:
    ```yaml
    jobs:
      lint:
-       # Peut tourner en parallèle de tests
+       # Can run in parallel with tests
      test:
-       # Tests unitaires
+       # Unit tests
      integration:
-       needs: [test]  # Seulement si tests unitaires passent
+       needs: [test]  # Only if unit tests pass
    ```
 
-5. **Ajouter des métriques de performance**:
+5. **Add performance metrics**:
    ```yaml
    - name: Report CI metrics
      run: |
@@ -846,112 +846,112 @@ on:
        echo "Test time: ${{ steps.test.outputs.duration }}"
    ```
 
-#### Tests de validation
+#### Validation Tests
 ```bash
-# Mesurer l'amélioration
-# Avant optimisation: Noter le temps total
-# Après optimisation: Comparer
+# Measure improvement
+# Before optimization: Note total time
+# After optimization: Compare
 
-# Objectif: Réduction de 20-30% du temps de CI
+# Goal: 20-30% reduction in CI time
 ```
 
 ---
 
-## 🎯 Plan d'Action Recommandé
+## 🎯 Recommended Action Plan
 
-### Phase 1: Critique (0-2 semaines)
-**Objectif**: Corriger les problèmes de sécurité et de qualité critiques
+### Phase 1: Critical (0-2 weeks)
+**Goal**: Fix critical security and quality issues
 
-1. ✅ **Dette #9**: Renforcer la gestion des secrets
-   - Implémenter le masquage des tokens
-   - Ajouter detect-secrets en pre-commit
-   - Documenter les bonnes pratiques
+1. ✅ **Debt #9**: Strengthen secret management
+   - Implement token masking
+   - Add detect-secrets in pre-commit
+   - Document best practices
 
-2. ✅ **Dette #2**: Améliorer la couverture de tests
-   - Objectif: Atteindre 90%
-   - Prioriser: tools.py, __init__.py, CLI commands
-   - Ajouter tests pour cas d'erreur
+2. ✅ **Debt #2**: Improve test coverage
+   - Goal: Reach 90%
+   - Prioritize: tools.py, __init__.py, CLI commands
+   - Add tests for error cases
 
-### Phase 2: Haute priorité (2-4 semaines)
-**Objectif**: Améliorer la maintenabilité et la robustesse
+### Phase 2: High Priority (2-4 weeks)
+**Goal**: Improve maintainability and robustness
 
-3. ✅ **Dette #1**: Standardiser le logging sur loguru
-   - Créer module de configuration centralisé
-   - Migrer tous les modules
-   - Documenter les conventions
+3. ✅ **Debt #1**: Standardize logging on loguru
+   - Create centralized configuration module
+   - Migrate all modules
+   - Document conventions
 
-4. ✅ **Dette #4**: Résoudre les dépendances cycliques
-   - Implémenter lazy imports
-   - Retirer les pylint disables
-   - Valider l'architecture
+4. ✅ **Debt #4**: Resolve cyclic dependencies
+   - Implement lazy imports
+   - Remove pylint disables
+   - Validate architecture
 
-### Phase 3: Moyenne priorité (1-2 mois)
-**Objectif**: Enrichir la suite de tests et la documentation
+### Phase 3: Medium Priority (1-2 months)
+**Goal**: Enrich test suite and documentation
 
-5. ✅ **Dette #7**: Ajouter tests d'intégration E2E
-   - Implémenter tests de workflow complets
-   - Créer fixtures réutilisables
-   - Configurer CI pour tests d'intégration
+5. ✅ **Debt #7**: Add E2E integration tests
+   - Implement complete workflow tests
+   - Create reusable fixtures
+   - Configure CI for integration tests
 
-6. ✅ **Dette #6**: Compléter la documentation technique
-   - Créer ADRs
-   - Documenter l'architecture
-   - Ajouter guides de debugging et release
+6. ✅ **Debt #6**: Complete technical documentation
+   - Create ADRs
+   - Document architecture
+   - Add debugging and release guides
 
-7. ✅ **Dette #3**: Ajouter support Python 3.12
-   - Mettre à jour python-versions.json
-   - Synchroniser pyproject.toml
-   - Valider dans CI
+7. ✅ **Debt #3**: Add Python 3.12 support
+   - Update python-versions.json
+   - Sync pyproject.toml
+   - Validate in CI
 
-### Phase 4: Basse priorité (Maintenance continue)
-**Objectif**: Optimisation et nettoyage
+### Phase 4: Low Priority (Continuous Maintenance)
+**Goal**: Optimization and cleanup
 
-8. ✅ **Dette #10**: Optimiser les workflows CI/CD
-   - Implémenter cache amélioré
-   - Optimiser les triggers
-   - Mesurer les améliorations
+8. ✅ **Debt #10**: Optimize CI/CD workflows
+   - Implement improved cache
+   - Optimize triggers
+   - Measure improvements
 
-9. ✅ **Dette #5**: Nettoyer les __pycache__
-   - Vérifier s'ils sont commités
-   - Nettoyer si nécessaire
-   - Ajouter commande make clean-pycache
+9. ✅ **Debt #5**: Clean __pycache__
+   - Check if committed
+   - Clean if necessary
+   - Add make clean-pycache command
 
-10. ✅ **Dette #8**: Clarifier l'usage tox vs make
-    - Documenter dans contributing.md
-    - Garder tox.ini pour compatibilité
-
----
-
-## 📈 Métriques de Succès
-
-### Indicateurs de Qualité
-- **Couverture de tests**: 86% → **90%+**
-- **Temps de CI**: Actuel → **-20%**
-- **Nombre de pylint disables**: Réduire de 50%
-- **Documentation**: +5 documents techniques
-
-### Indicateurs de Maintenabilité
-- **Temps d'onboarding**: Mesurer via feedback contributeurs
-- **Nombre de bugs liés à la dette**: Réduction de 30%
-- **Facilité de release**: Processus documenté et automatisé
-
-### Indicateurs de Sécurité
-- **Tokens exposés**: 0 (validation via detect-secrets)
-- **Vulnérabilités dépendances**: 0 (scan régulier)
+10. ✅ **Debt #8**: Clarify tox vs make usage
+    - Document in contributing.md
+    - Keep tox.ini for compatibility
 
 ---
 
-## 🔧 Outils et Ressources
+## 📈 Success Metrics
 
-### Outils de Développement
+### Quality Indicators
+- **Test Coverage**: 86% → **90%+**
+- **CI Time**: Current → **-20%**
+- **Number of pylint disables**: Reduce by 50%
+- **Documentation**: +5 technical documents
+
+### Maintainability Indicators
+- **Onboarding Time**: Measure via contributor feedback
+- **Debt-related bugs**: 30% reduction
+- **Release Ease**: Documented and automated process
+
+### Security Indicators
+- **Exposed Tokens**: 0 (validation via detect-secrets)
+- **Dependency Vulnerabilities**: 0 (regular scan)
+
+---
+
+## 🔧 Tools and Resources
+
+### Development Tools
 ```bash
-# Analyse de code
+# Code analysis
 uv pip install pylint mypy flake8
 
-# Analyse de dépendances
+# Dependency analysis
 uv pip install pydeps pipdeptree
 
-# Sécurité
+# Security
 uv pip install detect-secrets bandit
 
 # Tests
@@ -961,9 +961,9 @@ uv pip install pytest pytest-cov pytest-xdist
 uv pip install mkdocs mkdocs-material
 ```
 
-### Scripts Utiles
+### Useful Scripts
 ```bash
-# Makefile additions recommandés
+# Recommended Makefile additions
 .PHONY: analyze-debt
 analyze-debt:  ## Analyze technical debt
 	@echo "Running code analysis..."
@@ -986,27 +986,17 @@ clean-pycache:  ## Clean all __pycache__ directories
 
 ## 📝 Conclusion
 
-Le projet **eos-downloader** est dans un état **globalement sain** avec une architecture moderne et une bonne base de tests. Les dettes techniques identifiées sont **gérables** et peuvent être résolues de manière **incrémentale**.
+The **eos-downloader** project is in a **generally healthy** state with a modern architecture and a good test base. The identified technical debts are **manageable** and can be resolved **incrementally**.
 
-### Points Forts ✅
-- Architecture claire avec séparation des responsabilités
-- Utilisation d'outils modernes (UV, pytest, mypy)
-- Bonne couverture de tests de base (86%)
-- CI/CD bien configuré
-- Documentation utilisateur de qualité
+### Strengths ✅
+- Clear architecture with separation of concerns
+- Use of modern tools (UV, pytest, mypy)
+- Good base test coverage (86%)
+- Well-configured CI/CD
+- Quality user documentation
 
-### Axes d'Amélioration 🔧
-- Standardisation du logging
-- Augmentation de la couverture de tests
-- Documentation technique plus détaillée
-- Renforcement de la sécurité
-- Tests d'intégration End-to-End
-
-### Recommandation Finale
-**Suivre le plan d'action en 4 phases** en priorisant les aspects critiques (sécurité, qualité) avant l'optimisation et le nettoyage. L'objectif est d'atteindre un état **production-ready** avec une dette technique minimale d'ici **2-3 mois**.
-
----
-
-**Document généré le**: 11 décembre 2025  
-**Prochaine révision recommandée**: Mars 2026  
-**Contact**: Équipe de développement eos-downloader
+### Areas for Improvement 🔧
+- Logging standardization
+- Increased test coverage
+- Secret management reinforcement
+- Technical documentation enrichment

@@ -14,7 +14,7 @@ The codebase contained command injection vulnerabilities through the use of `os.
 
 **Vulnerable Code Locations:**
 - [download.py#L656](../../../eos_downloader/logics/download.py#L656): Docker import command
-- [download.py#L749](../../../eos_downloader/logics/download.py#L749): qemu-img convert command  
+- [download.py#L749](../../../eos_downloader/logics/download.py#L749): qemu-img convert command
 - [download.py#L759](../../../eos_downloader/logics/download.py#L759): unl_wrapper command
 
 ### Explanation

@@ -1,21 +1,21 @@
-# Issues GitHub à Créer - Dette Technique
-**Date**: 11 décembre 2025  
-**Projet**: eos-downloader  
-**Document parent**: [technical-debt-analysis-dec-2025.md](technical-debt-analysis-dec-2025.md)
+# GitHub Issues to Create - Technical Debt
+**Date**: December 11, 2025
+**Project**: eos-downloader
+**Parent Document**: [technical-debt-analysis-dec-2025.md](technical-debt-analysis-dec-2025.md)
 
 ---
 
 ## 📋 Instructions
 
-Ce document liste toutes les issues GitHub à créer pour tracker la remédiation de la dette technique. Copier/coller le contenu de chaque issue dans GitHub.
+This document lists all GitHub issues to be created to track technical debt remediation. Copy/paste the content of each issue into GitHub.
 
-**Labels à utiliser**:
-- `technical-debt` - Toutes les issues de dette technique
-- `security` - Problèmes de sécurité
-- `enhancement` - Améliorations
+**Labels to use**:
+- `technical-debt` - All technical debt issues
+- `security` - Security issues
+- `enhancement` - Enhancements
 - `documentation` - Documentation
 - `testing` - Tests
-- `refactoring` - Refactoring de code
+- `refactoring` - Code refactoring
 
 ---
 
@@ -787,26 +787,26 @@ Before PR:
 
 ## 📋 Issue Creation Checklist
 
-Avant de créer ces issues sur GitHub:
+Before creating these issues on GitHub:
 
-- [ ] Lire chaque issue complètement
-- [ ] Ajuster les numéros d'issues liées (remplacer `#TBD`)
-- [ ] Ajouter les labels appropriés
-- [ ] Assigner à un milestone si applicable
-- [ ] Lier au projet "Technical Debt Remediation"
-- [ ] Ajouter à la board/kanban appropriée
+- [ ] Read each issue completely
+- [ ] Adjust linked issue numbers (replace `#TBD`)
+- [ ] Add appropriate labels
+- [ ] Assign to milestone if applicable
+- [ ] Link to "Technical Debt Remediation" project
+- [ ] Add to appropriate board/kanban
 
 ---
 
-## 🔗 Liens Utiles
+## 🔗 Useful Links
 
-- **Template d'issue**: `.github/ISSUE_TEMPLATE/chore_request.yml`
+- **Issue Template**: `.github/ISSUE_TEMPLATE/chore_request.yml`
 - **Labels**: https://github.com/titom73/eos-downloader/labels
 - **Milestones**: https://github.com/titom73/eos-downloader/milestones
 - **Projects**: https://github.com/titom73/eos-downloader/projects
 
 ---
 
-**Créé**: 11 décembre 2025  
-**Total d'issues**: 10  
-**Priorité**: 5 critiques/hautes, 3 moyennes, 2 basses
+**Created**: December 11, 2025
+**Total Issues**: 10
+**Priority**: 5 critical/high, 3 medium, 2 low
