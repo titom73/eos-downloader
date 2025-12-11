@@ -42,7 +42,6 @@ from tqdm import tqdm
 import eos_downloader.models.types
 import eos_downloader.defaults
 import eos_downloader.helpers
-import eos_downloader.logics
 import eos_downloader.logics.arista_xml_server
 import eos_downloader.models.version
 

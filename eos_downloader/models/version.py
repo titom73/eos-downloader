@@ -230,7 +230,7 @@ class SemVer(BaseModel):
                 f"could not compare {other} as it is not an EosVersion object"
             )
         comparison_flag: float = 0
-        for key, _ in self.dict().items():
+        for key, _ in self.model_dump().items():
             if (
                 comparison_flag == 0
                 and self.model_dump()[key] is None
