@@ -62,3 +62,17 @@ repos:
     args:
     - --config-file=pyproject.toml
     files: ^eos_downloader/
+
+# Security scanning
+- repo: https://github.com/Yelp/detect-secrets
+  rev: v1.4.0
+  hooks:
+  - id: detect-secrets
+    name: Detect secrets in codebase
+    args: ['--baseline', '.secrets.baseline']
+    exclude: |
+      (?x)^(
+        package-lock\.json|
+        poetry\.lock|
+        \.secrets\.baseline
+      )$
