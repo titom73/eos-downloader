@@ -16,9 +16,6 @@ from rich import pretty
 from rich.logging import RichHandler
 from rich.console import Console
 
-from eos_downloader.logging_config import configure_logging, get_logger
-from eos_downloader.helpers.security import mask_token
-
 
 class AliasedGroup(click.Group):
     """

@@ -33,9 +33,12 @@ This module standardizes on loguru for all logging to ensure:
 
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from loguru import logger
+
+if TYPE_CHECKING:
+    from loguru import Logger as LoguruLogger
 
 
 def configure_logging(
@@ -127,7 +130,7 @@ def configure_logging(
     logger.debug(f"Logging configured at {level} level")
 
 
-def get_logger():
+def get_logger() -> "LoguruLogger":
     """
     Get the configured logger instance.
 

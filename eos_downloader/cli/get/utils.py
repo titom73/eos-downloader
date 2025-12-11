@@ -17,7 +17,7 @@ from eos_downloader.models.types import ReleaseType
 from eos_downloader.logics.arista_xml_server import AristaXmlQuerier, AristaXmlObjects
 from eos_downloader.exceptions import AuthenticationError
 from eos_downloader.logging_config import configure_logging, get_logger
-from eos_downloader.helpers.security import mask_token, validate_arista_token
+from eos_downloader.helpers.security import mask_token
 
 
 def initialize(ctx: click.Context) -> tuple[Console, str, bool, str]:
