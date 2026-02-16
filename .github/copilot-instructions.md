@@ -49,6 +49,9 @@ This project uses a **modular instruction system** for better maintainability an
 - `2GB-INT`: 2GB internal builds
 - `vEOS`: Virtual EOS for VM environments
 - `vEOS-lab`: Lab version of virtual EOS
+- `vEOS64-lab`: 64-bit virtual EOS lab (vmdk)
+- `vEOS64-lab-qcow2`: 64-bit virtual EOS lab (qcow2 for KVM)
+- `vEOS64-lab-swi`: 64-bit virtual EOS lab (swi)
 - `cEOS`: Containerized EOS for Docker
 - `cEOS64`: 64-bit containerized EOS
 - `RN`: Release notes

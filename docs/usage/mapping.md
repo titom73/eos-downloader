@@ -27,22 +27,25 @@ With this CLI, you can specify either a branch or a release type when applicable
 $ ardl info mapping --package eos
 Log Level is: error
 
-╭─────────────────────────── Flavors ───────────────╮
-│                                                   │
-│    * Flavor: 64                                   │
-│    * Flavor: INT                                  │
-│    * Flavor: 2GB-INT                              │
-│    * Flavor: cEOS                                 │
-│    * Flavor: cEOS64                               │
-│    * Flavor: cEOSarm                              │
-│    * Flavor: vEOS                                 │
-│    * Flavor: vEOS-lab                             │
-│    * Flavor: EOS-2GB                              │
-│    * Flavor: RN                                   │
-│    * Flavor: SOURCE                               │
-│    * Flavor: default                              │
-│                                                   │
-╰───────────────────────────────────────────────────╯
+╭────────────────────────────────── Flavors ───────────────────────────────────╮
+│                                                                              │
+│    * Flavor: 64                                                              │
+│    * Flavor: INT                                                             │
+│    * Flavor: 2GB-INT                                                         │
+│    * Flavor: cEOS                                                            │
+│    * Flavor: cEOS64                                                          │
+│    * Flavor: cEOSarm                                                         │
+│    * Flavor: vEOS                                                            │
+│    * Flavor: vEOS-lab                                                        │
+│    * Flavor: vEOS64-lab                                                      │
+│    * Flavor: vEOS64-lab-qcow2                                                │
+│    * Flavor: vEOS64-lab-swi                                                  │
+│    * Flavor: EOS-2GB                                                         │
+│    * Flavor: RN                                                              │
+│    * Flavor: SOURCE                                                          │
+│    * Flavor: default                                                         │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
 
 # Get list of supported packages for EOS with filename information
 $ ardl info mapping --package eos --details
@@ -66,6 +69,12 @@ Log Level is: error
 │      - Information: extension='.vmdk' prepend='vEOS'                │
 │    * Flavor: vEOS-lab                                               │
 │      - Information: extension='.vmdk' prepend='vEOS-lab'            │
+│    * Flavor: vEOS64-lab                                             │
+│      - Information: extension='.vmdk' prepend='vEOS64-lab'          │
+│    * Flavor: vEOS64-lab-qcow2                                       │
+│      - Information: extension='.qcow2' prepend='vEOS64-lab'         │
+│    * Flavor: vEOS64-lab-swi                                         │
+│      - Information: extension='.swi' prepend='vEOS64-lab'           │
 │    * Flavor: EOS-2GB                                                │
 │      - Information: extension='.swi' prepend='EOS-2GB'              │
 │    * Flavor: RN                                                     │

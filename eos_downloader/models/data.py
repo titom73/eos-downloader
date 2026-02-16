@@ -128,6 +128,10 @@ software_mapping = DataMapping(
         "cEOSarm": {"extension": ".tar.xz", "prepend": "cEOSarm-lab"},
         "vEOS": {"extension": ".vmdk", "prepend": "vEOS"},
         "vEOS-lab": {"extension": ".vmdk", "prepend": "vEOS-lab"},
+        # vEOS64-lab 64-bit virtual images (Issue #175)
+        "vEOS64-lab": {"extension": ".vmdk", "prepend": "vEOS64-lab"},
+        "vEOS64-lab-qcow2": {"extension": ".qcow2", "prepend": "vEOS64-lab"},
+        "vEOS64-lab-swi": {"extension": ".swi", "prepend": "vEOS64-lab"},
         "EOS-2GB": {"extension": ".swi", "prepend": "EOS-2GB"},
         "RN": {"extension": "-", "prepend": "RN"},
         "SOURCE": {"extension": "-source.tar", "prepend": "EOS"},

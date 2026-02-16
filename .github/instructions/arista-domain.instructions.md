@@ -117,6 +117,15 @@ format_info = software_mapping.EOS["64"]
 - Example: `vEOS-lab-4.29.3M.vmdk`
 - Use case: Network simulation labs, GNS3, EVE-NG
 
+**vEOS64-lab (64-bit)**
+- 64-bit version of vEOS-lab for modern hypervisors
+- Available in multiple formats:
+  - `vEOS64-lab`: vmdk format for VMware
+  - `vEOS64-lab-qcow2`: qcow2 format for KVM/QEMU
+  - `vEOS64-lab-swi`: swi format
+- Examples: `vEOS64-lab-4.35.1F.vmdk`, `vEOS64-lab-4.35.1F.qcow2`
+- Use case: 64-bit network simulation labs, EVE-NG, KVM environments
+
 ```python
 # EVE-NG integration
 EVE_QEMU_FOLDER_PATH = "/opt/unetlab/addons/qemu/"
