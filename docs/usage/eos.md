@@ -19,6 +19,12 @@ ardl get eos --version 4.29.4M --import-docker
 # Get a specific version and import to EVE-NG
 ardl get eos --version 4.33.0F --eve-ng
 
+# Get 64-bit vEOS lab image (vmdk format for VMware)
+ardl get eos --version 4.35.1F --format vEOS64-lab
+
+# Get 64-bit vEOS lab image (qcow2 format for KVM/QEMU)
+ardl get eos --version 4.35.1F --format vEOS64-lab-qcow2
+
 # Force re-download even if file is cached
 ardl get eos --version 4.29.4M --force
 
