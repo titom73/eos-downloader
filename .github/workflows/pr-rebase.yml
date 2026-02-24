@@ -1,0 +1,172 @@
+---
+name: "PR Rebase Command"
+
+# Trigger on PR comments
+# This workflow uses cirrus-actions/rebase which is designed to safely handle
+# rebasing without checking out untrusted code in a privileged context.
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  rebase:
+    name: "Rebase PR on target branch"
+    # Run only if:
+    # - It's a comment on a PR (not an issue)
+    # - The comment body contains "/rebase"
+    # - The PR is still open
+    if: >
+      github.event.issue.pull_request &&
+      github.event.issue.state == 'open' &&
+      contains(github.event.comment.body, '/rebase')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Add eyes reaction to indicate processing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'eyes'
+            });
+
+      - name: Check user permissions
+        id: check-permissions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commenter = context.payload.comment.user.login;
+            const prAuthor = context.payload.issue.user.login;
+
+            // Allow PR author
+            if (commenter === prAuthor) {
+              console.log(`User ${commenter} is the PR author, allowed.`);
+              core.setOutput('allowed', 'true');
+              return;
+            }
+
+            // Check if user has write permissions
+            // Wrap in try/catch as getCollaboratorPermissionLevel throws 404 for non-collaborators
+            let allowed = false;
+
+            try {
+              const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: commenter
+              });
+
+              allowed = ['admin', 'write'].includes(permission.permission);
+            } catch (error) {
+              console.log(`Failed to get collaborator permission for ${commenter}, treating as not allowed.`, error);
+              allowed = false;
+            }
+
+            core.setOutput('allowed', allowed ? 'true' : 'false');
+
+            if (!allowed) {
+              // Add a comment explaining the user doesn't have permission
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `❌ @${commenter} You don't have permission to rebase this PR. Only the PR author or collaborators with write access can use this command.`
+              });
+              // Add failure reaction
+              await github.rest.reactions.createForIssueComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: context.payload.comment.id,
+                content: '-1'
+              });
+            }
+
+      # Skip remaining steps if not authorized (don't fail the workflow for expected denials)
+      - name: Log skip if not authorized
+        if: steps.check-permissions.outputs.allowed != 'true'
+        run: |
+          echo "User not authorized to rebase; skipping rebase steps."
+
+      - name: Check if PR is from fork
+        id: check-fork
+        if: steps.check-permissions.outputs.allowed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const isFork = pr.head.repo.full_name !== pr.base.repo.full_name;
+            core.setOutput('is_fork', isFork ? 'true' : 'false');
+
+            if (isFork) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `❌ Cannot rebase PRs from forks automatically. Please rebase locally:\n\`\`\`bash\ngit fetch upstream\ngit rebase upstream/${pr.base.ref}\ngit push --force-with-lease\n\`\`\``
+              });
+              await github.rest.reactions.createForIssueComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: context.payload.comment.id,
+                content: '-1'
+              });
+            }
+
+      # Skip remaining steps if fork (don't fail the workflow for expected denials)
+      - name: Log skip if fork
+        if: steps.check-fork.outputs.is_fork == 'true'
+        run: |
+          echo "Cannot rebase PRs from forks; skipping rebase steps."
+
+      # Use cirrus-actions/rebase which safely handles the rebase operation
+      # without checking out untrusted code in a privileged context.
+      # It uses the GitHub API to perform git operations server-side.
+      - name: Automatic rebase
+        if: steps.check-permissions.outputs.allowed == 'true' && steps.check-fork.outputs.is_fork != 'true'
+        uses: cirrus-actions/rebase@1.8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add success reaction
+        if: success() && steps.check-permissions.outputs.allowed == 'true' && steps.check-fork.outputs.is_fork != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+
+      - name: Report failure
+        if: failure() && steps.check-permissions.outputs.allowed == 'true' && steps.check-fork.outputs.is_fork != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: '-1'
+            });
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `❌ Rebase failed. This might be due to conflicts or branch protection rules. Please rebase locally:\n\`\`\`bash\ngit fetch origin\ngit rebase origin/main\n# Resolve any conflicts, then:\ngit push --force-with-lease\n\`\`\``
+            });
+

@@ -48,12 +48,14 @@ jobs:
             revert
             make
             chore
+            build
           # Configure which scopes are allowed.
           scopes: |
             eos_downloader
             eos_downloader.cli
             requirements
             actions
+            deps
           # Configure that a scope must always be provided.
           requireScope: false
           # Configure additional validation for the subject based on a regex.
@@ -93,7 +95,7 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           # Extract type (feat, fix, etc.)
-          TYPE=$(echo "$PR_TITLE" | grep -oE '^(feat|fix|cut|doc|ci|bump|test|refactor|revert|make|chore)' || echo "")
+          TYPE=$(echo "$PR_TITLE" | grep -oE '^(feat|fix|cut|doc|ci|bump|build|test|refactor|revert|make|chore)' || echo "")
           # Extract scope (content within parentheses)
           SCOPE=$(echo "$PR_TITLE" | grep -oE '\(([^)]+)\)' | tr -d '()' || echo "")
           # Check for breaking change marker (!)
