@@ -9,7 +9,7 @@ on:
     types: [created]
 
 permissions:
-  contents: read
+  contents: write
   issues: write
   pull-requests: write
 
@@ -54,13 +54,22 @@ jobs:
             }
 
             // Check if user has write permissions
-            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              username: commenter
-            });
+            // Wrap in try/catch as getCollaboratorPermissionLevel throws 404 for non-collaborators
+            let allowed = false;
 
-            const allowed = ['admin', 'write'].includes(permission.permission);
+            try {
+              const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: commenter
+              });
+
+              allowed = ['admin', 'write'].includes(permission.permission);
+            } catch (error) {
+              console.log(`Failed to get collaborator permission for ${commenter}, treating as not allowed.`, error);
+              allowed = false;
+            }
+
             core.setOutput('allowed', allowed ? 'true' : 'false');
 
             if (!allowed) {
@@ -80,11 +89,11 @@ jobs:
               });
             }
 
-      - name: Exit if not authorized
+      # Skip remaining steps if not authorized (don't fail the workflow for expected denials)
+      - name: Log skip if not authorized
         if: steps.check-permissions.outputs.allowed != 'true'
         run: |
-          echo "User not authorized to rebase"
-          exit 1
+          echo "User not authorized to rebase; skipping rebase steps."
 
       - name: Check if PR is from fork
         id: check-fork
@@ -116,11 +125,11 @@ jobs:
               });
             }
 
-      - name: Exit if fork
+      # Skip remaining steps if fork (don't fail the workflow for expected denials)
+      - name: Log skip if fork
         if: steps.check-fork.outputs.is_fork == 'true'
         run: |
-          echo "Cannot rebase PRs from forks"
-          exit 1
+          echo "Cannot rebase PRs from forks; skipping rebase steps."
 
       # Use cirrus-actions/rebase which safely handles the rebase operation
       # without checking out untrusted code in a privileged context.
