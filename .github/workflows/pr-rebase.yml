@@ -1,0 +1,215 @@
+---
+name: "PR Rebase Command"
+
+# Trigger on PR comments
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  rebase:
+    name: "Rebase PR on main"
+    # Run only if:
+    # - It's a comment on a PR (not an issue)
+    # - The comment body is exactly "/rebase" (trimmed)
+    # - The PR is still open
+    if: >
+      github.event.issue.pull_request &&
+      github.event.issue.state == 'open' &&
+      github.event.comment.body == '/rebase'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Add eyes reaction to indicate processing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'eyes'
+            });
+
+      - name: Check user permissions
+        id: check-permissions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commenter = context.payload.comment.user.login;
+            const prAuthor = context.payload.issue.user.login;
+
+            // Allow PR author
+            if (commenter === prAuthor) {
+              console.log(`User ${commenter} is the PR author, allowed.`);
+              return true;
+            }
+
+            // Check if user has write permissions
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: commenter
+            });
+
+            const allowed = ['admin', 'write'].includes(permission.permission);
+            if (!allowed) {
+              // Add a comment explaining the user doesn't have permission
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `❌ @${commenter} You don't have permission to rebase this PR. Only the PR author or collaborators with write access can use this command.`
+              });
+              // Add failure reaction
+              await github.rest.reactions.createForIssueComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: context.payload.comment.id,
+                content: '-1'
+              });
+            }
+            return allowed;
+          result-encoding: string
+
+      - name: Exit if not authorized
+        if: steps.check-permissions.outputs.result != 'true'
+        run: |
+          echo "User not authorized to rebase"
+          exit 1
+
+      - name: Get PR details
+        id: pr-details
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            // Check if PR is from a fork
+            const isFork = pr.head.repo.full_name !== pr.base.repo.full_name;
+            if (isFork) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `❌ Cannot rebase PRs from forks automatically. Please rebase locally:\n\`\`\`bash\ngit fetch upstream\ngit rebase upstream/${pr.base.ref}\ngit push --force-with-lease\n\`\`\``
+              });
+              await github.rest.reactions.createForIssueComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: context.payload.comment.id,
+                content: '-1'
+              });
+              core.setFailed('Cannot rebase PRs from forks');
+              return;
+            }
+
+            core.setOutput('head_ref', pr.head.ref);
+            core.setOutput('base_ref', pr.base.ref);
+
+      - name: Checkout repository
+        if: steps.pr-details.outputs.head_ref != ''
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.pr-details.outputs.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        if: steps.pr-details.outputs.head_ref != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Rebase on target branch
+        id: rebase
+        if: steps.pr-details.outputs.head_ref != ''
+        env:
+          BASE_REF: ${{ steps.pr-details.outputs.base_ref }}
+        run: |
+          git fetch origin $BASE_REF
+          if git rebase origin/$BASE_REF; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            git rebase --abort || true
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push changes
+        id: push
+        if: steps.rebase.outputs.success == 'true'
+        env:
+          HEAD_REF: ${{ steps.pr-details.outputs.head_ref }}
+        run: |
+          if git push --force-with-lease origin $HEAD_REF; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Report success
+        if: steps.push.outputs.success == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Add success reaction
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+            // Add success comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ Successfully rebased this PR on \`${{ steps.pr-details.outputs.base_ref }}\`.`
+            });
+
+      - name: Report rebase failure (conflicts)
+        if: steps.rebase.outputs.success == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: '-1'
+            });
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `❌ Rebase failed due to conflicts. Please rebase locally:\n\`\`\`bash\ngit fetch origin\ngit rebase origin/${{ steps.pr-details.outputs.base_ref }}\n# Resolve conflicts, then:\ngit push --force-with-lease\n\`\`\``
+            });
+            core.setFailed('Rebase failed due to conflicts');
+
+      - name: Report push failure
+        if: steps.rebase.outputs.success == 'true' && steps.push.outputs.success == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: '-1'
+            });
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `❌ Rebase succeeded but push failed. The branch may be protected or there may have been concurrent updates. Please try again or rebase locally.`
+            });
+            core.setFailed('Push failed after successful rebase');
+

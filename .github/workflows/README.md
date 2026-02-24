@@ -131,6 +131,37 @@ v0.14.0 → deployed as "v0.14.0" with alias "stable" (updates default)
 
 ---
 
+#### [`pr-rebase.yml`](pr-rebase.yml)
+**Purpose:** Allow rebasing a PR via a `/rebase` comment command
+
+**Triggers:**
+- Issue comment created (on PRs only)
+
+**What it does:**
+- Listens for `/rebase` comments on PRs
+- Validates user permissions (PR author or collaborators with write access)
+- Rebases the PR branch on the target branch (usually `main`)
+- Force pushes the rebased branch
+- Reports success or failure via reactions and comments
+
+**Usage:**
+```
+/rebase
+```
+Post this comment in any open PR to rebase it on the target branch.
+
+**Permissions required:**
+- PR author can always rebase their own PR
+- Repository collaborators with write access can rebase any PR
+
+**Limitations:**
+- Cannot rebase PRs from forks (must be done locally)
+- Will fail if there are merge conflicts (manual resolution required)
+
+**Use case:** Keep PRs up to date with the target branch without leaving GitHub
+
+---
+
 ## Workflow Dependencies
 
 ```mermaid
@@ -150,6 +181,9 @@ graph TD
 
     E --> M[gh-pages branch]
     I --> M
+
+    N[PR Comment /rebase] --> O[pr-rebase.yml]
+    O --> P[Rebase & Push]
 ```
 
 ## Secrets Required
