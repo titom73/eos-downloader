@@ -48,12 +48,14 @@ jobs:
             revert
             make
             chore
+            build
           # Configure which scopes are allowed.
           scopes: |
             eos_downloader
             eos_downloader.cli
             requirements
             actions
+            deps
           # Configure that a scope must always be provided.
           requireScope: false
           # Configure additional validation for the subject based on a regex.
