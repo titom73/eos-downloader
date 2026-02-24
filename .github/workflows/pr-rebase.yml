@@ -2,25 +2,23 @@
 name: "PR Rebase Command"
 
 # Trigger on PR comments
+# This workflow uses cirrus-actions/rebase which is designed to safely handle
+# rebasing without checking out untrusted code in a privileged context.
 on:
   issue_comment:
     types: [created]
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   rebase:
-    name: "Rebase PR on main"
+    name: "Rebase PR on target branch"
     # Run only if:
     # - It's a comment on a PR (not an issue)
-    # - The comment body is exactly "/rebase" (trimmed)
+    # - The comment body contains "/rebase"
     # - The PR is still open
     if: >
       github.event.issue.pull_request &&
       github.event.issue.state == 'open' &&
-      github.event.comment.body == '/rebase'
+      contains(github.event.comment.body, '/rebase')
     runs-on: ubuntu-latest
 
     steps:
@@ -46,7 +44,8 @@ jobs:
             // Allow PR author
             if (commenter === prAuthor) {
               console.log(`User ${commenter} is the PR author, allowed.`);
-              return true;
+              core.setOutput('allowed', 'true');
+              return;
             }
 
             // Check if user has write permissions
@@ -57,6 +56,8 @@ jobs:
             });
 
             const allowed = ['admin', 'write'].includes(permission.permission);
+            core.setOutput('allowed', allowed ? 'true' : 'false');
+
             if (!allowed) {
               // Add a comment explaining the user doesn't have permission
               await github.rest.issues.createComment({
@@ -73,17 +74,16 @@ jobs:
                 content: '-1'
               });
             }
-            return allowed;
-          result-encoding: string
 
       - name: Exit if not authorized
-        if: steps.check-permissions.outputs.result != 'true'
+        if: steps.check-permissions.outputs.allowed != 'true'
         run: |
           echo "User not authorized to rebase"
           exit 1
 
-      - name: Get PR details
-        id: pr-details
+      - name: Check if PR is from fork
+        id: check-fork
+        if: steps.check-permissions.outputs.allowed == 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -93,8 +93,9 @@ jobs:
               pull_number: context.issue.number
             });
 
-            // Check if PR is from a fork
             const isFork = pr.head.repo.full_name !== pr.base.repo.full_name;
+            core.setOutput('is_fork', isFork ? 'true' : 'false');
+
             if (isFork) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -108,75 +109,37 @@ jobs:
                 comment_id: context.payload.comment.id,
                 content: '-1'
               });
-              core.setFailed('Cannot rebase PRs from forks');
-              return;
             }
 
-            core.setOutput('head_ref', pr.head.ref);
-            core.setOutput('base_ref', pr.base.ref);
-
-      - name: Checkout repository
-        if: steps.pr-details.outputs.head_ref != ''
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ steps.pr-details.outputs.head_ref }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Configure Git
-        if: steps.pr-details.outputs.head_ref != ''
+      - name: Exit if fork
+        if: steps.check-fork.outputs.is_fork == 'true'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          echo "Cannot rebase PRs from forks"
+          exit 1
 
-      - name: Rebase on target branch
-        id: rebase
-        if: steps.pr-details.outputs.head_ref != ''
+      # Use cirrus-actions/rebase which safely handles the rebase operation
+      # without checking out untrusted code in a privileged context.
+      # It uses the GitHub API to perform git operations server-side.
+      - name: Automatic rebase
+        if: steps.check-permissions.outputs.allowed == 'true' && steps.check-fork.outputs.is_fork != 'true'
+        uses: cirrus-actions/rebase@1.8
         env:
-          BASE_REF: ${{ steps.pr-details.outputs.base_ref }}
-        run: |
-          git fetch origin $BASE_REF
-          if git rebase origin/$BASE_REF; then
-            echo "success=true" >> $GITHUB_OUTPUT
-          else
-            git rebase --abort || true
-            echo "success=false" >> $GITHUB_OUTPUT
-          fi
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push changes
-        id: push
-        if: steps.rebase.outputs.success == 'true'
-        env:
-          HEAD_REF: ${{ steps.pr-details.outputs.head_ref }}
-        run: |
-          if git push --force-with-lease origin $HEAD_REF; then
-            echo "success=true" >> $GITHUB_OUTPUT
-          else
-            echo "success=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Report success
-        if: steps.push.outputs.success == 'true'
+      - name: Add success reaction
+        if: success() && steps.check-permissions.outputs.allowed == 'true' && steps.check-fork.outputs.is_fork != 'true'
         uses: actions/github-script@v7
         with:
           script: |
-            // Add success reaction
             await github.rest.reactions.createForIssueComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               comment_id: context.payload.comment.id,
               content: 'rocket'
             });
-            // Add success comment
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `✅ Successfully rebased this PR on \`${{ steps.pr-details.outputs.base_ref }}\`.`
-            });
 
-      - name: Report rebase failure (conflicts)
-        if: steps.rebase.outputs.success == 'false'
+      - name: Report failure
+        if: failure() && steps.check-permissions.outputs.allowed == 'true' && steps.check-fork.outputs.is_fork != 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -190,26 +153,6 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `❌ Rebase failed due to conflicts. Please rebase locally:\n\`\`\`bash\ngit fetch origin\ngit rebase origin/${{ steps.pr-details.outputs.base_ref }}\n# Resolve conflicts, then:\ngit push --force-with-lease\n\`\`\``
+              body: `❌ Rebase failed. This might be due to conflicts or branch protection rules. Please rebase locally:\n\`\`\`bash\ngit fetch origin\ngit rebase origin/main\n# Resolve any conflicts, then:\ngit push --force-with-lease\n\`\`\``
             });
-            core.setFailed('Rebase failed due to conflicts');
-
-      - name: Report push failure
-        if: steps.rebase.outputs.success == 'true' && steps.push.outputs.success == 'false'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.reactions.createForIssueComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: context.payload.comment.id,
-              content: '-1'
-            });
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `❌ Rebase succeeded but push failed. The branch may be protected or there may have been concurrent updates. Please try again or rebase locally.`
-            });
-            core.setFailed('Push failed after successful rebase');
 
