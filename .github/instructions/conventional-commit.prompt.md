@@ -30,8 +30,8 @@ git commit -m "type(scope): description"
 
 ```xml
 <commit-message>
-	<type>feat|fix|cut|doc|ci|bump|test|refactor|revert|make|chore</type>
-	<scope>eos_downloader|eos_downloader.cli|(optional)</scope>
+	<type>feat|fix|cut|doc|ci|bump|build|test|refactor|revert|make|chore</type>
+	<scope>eos_downloader|eos_downloader.cli|deps|(optional)</scope>
 	<description>A short, imperative summary of the change</description>
 	<body>(optional: more detailed explanation)</body>
 	<footer>(optional: e.g. BREAKING CHANGE: details, or issue references)</footer>
@@ -48,6 +48,7 @@ git commit -m "type(scope): description"
 	<type name="doc">Documentation changes</type>
 	<type name="ci">CI/CD pipeline changes</type>
 	<type name="bump">Dependency version updates</type>
+	<type name="build">Build system or dependency changes (used by Dependabot)</type>
 	<type name="test">Adding or updating tests</type>
 	<type name="refactor">Code refactoring without changing functionality</type>
 	<type name="revert">Revert a previous commit</type>
@@ -62,6 +63,7 @@ git commit -m "type(scope): description"
 <commit-scopes>
 	<scope name="eos_downloader">Core package changes</scope>
 	<scope name="eos_downloader.cli">CLI-specific changes</scope>
+	<scope name="deps">Dependency updates (used by Dependabot with build type)</scope>
 	<scope name="(none)">Scope is optional and can be omitted for broad changes</scope>
 </commit-scopes>
 ```
@@ -75,6 +77,7 @@ git commit -m "type(scope): description"
 	<example>doc: update README with usage instructions</example>
 	<example>refactor(eos_downloader): improve performance of data processing</example>
 	<example>bump: update dependencies to latest versions</example>
+	<example>build(deps): bump pytest from 7.4.0 to 7.4.3</example>
 	<example>ci: add new GitHub Actions workflow for testing</example>
 	<example>test(eos_downloader): add unit tests for download manager</example>
 	<example>cut(eos_downloader): remove deprecated legacy API endpoints</example>
@@ -86,12 +89,13 @@ git commit -m "type(scope): description"
 
 ```xml
 <validation>
-	<type>Must be one of: feat, fix, cut, doc, ci, bump, test, refactor, revert, make, chore</type>
-	<scope>Recommended scopes: eos_downloader, eos_downloader.cli (optional but encouraged)</scope>
+	<type>Must be one of: feat, fix, cut, doc, ci, bump, build, test, refactor, revert, make, chore</type>
+	<scope>Recommended scopes: eos_downloader, eos_downloader.cli, deps (optional but encouraged)</scope>
 	<description>Required. Use the imperative mood (e.g., "add", not "added")</description>
 	<body>Optional. Use for additional context</body>
 	<footer>Use for breaking changes or issue references</footer>
 	<sync-note>Types and scopes are validated by pr-triage.yml workflow in pull requests</sync-note>
+	<dependabot-note>Dependabot uses build(deps) format for dependency updates</dependabot-note>
 </validation>
 ```
 
@@ -101,8 +105,8 @@ git commit -m "type(scope): description"
 <pull-request-naming>
 	<principle>Pull Request titles MUST follow Conventional Commits specification</principle>
 	<principle>PR titles are validated by .github/workflows/pr-triage.yml</principle>
-	<allowed-types>feat, fix, cut, doc, ci, bump, test, refactor, revert, make, chore</allowed-types>
-	<allowed-scopes>eos_downloader, eos_downloader.cli (optional)</allowed-scopes>
+	<allowed-types>feat, fix, cut, doc, ci, bump, build, test, refactor, revert, make, chore</allowed-types>
+	<allowed-scopes>eos_downloader, eos_downloader.cli, deps (optional)</allowed-scopes>
 
 	<single-commit-rule>
 		<condition>When PR contains only ONE commit</condition>
