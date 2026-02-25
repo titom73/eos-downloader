@@ -11,19 +11,26 @@ public struct SettingsView: View {
 
     public var body: some View {
         Form {
-            Section("Arista API Token") {
+            Section {
                 SecureField("Paste your API token", text: $tokenInput)
                     .textFieldStyle(.roundedBorder)
 
                 HStack {
-                    Button("Save to Keychain") {
+                    Button {
                         saveToken()
+                    } label: {
+                        Label("Save to Keychain", systemImage: "key.fill")
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color.aristaBlue)
+                    .controlSize(.small)
                     .disabled(tokenInput.isEmpty)
 
-                    Button("Delete from Keychain", role: .destructive) {
+                    Button("Delete", role: .destructive) {
                         deleteToken()
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                     .disabled(!hasSavedToken)
 
                     Spacer()
@@ -31,9 +38,11 @@ public struct SettingsView: View {
                     if hasSavedToken {
                         Label("Token stored", systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
+                            .font(.callout.weight(.medium))
                     } else {
                         Label("No token stored", systemImage: "xmark.circle")
                             .foregroundStyle(.secondary)
+                            .font(.callout)
                     }
                 }
 
@@ -46,9 +55,12 @@ public struct SettingsView: View {
                 Text("Your token is stored securely in the macOS Keychain and passed to ardl via the ARISTA_TOKEN environment variable.")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
+            } header: {
+                Label("Arista API Token", systemImage: "lock.shield.fill")
+                    .foregroundStyle(Color.aristaBlue)
             }
 
-            Section("ardl Binary") {
+            Section {
                 HStack {
                     TextField("Custom ardl path (optional)", text: $customBinaryPath)
                         .textFieldStyle(.roundedBorder)
@@ -59,11 +71,15 @@ public struct SettingsView: View {
                     customBinaryPath = ""
                     UserDefaults.standard.removeObject(forKey: "customArdlPath")
                 }
+                .controlSize(.small)
                 .disabled(customBinaryPath.isEmpty)
 
                 Text("Leave empty to use the bundled ardl binary. Set a custom path if you have ardl installed separately.")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
+            } header: {
+                Label("ardl Binary", systemImage: "terminal.fill")
+                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)

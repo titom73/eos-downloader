@@ -27,7 +27,7 @@ final class ModelDecodingTests: XCTestCase {
     func testVersionEntryReleaseTypeUnknown() throws {
         let json = Data(#"{"version":"4.30.1","branch":"4.30"}"#.utf8)
         let entry = try JSONDecoder().decode(VersionEntry.self, from: json)
-        XCTAssertNil(entry.releaseType)
+        XCTAssertEqual(entry.releaseType, "Unknown")
     }
 
     func testVersionEntryArrayDecoding() throws {

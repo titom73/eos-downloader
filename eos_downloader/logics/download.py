@@ -462,10 +462,10 @@ class SoftManager:
             logger.debug(f"Processing {file_type} from {url}")
             if file_type == "image":
                 filename = object_arista.filename
-                self.file["name"] = filename
+                self.file["name"] = str(Path(file_path) / filename) if filename else None
             else:
                 filename = object_arista.hash_filename()
-                self.file[file_type] = filename
+                self.file[file_type] = str(Path(file_path) / filename) if filename else None
             if url is None:
                 logger.error(f"URL not found for {file_type}")
                 raise ValueError(f"URL not found for {file_type}")
@@ -722,11 +722,11 @@ class SoftManager:
                         filename = f"{os.path.splitext(fname)[0]}-noztp{os.path.splitext(fname)[1]}"
                     eos_filename = filename
                     logger.debug(f"filename is {filename}")
-                    self.file["name"] = filename
+                    self.file["name"] = os.path.join(file_path, filename)
             else:
                 filename = object_arista.hash_filename()
                 if filename is not None:
-                    self.file[file_type] = filename
+                    self.file[file_type] = os.path.join(file_path, filename)
             if url is None:
                 logger.error(f"URL not found for {file_type}")
                 raise ValueError(f"URL not found for {file_type}")

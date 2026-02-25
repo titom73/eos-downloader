@@ -1,29 +1,41 @@
 import SwiftUI
 
-/// Root view using NavigationSplitView (macOS 13+).
+/// Root view with a fixed-width sidebar and detail panel.
+/// DownloadState is lifted here so InfoView can pre-fill the form via "Use in Download".
 public struct ContentView: View {
-    @State private var selectedSection: SidebarSection? = .download
+    @State private var selectedSection: SidebarSection = .download
+    @StateObject private var sharedDownloadState = DownloadState()
 
     public init() {}
 
     public var body: some View {
-        NavigationSplitView {
+        HStack(spacing: 0) {
+            // Sidebar
             SidebarView(selection: $selectedSection)
-        } detail: {
-            switch selectedSection {
-            case .download:
-                DownloadView()
-            case .info:
-                InfoView()
-            case .settings:
-                SettingsView()
-            case .debug:
-                DebugView()
-            case nil:
-                Text("Select a section")
-                    .foregroundStyle(.secondary)
-            }
+                .frame(width: 220)
+
+            Divider()
+
+            // Detail
+            detailView
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .navigationTitle("EOS Downloader")
+        .environmentObject(sharedDownloadState)
+    }
+
+    @ViewBuilder
+    private var detailView: some View {
+        switch selectedSection {
+        case .download:
+            DownloadView()
+        case .info:
+            InfoView(onNavigateToDownload: {
+                withAnimation { selectedSection = .download }
+            })
+        case .settings:
+            SettingsView()
+        case .debug:
+            DebugView()
+        }
     }
 }

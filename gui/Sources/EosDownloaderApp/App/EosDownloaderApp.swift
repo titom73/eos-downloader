@@ -6,13 +6,14 @@ struct EosDownloaderApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 800, minHeight: 500)
+                .frame(minWidth: 860, minHeight: 540)
+                .frame(idealWidth: 1000, idealHeight: 620)
         }
-        .windowResizability(.contentMinSize)
 
         #if os(macOS)
         Settings {
             SettingsView()
+                .frame(minWidth: 500, minHeight: 300)
         }
         #endif
     }

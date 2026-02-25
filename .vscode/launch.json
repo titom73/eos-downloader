@@ -11,7 +11,6 @@
             "request": "launch",
             "module": "eos_downloader.cli",
             "args": [
-                // "ardl",
                 "--log",
                 "debug",
                 "--debug-enabled",
@@ -33,7 +32,6 @@
             "request": "launch",
             "module": "eos_downloader.cli",
             "args": [
-                // "ardl",
                 "--log",
                 "debug",
                 "--debug-enabled",
@@ -46,6 +44,26 @@
             ],
             "envFile": "${workspaceFolder}/.envrc",
             "justMyCode": false
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:eos-downloader}/gui",
+            "name": "Debug EosDownloaderApp (gui)",
+            "target": "EosDownloaderApp",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug EosDownloaderApp (gui)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:eos-downloader}/gui",
+            "name": "Release EosDownloaderApp (gui)",
+            "target": "EosDownloaderApp",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release EosDownloaderApp (gui)"
         }
     ]
 }

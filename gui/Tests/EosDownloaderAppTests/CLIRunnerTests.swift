@@ -9,16 +9,21 @@ final class CLIRunnerTests: XCTestCase {
         // When no bundled binary and no custom path, locator should try `which`
         UserDefaults.standard.removeObject(forKey: "customArdlPath")
         // We can't guarantee ardl is on PATH in CI, so just verify the method doesn't crash
-        _ = CLIBinaryLocator.locate()
+        _ = try? CLIBinaryLocator.locate()
     }
 
-    func testLocatorRespectsCustomPath() {
-        let fakePath = "/tmp/fake_ardl_binary"
-        UserDefaults.standard.set(fakePath, forKey: "customArdlPath")
+    func testLocatorRespectsCustomPath() throws {
+        let tempBinary = FileManager.default.temporaryDirectory
+            .appendingPathComponent("fake_ardl_\(UUID().uuidString)")
+        FileManager.default.createFile(atPath: tempBinary.path, contents: Data())
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: tempBinary.path)
+        defer { try? FileManager.default.removeItem(at: tempBinary) }
+
+        UserDefaults.standard.set(tempBinary.path, forKey: "customArdlPath")
         defer { UserDefaults.standard.removeObject(forKey: "customArdlPath") }
 
-        let result = CLIBinaryLocator.locate()
-        XCTAssertEqual(result?.path, fakePath)
+        let result = try CLIBinaryLocator.locate()
+        XCTAssertEqual(result.path, tempBinary.path)
     }
 
     // MARK: - CLIError classification

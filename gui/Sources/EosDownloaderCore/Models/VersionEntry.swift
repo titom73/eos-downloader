@@ -14,4 +14,16 @@ struct VersionEntry: Codable, Identifiable, Hashable {
         if version.contains("INT") { return "INT" }
         return "Unknown"
     }
+
+    /// Numeric (major, minor, patch) tuple for semantic descending sort.
+    /// Strips trailing non-digit characters (M, F, INT…) before parsing.
+    var versionSortKey: (Int, Int, Int) {
+        let stripped = version.trimmingCharacters(in: .init(charactersIn: "MFINT"))
+        let parts = stripped.split(separator: ".").compactMap { Int($0) }
+        return (
+            parts.indices.contains(0) ? parts[0] : 0,
+            parts.indices.contains(1) ? parts[1] : 0,
+            parts.indices.contains(2) ? parts[2] : 0
+        )
+    }
 }

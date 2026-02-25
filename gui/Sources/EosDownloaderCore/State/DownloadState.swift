@@ -7,7 +7,7 @@ final class DownloadState: ObservableObject {
 
     // MARK: - EOS Form Fields
 
-    @Published var selectedFormat: String = "vEOS-lab"
+    @Published var selectedFormat: String = "64"
     @Published var version: String = ""
     @Published var useLatest: Bool = false
     @Published var branch: String = ""
@@ -29,6 +29,7 @@ final class DownloadState: ObservableObject {
     @Published var isRunning: Bool = false
     @Published var logLines: [String] = []
     @Published var currentError: CLIError?
+    @Published var progress: DownloadProgress = DownloadProgress()
 
     private let cliRunner = CLIRunner()
     private var downloadTask: Task<Void, Never>?
@@ -87,6 +88,7 @@ final class DownloadState: ObservableObject {
         isRunning = true
         logLines = []
         currentError = nil
+        progress = DownloadProgress()
 
         downloadTask = Task {
             do {
@@ -101,16 +103,20 @@ final class DownloadState: ObservableObject {
                 ) { [weak self] line in
                     Task { @MainActor in
                         self?.logLines.append(line)
+                        self?.progress.update(from: line)
                     }
                 }
 
                 await MainActor.run {
                     if result.succeeded {
                         logLines.append("Download completed successfully.")
+                        progress.phase = .completed
+                        progress.percentage = 100
                     } else {
                         let error = CLIError.from(exitCode: result.exitCode, stderr: result.stderr)
                         currentError = error
                         logLines.append("Error: \(error.localizedDescription)")
+                        progress.phase = .failed
                     }
                     isRunning = false
                 }
@@ -118,11 +124,13 @@ final class DownloadState: ObservableObject {
                 await MainActor.run {
                     currentError = error
                     logLines.append("Error: \(error.localizedDescription)")
+                    progress.phase = .failed
                     isRunning = false
                 }
             } catch {
                 await MainActor.run {
                     currentError = .processTerminated(exitCode: -1, stderr: error.localizedDescription)
+                    progress.phase = .failed
                     isRunning = false
                 }
             }
@@ -138,6 +146,7 @@ final class DownloadState: ObservableObject {
             await cliRunner.cancel()
         }
         logLines.append("Download cancelled.")
+        progress.phase = .failed
         isRunning = false
     }
 }
