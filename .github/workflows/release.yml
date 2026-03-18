@@ -62,7 +62,7 @@ jobs:
 
     - name: Docker meta for TAG
       id: meta
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: |
           ${{ secrets.DOCKER_IMAGE }}
@@ -110,7 +110,7 @@ jobs:
 
     - name: Docker meta for TAG
       id: meta
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: |
           ${{ secrets.DOCKER_IMAGE }}
