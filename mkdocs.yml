@@ -184,7 +184,14 @@ nav:
     - Arista Server: api/logics/arista_server.md
     - Arista XML API: api/logics/arista_xml_server.md
     - Download Management: api/logics/download.md
-  - Helpers: api/helpers.md
+    - Containerlab: api/logics/containerlab.md
+  - Helpers:
+    - Helpers: api/helpers.md
+    - Security: api/helpers/security.md
+  - Configuration: api/config.md
+  - Logging: api/logging_config.md
+  - Exceptions: api/exceptions.md
   - Defaults: api/defaults.md
+  - Tools: api/tools.md
 - Contributing: contributing.md
 - FAQ: faq.md

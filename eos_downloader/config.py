@@ -212,7 +212,7 @@ def generate_template() -> str:
     str
         A TOML string with all options commented out and documented.
     """
-    return '''\
+    return """\
 # eos-downloader configuration file
 # Place this file at ~/.eos-downloader.toml
 # or $XDG_CONFIG_HOME/eos-downloader/config.toml
@@ -285,4 +285,4 @@ def generate_template() -> str:
 [ardl.debug.xml]
 # output = "arista.xml"
 # log_level = "INFO"
-'''
+"""

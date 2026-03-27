@@ -168,6 +168,14 @@ warn_untyped_fields = true
 addopts = "-ra -q -s -vv --capture=tee-sys --cov eos_downloader --cov-append"
 log_level = "DEBUG"
 log_cli = "True"
+markers = [
+    "webtest: Tests that require connectivity to Arista.com.",
+    "slow: Test that are slow to run and excluded by default.",
+    "eos_download: Testing of EOS-DOWNLOAD",
+    "integration: Integration tests (may be slower than unit tests).",
+    "requires_docker: Tests requiring Docker daemon.",
+    "requires_network: Tests requiring network connectivity.",
+]
 
 [tool.coverage.run]
 source = ['eos_downloader']
@@ -176,6 +184,9 @@ omit = [
     "tests/*",
     "*/__main__.py",
 ]
+
+[tool.coverage.html]
+directory = "tests/htmlcov"
 
 [tool.coverage.report]
 exclude_lines = [

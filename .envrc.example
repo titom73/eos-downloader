@@ -1,5 +1,55 @@
 # Unset pyenv VIRTUAL_ENV to avoid conflict with UV's .venv
 unset VIRTUAL_ENV
 
-# Export your Arista token here
+# ──────────────────────────────────────────────
+# Global options
+# ──────────────────────────────────────────────
+
+# API authentication token (required)
 export ARISTA_TOKEN="your-token-here"
+
+# Logging level: debug, info, warning, error, critical
+# export ARISTA_LOG_LEVEL="info"
+
+# ──────────────────────────────────────────────
+# ardl get eos
+# ──────────────────────────────────────────────
+
+# export ARISTA_GET_EOS_OUTPUT="."
+# export ARISTA_GET_EOS_VERSION="4.29.3M"
+# export ARISTA_GET_EOS_RELEASE_TYPE="M"
+# export ARISTA_GET_EOS_BRANCH="4.29"
+# export ARISTA_GET_EOS_LATEST=false
+# export ARISTA_GET_EOS_EVE_NG=false
+# export ARISTA_GET_EOS_IMPORT_DOCKER=false
+# export ARISTA_GET_EOS_DOCKER_NAME="arista/ceos"
+# export ARISTA_GET_EOS_DOCKER_TAG="latest"
+# export ARISTA_GET_EOS_FORCE=false
+
+# ──────────────────────────────────────────────
+# ardl get cvp
+# ──────────────────────────────────────────────
+
+# export ARISTA_GET_CVP_FORMAT="ova"
+# export ARISTA_GET_CVP_OUTPUT="."
+# export ARISTA_GET_CVP_VERSION="2024.3.0"
+# export ARISTA_GET_CVP_BRANCH="2024.3"
+# export ARISTA_GET_CVP_LATEST=false
+# export ARISTA_GET_CVP_FORCE=false
+
+# ──────────────────────────────────────────────
+# ardl get path
+# ──────────────────────────────────────────────
+
+# export ARISTA_GET_PATH_OUTPUT="."
+# export ARISTA_GET_PATH_IMPORT_DOCKER=false
+# export ARISTA_GET_PATH_DOCKER_NAME="arista/ceos"
+# export ARISTA_GET_PATH_DOCKER_TAG="latest"
+# export ARISTA_GET_PATH_FORCE=false
+
+# ──────────────────────────────────────────────
+# System
+# ──────────────────────────────────────────────
+
+# TOML configuration file location (default: ~/.config)
+# export XDG_CONFIG_HOME="$HOME/.config"
