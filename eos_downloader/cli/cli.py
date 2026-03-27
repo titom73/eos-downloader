@@ -60,7 +60,10 @@ def ardl(ctx: click.Context, token: str, log_level: str, debug_enabled: bool) ->
         # Apply root-level config values for options not provided via CLI or env var
         for param_name in ("token", "log_level", "debug_enabled"):
             source = ctx.get_parameter_source(param_name)
-            if source == click.core.ParameterSource.DEFAULT and param_name in default_map:
+            if (
+                source == click.core.ParameterSource.DEFAULT
+                and param_name in default_map
+            ):
                 if param_name == "token":
                     token = default_map[param_name]
                 elif param_name == "log_level":
