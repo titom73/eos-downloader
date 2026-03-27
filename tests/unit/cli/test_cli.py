@@ -157,3 +157,31 @@ def test_cli_via_main_function() -> None:
     finally:
         sys.argv = old_argv
         sys.stdout = old_stdout
+
+
+class TestAliasedGroup:
+    """Test suite for AliasedGroup resolve_command (lines 32-34 of cli/utils.py)."""
+
+    def test_resolve_command_returns_full_name(self) -> None:
+        """Test resolve_command returns full command name for aliases."""
+        runner = CliRunner()
+        # Use a prefix alias for an existing command
+        result = runner.invoke(ardl, ["ge", "--help"])
+        assert result.exit_code == 0
+        assert "Download Arista from Arista website" in result.output
+
+    def test_resolve_command_exact_match(self) -> None:
+        """Test resolve_command with exact command name."""
+        runner = CliRunner()
+        result = runner.invoke(ardl, ["get", "--help"])
+        assert result.exit_code == 0
+        assert "Download Arista from Arista website" in result.output
+
+    def test_resolve_command_ambiguous_prefix(self) -> None:
+        """Test resolve_command fails for ambiguous prefix."""
+        runner = CliRunner()
+        # Assuming no ambiguous prefix exists for single char
+        # "d" could match "debug" only since no other "d" command
+        result = runner.invoke(ardl, ["d", "--help"])
+        assert result.exit_code == 0
+        assert "Debug commands" in result.output

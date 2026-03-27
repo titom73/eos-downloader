@@ -71,8 +71,10 @@ class TestXmlCommand:
         assert "--output" in result.output
         assert "--log-level" in result.output
 
+    @patch("eos_downloader.config.find_config_file", return_value=None)
     def test_xml_command_basic_success(
         self,
+        mock_find_config: Mock,
         runner: CliRunner,
         mock_arista_server: Mock,
         tmp_path: Path,
@@ -100,8 +102,10 @@ class TestXmlCommand:
             mock_arista_server.get_xml_data.assert_called_once()
             mock_file.assert_called_once_with(str(output_file), "w", encoding="utf-8")
 
+    @patch("eos_downloader.config.find_config_file", return_value=None)
     def test_xml_command_with_default_output(
         self,
+        mock_find_config: Mock,
         runner: CliRunner,
         mock_arista_server: Mock,
     ) -> None:
@@ -120,8 +124,10 @@ class TestXmlCommand:
             assert result.exit_code == 0
             mock_file.assert_called_once_with("arista.xml", "w", encoding="utf-8")
 
+    @patch("eos_downloader.config.find_config_file", return_value=None)
     def test_xml_command_with_debug_log_level(
         self,
+        mock_find_config: Mock,
         runner: CliRunner,
         mock_arista_server: Mock,
         tmp_path: Path,
@@ -147,8 +153,10 @@ class TestXmlCommand:
             assert result.exit_code == 0
             mock_arista_server.authenticate.assert_called_once()
 
+    @patch("eos_downloader.config.find_config_file", return_value=None)
     def test_xml_command_authentication_failure(
         self,
+        mock_find_config: Mock,
         runner: CliRunner,
         tmp_path: Path,
     ) -> None:
@@ -245,8 +253,10 @@ class TestXmlCommand:
             assert result.exit_code == 0
             mock_tree.getroot.assert_called_once()
 
+    @patch("eos_downloader.config.find_config_file", return_value=None)
     def test_xml_command_prettified_output(
         self,
+        mock_find_config: Mock,
         runner: CliRunner,
         mock_arista_server: Mock,
         tmp_path: Path,
@@ -315,8 +325,10 @@ class TestXmlCommand:
                 "Permission denied" in result.output or "Error" in result.output
             )
 
+    @patch("eos_downloader.config.find_config_file", return_value=None)
     def test_xml_command_with_all_log_levels(
         self,
+        mock_find_config: Mock,
         runner: CliRunner,
         mock_arista_server: Mock,
         tmp_path: Path,
