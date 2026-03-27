@@ -4,11 +4,8 @@
 
 """Tests for eos_downloader.config module."""
 
-import os
 from pathlib import Path
 from unittest.mock import patch
-
-import pytest
 
 from eos_downloader.config import (
     config_to_default_map,
@@ -75,7 +72,7 @@ class TestFindConfigFile:
         assert result == xdg_config
 
     def test_find_config_file_xdg_custom(self, tmp_path: Path) -> None:
-        """Respects XDG_CONFIG_HOME environment variable."""
+        """Finds config at custom XDG-style path."""
         custom_xdg = tmp_path / "custom-config"
         config_file = custom_xdg / "eos-downloader" / "config.toml"
         config_file.parent.mkdir(parents=True)
@@ -232,6 +229,7 @@ class TestGenerateTemplate:
         assert "[ardl.get.eos]" in template
         assert "[ardl.get.cvp]" in template
         assert "[ardl.get.path]" in template
+        assert "[ardl.info]\n" in template
         assert "[ardl.info.versions]" in template
         assert "[ardl.info.latest]" in template
         assert "[ardl.info.mapping]" in template

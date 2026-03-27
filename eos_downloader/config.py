@@ -64,7 +64,7 @@ CONFIG_SEARCH_PATHS: List[Tuple[str, str]] = [
         "XDG config directory",
     ),
 ]
-"""Ordered list of (path_template, description) tuples to search for config files."""
+# Ordered list of (path_template, description) tuples to search for config files.
 
 
 def find_config_file() -> Optional[Path]:
@@ -265,6 +265,10 @@ def generate_template() -> str:
 # docker_name = "arista/ceos:raw"
 # docker_tag = "dev"
 # force = false
+
+[ardl.info]
+# format = "fancy"
+# package = "eos"
 
 [ardl.info.versions]
 # format = "fancy"
