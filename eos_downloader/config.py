@@ -161,19 +161,14 @@ def config_to_default_map(config: Dict[str, Any]) -> Dict[str, Any]:
                     # Merge group defaults with subcommand-specific options
                     merged = {**group_defaults, **cmd_opts}
                     group_map[cmd_name] = merged
-            if group_defaults and not subcommands:
-                # Only group defaults, no subcommands defined
-                group_map = group_defaults
-
-            # If there are group defaults but also subcommands,
-            # ensure subcommands that aren't explicitly listed
-            # still get the group defaults via the group_map
-            if group_defaults and subcommands:
                 # Store group defaults at the group level too
                 # so Click can pick them up for unlisted subcommands
                 for gk, gv in group_defaults.items():
                     if gk not in group_map:
                         group_map[gk] = gv
+            elif group_defaults:
+                # Only group defaults, no subcommands defined
+                group_map = group_defaults
 
             default_map[key] = group_map
         else:
