@@ -356,3 +356,8 @@ data.xml
 
 # UV package manager cache
 .uv/
+
+.claude
+.claude/*
+
+*.clab.yml

@@ -122,10 +122,10 @@ class SemVer(BaseModel):
     other: Any = None
     # Regular Expression to extract version information.
     regex_version: ClassVar[Pattern[str]] = re.compile(
-        r"^.*(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d{1,2})(?P<other>\.\d*)*(?P<rtype>[M,F])*$"
+        r"^.*?(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d{1,2})(?P<other>\.\d*)*(?P<rtype>[M,F])*$"
     )
     regex_branch: ClassVar[Pattern[str]] = re.compile(
-        r"^.*(?P<major>\d+)\.(?P<minor>\d+)(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$"
+        r"^.*?(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<patch>\d+))?(\.\d)*(?P<rtype>[M,F])*$"
     )
     # A Basic description of this class
     description: str = "A Generic SemVer implementation"
@@ -170,7 +170,10 @@ class SemVer(BaseModel):
             # assert matches is not None
             assert matches is not None
             logger.debug(f"Matches branch: {matches}")
-            return cls(**matches.groupdict())
+            # Filter None values so Pydantic uses field defaults (e.g. patch=0)
+            return cls(
+                **{k: v for k, v in matches.groupdict().items() if v is not None}
+            )
         logger.error(f"Error occured with {semver}")
         return SemVer()
 
@@ -417,10 +420,10 @@ class EosVersion(SemVer):
     other: Any = None
     # Regular Expression to extract version information.
     regex_version: ClassVar[Pattern[str]] = re.compile(
-        r"^.*(?P<major>4)\.(?P<minor>\d{1,2})\.(?P<patch>\d{1,2})(?P<other>\.\d*)*(?P<rtype>[M,F])*$"
+        r"^.*?(?P<major>4)\.(?P<minor>\d{1,2})\.(?P<patch>\d{1,2})(?P<other>\.\d*)*(?P<rtype>[M,F])*$"
     )
     regex_branch: ClassVar[Pattern[str]] = re.compile(
-        r"^.*(?P<major>4)\.(?P<minor>\d{1,2})(\.?P<patch>\d)*(\.\d)*(?P<rtype>[M,F])*$"
+        r"^.*?(?P<major>4)\.(?P<minor>\d{1,2})(\.(?P<patch>\d+))?(\.\d)*(?P<rtype>[M,F])*$"
     )
     # A Basic description of this class
     description: str = "A SemVer implementation for EOS"

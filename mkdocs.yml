@@ -167,6 +167,7 @@ nav:
   - Get EOS package: usage/eos.md
   - Get CVP package: usage/cvp.md
   - Get Any package: usage/path.md
+  - Containerlab topology: usage/containerlab.md
   - Environment variables: usage/environment.md
   - Version information: usage/info.md
   - Software mapping: usage/mapping.md

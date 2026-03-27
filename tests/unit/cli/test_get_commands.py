@@ -14,6 +14,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
+import click
 import pytest
 from click.testing import CliRunner
 
@@ -328,6 +329,46 @@ class TestEosCommand:
         # Assert
         assert result.exit_code == 0
         mock_sm.assert_called_once_with(dry_run=True, force_download=False)
+
+    @patch("eos_downloader.cli.get.commands.initialize")
+    @patch("eos_downloader.cli.get.commands.search_version")
+    @patch("eos_downloader.cli.get.commands.EosXmlObject")
+    @patch("eos_downloader.cli.get.commands.SoftManager")
+    @patch("eos_downloader.cli.get.commands.handle_docker_import")
+    def test_eos_command_dry_run_skips_docker_import(
+        self,
+        mock_docker_import: Mock,
+        mock_soft_manager: Mock,
+        mock_eos_xml: Mock,
+        mock_search: Mock,
+        mock_init: Mock,
+        runner: CliRunner,
+        mock_context: dict,
+    ) -> None:
+        """Test --dry-run with --import-docker skips docker import."""
+        mock_console = MagicMock()
+        mock_init.return_value = (mock_console, "test-token", False, "info")
+        mock_search.return_value = "4.29.3M"
+
+        with patch("eos_downloader.cli.get.commands.download_files"):
+            result = runner.invoke(
+                eos,
+                [
+                    "--version", "4.29.3M",
+                    "--import-docker",
+                    "--docker-name", "arista/ceos",
+                    "--docker-tag", "4.29.3M",
+                    "--dry-run",
+                ],
+                obj=mock_context,
+            )
+
+        assert result.exit_code == 0
+        mock_docker_import.assert_not_called()
+        dry_run_printed = any(
+            "DRY-RUN" in str(call) for call in mock_console.print.call_args_list
+        )
+        assert dry_run_printed
 
     @patch("eos_downloader.cli.get.commands.initialize")
     @patch("eos_downloader.cli.get.commands.search_version")
@@ -1167,3 +1208,159 @@ class TestPathCommand:
         assert any(
             "URL to download" in str(call) for call in mock_console.print.call_args_list
         )
+
+
+class TestEosContainerlabCommand:
+    """Test suite for eos --containerlab-topology option."""
+
+    @patch("eos_downloader.cli.get.commands.initialize")
+    @patch("eos_downloader.cli.get.commands.download_from_containerlab_topology")
+    def test_containerlab_basic(
+        self,
+        mock_clab_download: Mock,
+        mock_init: Mock,
+        runner: CliRunner,
+        mock_context: dict,
+        tmp_path: Path,
+    ) -> None:
+        """Test containerlab topology triggers batch download flow."""
+        mock_console = MagicMock()
+        mock_init.return_value = (mock_console, "test-token", False, "info")
+        mock_clab_download.return_value = 0
+
+        topo_file = tmp_path / "topo.clab.yaml"
+        topo_file.write_text("topology: {}")
+
+        result = runner.invoke(
+            eos,
+            ["--containerlab-topology", str(topo_file)],
+            obj=mock_context,
+        )
+
+        assert result.exit_code == 0
+        mock_clab_download.assert_called_once()
+
+    @patch("eos_downloader.cli.get.commands.initialize")
+    def test_containerlab_mutual_exclusivity_with_version(
+        self,
+        mock_init: Mock,
+        runner: CliRunner,
+        mock_context: dict,
+        tmp_path: Path,
+    ) -> None:
+        """--containerlab-topology fails with --version."""
+        mock_console = MagicMock()
+        mock_init.return_value = (mock_console, "test-token", False, "info")
+
+        topo_file = tmp_path / "topo.clab.yaml"
+        topo_file.write_text("topology: {}")
+
+        result = runner.invoke(
+            eos,
+            ["--containerlab-topology", str(topo_file), "--version", "4.29.3M"],
+            obj=mock_context,
+        )
+
+        assert result.exit_code != 0
+        assert "mutually exclusive" in result.output or isinstance(
+            result.exception, click.UsageError
+        )
+
+    @patch("eos_downloader.cli.get.commands.initialize")
+    def test_containerlab_mutual_exclusivity_with_latest(
+        self,
+        mock_init: Mock,
+        runner: CliRunner,
+        mock_context: dict,
+        tmp_path: Path,
+    ) -> None:
+        """--containerlab-topology fails with --latest."""
+        mock_console = MagicMock()
+        mock_init.return_value = (mock_console, "test-token", False, "info")
+
+        topo_file = tmp_path / "topo.clab.yaml"
+        topo_file.write_text("topology: {}")
+
+        result = runner.invoke(
+            eos,
+            ["--containerlab-topology", str(topo_file), "--latest"],
+            obj=mock_context,
+        )
+
+        assert result.exit_code != 0
+
+    @patch("eos_downloader.cli.get.commands.initialize")
+    def test_containerlab_mutual_exclusivity_with_branch(
+        self,
+        mock_init: Mock,
+        runner: CliRunner,
+        mock_context: dict,
+        tmp_path: Path,
+    ) -> None:
+        """--containerlab-topology fails with --branch."""
+        mock_console = MagicMock()
+        mock_init.return_value = (mock_console, "test-token", False, "info")
+
+        topo_file = tmp_path / "topo.clab.yaml"
+        topo_file.write_text("topology: {}")
+
+        result = runner.invoke(
+            eos,
+            ["--containerlab-topology", str(topo_file), "--branch", "4.29"],
+            obj=mock_context,
+        )
+
+        assert result.exit_code != 0
+
+    @patch("eos_downloader.cli.get.commands.initialize")
+    @patch("eos_downloader.cli.get.commands.download_from_containerlab_topology")
+    def test_containerlab_no_versions_found(
+        self,
+        mock_clab_download: Mock,
+        mock_init: Mock,
+        runner: CliRunner,
+        mock_context: dict,
+        tmp_path: Path,
+    ) -> None:
+        """Empty version list from parser exits 0."""
+        mock_console = MagicMock()
+        mock_init.return_value = (mock_console, "test-token", False, "info")
+        mock_clab_download.return_value = 0
+
+        topo_file = tmp_path / "topo.clab.yaml"
+        topo_file.write_text("topology: {}")
+
+        result = runner.invoke(
+            eos,
+            ["--containerlab-topology", str(topo_file)],
+            obj=mock_context,
+        )
+
+        assert result.exit_code == 0
+
+    @patch("eos_downloader.cli.get.commands.initialize")
+    @patch("eos_downloader.cli.get.commands.download_from_containerlab_topology")
+    def test_containerlab_with_clab_alias(
+        self,
+        mock_clab_download: Mock,
+        mock_init: Mock,
+        runner: CliRunner,
+        mock_context: dict,
+        tmp_path: Path,
+    ) -> None:
+        """Test --clab alias works the same as --containerlab-topology."""
+        mock_console = MagicMock()
+        mock_init.return_value = (mock_console, "test-token", False, "info")
+        mock_clab_download.return_value = 0
+
+        topo_file = tmp_path / "topo.clab.yaml"
+        topo_file.write_text("topology: {}")
+
+        result = runner.invoke(
+            eos,
+            ["--clab", str(topo_file)],
+            obj=mock_context,
+        )
+
+        assert result.exit_code == 0
+        mock_clab_download.assert_called_once()
