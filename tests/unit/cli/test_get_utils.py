@@ -648,3 +648,291 @@ class TestDownloadFromContainerlabTopologyDryRun:
 
         assert result == 0
         mock_docker.assert_called_once()
+
+
+class TestSearchVersionBranch:
+    """Test branch-only search path (lines 103-104)."""
+
+    @patch("eos_downloader.cli.get.utils.AristaXmlQuerier")
+    def test_search_by_branch_without_latest(self, mock_querier_class):
+        """Test searching by branch when latest=False and version=None."""
+        mock_querier = MagicMock()
+        mock_querier_class.return_value = mock_querier
+        mock_version = EosVersion.from_str("4.29.3M")
+        mock_querier.latest.return_value = mock_version
+
+        result = search_version(
+            console=MagicMock(),
+            token="test-token",
+            version=None,
+            latest=False,
+            branch="4.29",
+            file_format="64",
+            release_type="M",
+        )
+
+        assert result == "4.29.3M"
+        mock_querier.latest.assert_called_once()
+
+    @patch("eos_downloader.cli.get.utils.AristaXmlQuerier")
+    def test_search_authentication_error(self, mock_querier_class):
+        """Test AuthenticationError during search (lines 116-118)."""
+        from eos_downloader.exceptions import AuthenticationError
+
+        mock_querier = MagicMock()
+        mock_querier_class.return_value = mock_querier
+        mock_querier.latest.side_effect = AuthenticationError("Bad token")
+
+        with pytest.raises(SystemExit) as exc_info:
+            search_version(
+                console=MagicMock(),
+                token="bad-token",
+                version=None,
+                latest=True,
+                branch=None,
+                file_format="64",
+                release_type="F",
+            )
+
+        assert exc_info.value.code == 1
+
+
+class TestDownloadFilesValueError:
+    """Test ValueError path in download_files (line 217)."""
+
+    def test_download_files_value_error(self):
+        """Test ValueError during download triggers error handling."""
+        mock_cli = MagicMock()
+        mock_cli.downloads.return_value = ("/tmp", False)
+        mock_cli.checksum.side_effect = ValueError("Bad checksum")
+        mock_console = MagicMock()
+        mock_dl_obj = MagicMock()
+        mock_dl_obj.version = "4.29.3M"
+        mock_dl_obj.image_type = "cEOS"
+        mock_dl_obj.filename = "cEOS-lab-4.29.3M.tar.xz"
+
+        with pytest.raises(SystemExit) as exc_info:
+            download_files(
+                console=mock_console,
+                cli=mock_cli,
+                arista_dl_obj=mock_dl_obj,
+                output="/tmp",
+                rich_interface=True,
+                debug=False,
+            )
+
+        assert exc_info.value.code == 1
+
+
+class TestHandleDockerImportSuccess:
+    """Test docker import success path (line 304)."""
+
+    def test_docker_import_not_cached(self):
+        """Test docker import returns 0 and was_cached=False (line 304)."""
+        mock_cli = MagicMock()
+        mock_cli.import_docker.return_value = False  # Not cached
+        mock_console = MagicMock()
+        mock_dl_obj = MagicMock()
+        mock_dl_obj.filename = "cEOS-lab-4.29.3M.tar.xz"
+        mock_dl_obj.version = "4.29.3M"
+
+        result = handle_docker_import(
+            console=mock_console,
+            cli=mock_cli,
+            arista_dl_obj=mock_dl_obj,
+            output="/tmp",
+            docker_name="arista/ceos",
+            docker_tag="4.29.3M",
+            debug=False,
+        )
+
+        assert result == 0
+        # Verify "imported successfully" message
+        success_msg = any(
+            "imported successfully" in str(call) for call in mock_console.print.call_args_list
+        )
+        assert success_msg
+
+
+class TestContainerlabTopologyEdgeCases:
+    """Test containerlab topology edge cases."""
+
+    @patch("eos_downloader.cli.get.utils.extract_ceos_versions")
+    def test_no_ceos_versions_found(self, mock_extract):
+        """Test topology with no cEOS versions (lines 359-360)."""
+        mock_extract.return_value = []
+        console = MagicMock()
+
+        result = download_from_containerlab_topology(
+            console=console,
+            token="test-token",
+            topology_file=Path("/fake/topo.yaml"),
+            image_format="cEOS",
+            output="/tmp",
+            docker_name="arista/ceos",
+            docker_tag=None,
+            dry_run=False,
+            force=False,
+            debug=False,
+            skip_download=False,
+        )
+
+        assert result == 0
+        no_versions_msg = any(
+            "No cEOS versions" in str(call) for call in console.print.call_args_list
+        )
+        assert no_versions_msg
+
+    @patch("eos_downloader.cli.get.utils.EosXmlObject")
+    @patch("eos_downloader.cli.get.utils.extract_ceos_versions")
+    def test_eos_xml_object_exception_debug(self, mock_extract, mock_eos_xml):
+        """Test EosXmlObject creation failure with debug=True (lines 376-383)."""
+        mock_extract.return_value = ["4.29.3M"]
+        mock_eos_xml.side_effect = Exception("XML error")
+        console = MagicMock()
+
+        result = download_from_containerlab_topology(
+            console=console,
+            token="test-token",
+            topology_file=Path("/fake/topo.yaml"),
+            image_format="cEOS",
+            output="/tmp",
+            docker_name="arista/ceos",
+            docker_tag=None,
+            dry_run=False,
+            force=False,
+            debug=True,
+            skip_download=False,
+        )
+
+        assert result == 1
+        console.print_exception.assert_called_once_with(show_locals=True)
+
+    @patch("eos_downloader.cli.get.utils.EosXmlObject")
+    @patch("eos_downloader.cli.get.utils.extract_ceos_versions")
+    def test_eos_xml_object_exception_no_debug(self, mock_extract, mock_eos_xml):
+        """Test EosXmlObject creation failure with debug=False (lines 380-382)."""
+        mock_extract.return_value = ["4.29.3M"]
+        mock_eos_xml.side_effect = Exception("XML error")
+        console = MagicMock()
+
+        result = download_from_containerlab_topology(
+            console=console,
+            token="test-token",
+            topology_file=Path("/fake/topo.yaml"),
+            image_format="cEOS",
+            output="/tmp",
+            docker_name="arista/ceos",
+            docker_tag=None,
+            dry_run=False,
+            force=False,
+            debug=False,
+            skip_download=False,
+        )
+
+        assert result == 1
+        error_msg = any(
+            "Failed to resolve" in str(call) for call in console.print.call_args_list
+        )
+        assert error_msg
+
+    @patch("eos_downloader.cli.get.utils.download_files")
+    @patch("eos_downloader.cli.get.utils.SoftManager")
+    @patch("eos_downloader.cli.get.utils.EosXmlObject")
+    @patch("eos_downloader.cli.get.utils.extract_ceos_versions")
+    def test_download_exception_debug(
+        self, mock_extract, mock_eos_xml, mock_soft_manager, mock_download_files
+    ):
+        """Test download failure with debug=True (lines 392-399)."""
+        mock_extract.return_value = ["4.29.3M"]
+        mock_eos_xml.return_value = MagicMock()
+        mock_soft_manager.return_value = MagicMock()
+        mock_download_files.side_effect = Exception("Download failed")
+        console = MagicMock()
+
+        result = download_from_containerlab_topology(
+            console=console,
+            token="test-token",
+            topology_file=Path("/fake/topo.yaml"),
+            image_format="cEOS",
+            output="/tmp",
+            docker_name="arista/ceos",
+            docker_tag=None,
+            dry_run=False,
+            force=False,
+            debug=True,
+            skip_download=False,
+        )
+
+        assert result == 1
+        console.print_exception.assert_called_once_with(show_locals=True)
+
+    @patch("eos_downloader.cli.get.utils.download_files")
+    @patch("eos_downloader.cli.get.utils.SoftManager")
+    @patch("eos_downloader.cli.get.utils.EosXmlObject")
+    @patch("eos_downloader.cli.get.utils.extract_ceos_versions")
+    def test_download_exception_no_debug(
+        self, mock_extract, mock_eos_xml, mock_soft_manager, mock_download_files
+    ):
+        """Test download failure with debug=False (lines 396-398)."""
+        mock_extract.return_value = ["4.29.3M"]
+        mock_eos_xml.return_value = MagicMock()
+        mock_soft_manager.return_value = MagicMock()
+        mock_download_files.side_effect = Exception("Download failed")
+        console = MagicMock()
+
+        result = download_from_containerlab_topology(
+            console=console,
+            token="test-token",
+            topology_file=Path("/fake/topo.yaml"),
+            image_format="cEOS",
+            output="/tmp",
+            docker_name="arista/ceos",
+            docker_tag=None,
+            dry_run=False,
+            force=False,
+            debug=False,
+            skip_download=False,
+        )
+
+        assert result == 1
+        error_msg = any(
+            "Failed to download" in str(call) for call in console.print.call_args_list
+        )
+        assert error_msg
+
+    @patch("eos_downloader.cli.get.utils.handle_docker_import")
+    @patch("eos_downloader.cli.get.utils.download_files")
+    @patch("eos_downloader.cli.get.utils.SoftManager")
+    @patch("eos_downloader.cli.get.utils.EosXmlObject")
+    @patch("eos_downloader.cli.get.utils.extract_ceos_versions")
+    def test_docker_import_failure_returns_1(
+        self, mock_extract, mock_eos_xml, mock_soft_manager, mock_download_files, mock_docker
+    ):
+        """Test failed docker import causes return code 1 (lines 411, 414-415)."""
+        mock_extract.return_value = ["4.29.3M"]
+        mock_eos_xml.return_value = MagicMock()
+        mock_soft_manager.return_value = MagicMock()
+        mock_docker.return_value = 1  # Failure
+
+        console = MagicMock()
+
+        result = download_from_containerlab_topology(
+            console=console,
+            token="test-token",
+            topology_file=Path("/fake/topo.yaml"),
+            image_format="cEOS",
+            output="/tmp",
+            docker_name="arista/ceos",
+            docker_tag=None,
+            dry_run=False,
+            force=False,
+            debug=False,
+            skip_download=False,
+        )
+
+        assert result == 1
+        failed_msg = any(
+            "Failed versions" in str(call) for call in console.print.call_args_list
+        )
+        assert failed_msg

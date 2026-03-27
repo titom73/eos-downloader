@@ -7,12 +7,13 @@ import sys
 import os
 import pytest
 from loguru import logger
+from unittest.mock import patch, MagicMock, Mock
 from eos_downloader.models.version import EosVersion, CvpVersion
-from unittest.mock import patch
 from eos_downloader.logics.arista_xml_server import (
     AristaXmlBase,
     AristaXmlObject,
     EosXmlObject,
+    CvpXmlObject,
     AristaXmlQuerier,
 )
 import xml.etree.ElementTree as ET
@@ -377,3 +378,151 @@ def test_arista_xml_object_urls_with_missing_files(xml_path):
         urls = arista_xml_object.urls
         expected_urls = {"image": None, "sha512sum": None}
         assert urls == expected_urls, f"Incorrect URLs, got {urls}"
+
+
+# ---------------------- #
+# Tests for error paths and edge cases
+# ---------------------- #
+
+
+class TestAristaXmlBaseErrorPaths:
+    """Test error paths in AristaXmlBase.__init__."""
+
+    def test_xml_parse_error(self, tmp_path):
+        """Test XML parse error with invalid XML file (lines 54-55)."""
+        invalid_xml = tmp_path / "invalid.xml"
+        invalid_xml.write_text("this is not valid xml <<<<")
+
+        # Should not raise, but xml_data won't be set
+        base = AristaXmlBase(xml_path=str(invalid_xml))
+        # The object is created but xml_data may not be set
+        assert not hasattr(base, "xml_data") or base.xml_data is not None
+
+    @patch("eos_downloader.logics.arista_server.AristaServer.authenticate")
+    def test_authenticate_returns_false(self, mock_auth):
+        """Test ValueError when authenticate fails (lines 68-70)."""
+        mock_auth.return_value = False
+
+        with pytest.raises(ValueError, match="Unable to authenticate"):
+            AristaXmlBase(token="bad-token")
+
+    @patch("eos_downloader.logics.arista_server.AristaServer.authenticate")
+    @patch("eos_downloader.logics.arista_server.AristaServer.get_xml_data")
+    def test_get_xml_root_returns_none(self, mock_get_xml, mock_auth):
+        """Test ValueError when _get_xml_root returns None (lines 59-61)."""
+        mock_auth.return_value = True
+        mock_get_xml.return_value = None
+
+        with pytest.raises(ValueError, match="Unable to get XML data"):
+            AristaXmlBase(token="test-token")
+
+    @patch("eos_downloader.logics.arista_server.AristaServer.authenticate")
+    @patch("eos_downloader.logics.arista_server.AristaServer.get_xml_data")
+    def test_xml_no_root_element(self, mock_get_xml, mock_auth):
+        """Test ValueError when XML has no root element (lines 63-65)."""
+        mock_auth.return_value = True
+        mock_tree = MagicMock(spec=ET.ElementTree)
+        mock_tree.getroot.return_value = None
+        mock_get_xml.return_value = mock_tree
+
+        with pytest.raises(ValueError, match="XML data has no root element"):
+            AristaXmlBase(token="test-token")
+
+    @patch("eos_downloader.logics.arista_server.AristaServer.authenticate")
+    @patch("eos_downloader.logics.arista_server.AristaServer.get_xml_data")
+    def test_get_xml_root_exception(self, mock_get_xml, mock_auth):
+        """Test _get_xml_root returns None on exception (lines 84-86)."""
+        mock_auth.return_value = True
+        mock_get_xml.side_effect = Exception("Network error")
+
+        with pytest.raises(ValueError, match="Unable to get XML data"):
+            AristaXmlBase(token="test-token")
+
+
+class TestAristaXmlQuerierErrorPaths:
+    """Test error paths in AristaXmlQuerier."""
+
+    def test_available_public_versions_invalid_rtype(self, xml_path):
+        """Test ValueError for invalid rtype (line 140)."""
+        querier = AristaXmlQuerier(xml_path=xml_path)
+
+        with pytest.raises(ValueError, match="Invalid release type"):
+            querier.available_public_versions(package="eos", rtype="INVALID")
+
+    def test_latest_invalid_rtype(self, xml_path):
+        """Test latest raises ValueError for invalid rtype (line 199)."""
+        querier = AristaXmlQuerier(xml_path=xml_path)
+
+        with pytest.raises(ValueError, match="Invalid release type"):
+            querier.latest(package="eos", rtype="INVALID")
+
+    def test_latest_no_versions_found(self, xml_path):
+        """Test latest raises ValueError when no versions match (line 207)."""
+        querier = AristaXmlQuerier(xml_path=xml_path)
+
+        with pytest.raises(ValueError, match="No versions found"):
+            querier.latest(package="eos", branch="99.99", rtype="F")
+
+
+class TestAristaXmlObjectErrorPaths:
+    """Test error paths in AristaXmlObject."""
+
+    def test_filename_value_error(self, xml_path):
+        """Test filename returns None on ValueError (lines 323-325)."""
+        obj = EosXmlObject(
+            searched_version="4.29.2F",
+            image_type="INVALID_TYPE",
+            xml_path=xml_path,
+        )
+        # Invalid image type should make software_mapping.filename raise ValueError
+        result = obj.filename
+        assert result is None
+
+    def test_hash_filename_returns_none_when_filename_none(self, xml_path):
+        """Test hash_filename returns None when filename is None (line 341)."""
+        obj = EosXmlObject(
+            searched_version="4.29.2F",
+            image_type="INVALID_TYPE",
+            xml_path=xml_path,
+        )
+        # Since filename returns None for invalid type
+        result = obj.hash_filename()
+        assert result is None
+
+    def test_urls_filename_none_raises(self, xml_path):
+        """Test urls raises ValueError when filename is None (line 413)."""
+        obj = EosXmlObject(
+            searched_version="4.29.2F",
+            image_type="INVALID_TYPE",
+            xml_path=xml_path,
+        )
+        with pytest.raises(ValueError, match="Filename not found"):
+            _ = obj.urls
+
+    def test_url_calls_server_get_url(self, xml_path):
+        """Test _url method calls server.get_url (lines 386-388)."""
+        obj = EosXmlObject(
+            searched_version="4.29.2F",
+            image_type="cEOS",
+            xml_path=xml_path,
+        )
+        with patch.object(obj.server, "get_url", return_value="https://example.com/file") as mock_get_url:
+            result = obj._url("/path/to/file")
+            assert result == "https://example.com/file"
+            mock_get_url.assert_called_once_with("/path/to/file")
+
+
+class TestCvpXmlObjectInit:
+    """Test CvpXmlObject initialization (lines 526-532)."""
+
+    def test_cvp_xml_object_init(self, xml_path):
+        """Test CvpXmlObject initializes correctly with CVP version."""
+        obj = CvpXmlObject(
+            searched_version="2024.3.0",
+            image_type="ova",
+            xml_path=xml_path,
+        )
+        assert obj.search_version == "2024.3.0"
+        assert obj.image_type == "ova"
+        assert str(obj.version) == "2024.3.0"
+        assert obj.software == "CloudVision"

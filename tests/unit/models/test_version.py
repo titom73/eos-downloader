@@ -50,6 +50,43 @@ def test_semver_is_in_branch():
     assert not version.is_in_branch("4.24")
 
 
+def test_semver_compare_equal():
+    """Test _compare returns 0 for equal versions (line 257)."""
+    # Use versions with all fields non-None to reach line 257
+    # (otherwise it returns early at line 241 when 'other' is None)
+    v1 = SemVer(major=4, minor=23, patch=3, rtype="M", other=".1")
+    v2 = SemVer(major=4, minor=23, patch=3, rtype="M", other=".1")
+    assert v1._compare(v2) == 0
+    assert v1 == v2
+
+
+def test_semver_match_greater_than():
+    """Test match with > operator (lines 330-331)."""
+    version = SemVer.from_str("4.24.0F")
+    assert version.match(">4.23.3M")
+    assert not version.match(">4.25.0F")
+
+
+def test_semver_match_less_than():
+    """Test match with < operator (lines 333-334)."""
+    version = SemVer.from_str("4.23.3M")
+    assert version.match("<4.24.0F")
+    assert not version.match("<4.22.0F")
+
+
+def test_semver_match_numeric_only():
+    """Test match with numeric-only expression treated as == (lines 333-334)."""
+    version = SemVer.from_str("4.23.3M")
+    assert version.match("4.23.3M") is True
+    assert version.match("4.24.0F") is False
+
+
+def test_semver_is_in_branch_invalid():
+    """Test is_in_branch returns False for invalid branch (lines 374-375, 378)."""
+    version = SemVer.from_str("4.23.3M")
+    assert version.is_in_branch("invalid_branch") is False
+
+
 def test_eosversion_from_str():
     version = EosVersion.from_str("4.32.1F")
     assert version.major == 4

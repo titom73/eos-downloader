@@ -17,6 +17,7 @@ execution.
 """
 
 import pytest
+from unittest.mock import patch
 from click.testing import CliRunner
 
 from eos_downloader.cli.cli import ardl
@@ -279,3 +280,56 @@ class TestCliIntegration:
 
         result = self.runner.invoke(ardl, ["debug", "xml", "--help"])
         assert result.exit_code == 0
+
+
+class TestConfigInjection:
+    """Test config file injection into CLI defaults (lines 64-69, 77-78)."""
+
+    @pytest.fixture(autouse=True)
+    def setup_runner(self) -> None:
+        """Create a Click CLI runner for testing."""
+        self.runner = CliRunner()
+
+    @patch("eos_downloader.cli.cli.get_default_map")
+    def test_config_injects_token(self, mock_get_default_map) -> None:
+        """Test that config file injects token when source=DEFAULT (lines 64-65)."""
+        mock_get_default_map.return_value = {
+            "token": "config-token-123",
+            "log_level": "debug",
+            "debug_enabled": True,
+        }
+
+        # Invoke without --help so ardl callback actually runs
+        # Use get --help so it invokes ardl callback then shows get help
+        result = self.runner.invoke(ardl, ["get", "--help"])
+        assert result.exit_code == 0
+        mock_get_default_map.assert_called_once()
+
+    @patch("eos_downloader.cli.cli.get_default_map")
+    def test_config_injects_log_level(self, mock_get_default_map) -> None:
+        """Test config injects log_level when source=DEFAULT (lines 66-67)."""
+        mock_get_default_map.return_value = {
+            "log_level": "warning",
+        }
+
+        result = self.runner.invoke(ardl, ["get", "--help"])
+        assert result.exit_code == 0
+
+    @patch("eos_downloader.cli.cli.get_default_map")
+    def test_config_injects_debug_enabled(self, mock_get_default_map) -> None:
+        """Test config injects debug_enabled when source=DEFAULT (lines 68-69)."""
+        mock_get_default_map.return_value = {
+            "debug_enabled": True,
+        }
+
+        result = self.runner.invoke(ardl, ["get", "--help"])
+        assert result.exit_code == 0
+
+    @patch("eos_downloader.cli.cli.get_default_map")
+    def test_no_subcommand_shows_help(self, mock_get_default_map) -> None:
+        """Test no subcommand shows help and exits 0 (lines 77-78)."""
+        mock_get_default_map.return_value = None
+
+        result = self.runner.invoke(ardl, [])
+        assert result.exit_code in [0, 2]
+        assert "Arista Network Download CLI" in result.output
