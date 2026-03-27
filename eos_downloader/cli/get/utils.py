@@ -16,7 +16,11 @@ from rich.console import Console
 from eos_downloader.cli.utils import console_configuration
 from eos_downloader.models.data import RTYPE_FEATURE, RTYPES
 from eos_downloader.models.types import ReleaseType
-from eos_downloader.logics.arista_xml_server import AristaXmlQuerier, AristaXmlObjects, EosXmlObject
+from eos_downloader.logics.arista_xml_server import (
+    AristaXmlQuerier,
+    AristaXmlObjects,
+    EosXmlObject,
+)
 from eos_downloader.logics.containerlab import extract_ceos_versions
 from eos_downloader.logics.download import SoftManager
 from eos_downloader.exceptions import AuthenticationError
@@ -45,11 +49,11 @@ def initialize(ctx: click.Context) -> tuple[Console, str, bool, str]:
 
     # Configure centralized logging
     configure_logging(level=log_level.upper())
-    logger = get_logger()
+    _logger = get_logger()  # pylint: disable=redefined-outer-name
 
     # Log token usage securely (masked)
     if token and debug:
-        logger.debug(f"Using token: {mask_token(token)}")
+        _logger.debug(f"Using token: {mask_token(token)}")
 
     return console, token, debug, log_level
 
@@ -304,7 +308,7 @@ def handle_docker_import(
     return 0
 
 
-def download_from_containerlab_topology(
+def download_from_containerlab_topology(  # pylint: disable=too-many-branches
     console: Console,
     token: str,
     topology_file: Path,
@@ -352,9 +356,7 @@ def download_from_containerlab_topology(
     versions = extract_ceos_versions(topology_file)
 
     if not versions:
-        console.print(
-            "[yellow]No cEOS versions found in topology file.[/yellow]"
-        )
+        console.print("[yellow]No cEOS versions found in topology file.[/yellow]")
         return 0
 
     console.print(
@@ -371,7 +373,7 @@ def download_from_containerlab_topology(
             eos_dl_obj = EosXmlObject(
                 searched_version=version, token=token, image_type=image_format
             )
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             logger.error(f"Failed to create download object for {version}: {e}")
             if debug:
                 console.print_exception(show_locals=True)
@@ -387,7 +389,7 @@ def download_from_containerlab_topology(
                 download_files(
                     console, cli, eos_dl_obj, output, rich_interface=True, debug=debug
                 )
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.error(f"Failed to download {version}: {e}")
                 if debug:
                     console.print_exception(show_locals=True)
@@ -409,9 +411,7 @@ def download_from_containerlab_topology(
                 failures.append(version)
 
     if failures:
-        console.print(
-            f"\n[red]Failed versions: {', '.join(failures)}[/red]"
-        )
+        console.print(f"\n[red]Failed versions: {', '.join(failures)}[/red]")
         return 1
 
     console.print(

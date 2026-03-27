@@ -6,6 +6,8 @@
 # pylint: disable=line-too-long
 # pylint: disable=redefined-builtin
 # pylint: disable=broad-exception-caught
+# pylint: disable=too-many-locals
+# pylint: disable=too-many-branches
 # flake8: noqa E501
 
 """CLI commands for listing Arista package information."""
@@ -24,7 +26,13 @@ from eos_downloader.logics.arista_xml_server import (
 )
 from eos_downloader.exceptions import AuthenticationError
 
-from .utils import initialize, search_version, download_files, handle_docker_import, download_from_containerlab_topology
+from .utils import (
+    initialize,
+    search_version,
+    download_files,
+    handle_docker_import,
+    download_from_containerlab_topology,
+)
 
 
 @click.command()
@@ -146,6 +154,14 @@ def eos(
             raise click.UsageError(
                 "--containerlab-topology is mutually exclusive with --version, --latest, and --branch"
             )
+        # Auto-default to cEOS format when using containerlab topology
+        ceos_formats = ("cEOS", "cEOS64", "cEOSarm")
+        if format not in ceos_formats:
+            console.print(
+                f"[yellow]Format '{format}' is not a cEOS format. "
+                f"Auto-defaulting to 'cEOS' for containerlab topology.[/yellow]"
+            )
+            format = "cEOS"
         return download_from_containerlab_topology(
             console=console,
             token=token,
@@ -192,8 +208,9 @@ def eos(
 
     if import_docker:
         if dry_run:
+            effective_tag = docker_tag or version
             console.print(
-                f"[DRY-RUN] Would import docker image [green]{docker_name}:{docker_tag}[/green]"
+                f"[DRY-RUN] Would import docker image [green]{docker_name}:{effective_tag}[/green]"
             )
             return 0
         return handle_docker_import(

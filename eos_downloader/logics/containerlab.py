@@ -64,12 +64,12 @@ def _resolve_env_vars(value: str) -> str:
     - ${VAR} -- use os.environ[VAR] if set, else empty string
     """
 
-    def _replace_with_default(m: re.Match) -> str:  # type: ignore[type-arg]
+    def _replace_with_default(m: re.Match[str]) -> str:
         name = m.group("name")
         default = m.group("default")
         return os.environ.get(name, default)
 
-    def _replace_plain(m: re.Match) -> str:  # type: ignore[type-arg]
+    def _replace_plain(m: re.Match[str]) -> str:
         return os.environ.get(m.group("name"), "")
 
     result = _ENV_VAR_WITH_DEFAULT.sub(_replace_with_default, value)
@@ -130,7 +130,7 @@ def extract_ceos_versions(topology_file: Path) -> List[str]:
     if not topology_file.exists():
         raise FileNotFoundError(f"Topology file not found: {topology_file}")
 
-    with open(topology_file, "r") as f:
+    with topology_file.open("r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     if data is None:

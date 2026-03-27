@@ -23,18 +23,27 @@ class TestResolveEnvVars:
         """${VAR:=default} uses default when env not set."""
         monkeypatch.delenv("EOS_VERSION", raising=False)
         monkeypatch.delenv("EOS_IMAGE", raising=False)
-        assert _resolve_env_vars("${EOS_IMAGE:=arista/ceos}:${EOS_VERSION:=4.34.2.1F}") == "arista/ceos:4.34.2.1F"
+        assert (
+            _resolve_env_vars("${EOS_IMAGE:=arista/ceos}:${EOS_VERSION:=4.34.2.1F}")
+            == "arista/ceos:4.34.2.1F"
+        )
 
     def test_dash_default_no_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """${VAR:-default} uses default when env not set."""
         monkeypatch.delenv("EOS_VERSION", raising=False)
-        assert _resolve_env_vars("arista/ceos:${EOS_VERSION:-4.33.1F}") == "arista/ceos:4.33.1F"
+        assert (
+            _resolve_env_vars("arista/ceos:${EOS_VERSION:-4.33.1F}")
+            == "arista/ceos:4.33.1F"
+        )
 
     def test_env_overrides_default(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """os.environ value takes priority over YAML default."""
         monkeypatch.setenv("EOS_VERSION", "4.30.1F")
         monkeypatch.setenv("EOS_IMAGE", "custom/ceos")
-        assert _resolve_env_vars("${EOS_IMAGE:=arista/ceos}:${EOS_VERSION:=4.34.2.1F}") == "custom/ceos:4.30.1F"
+        assert (
+            _resolve_env_vars("${EOS_IMAGE:=arista/ceos}:${EOS_VERSION:=4.34.2.1F}")
+            == "custom/ceos:4.30.1F"
+        )
 
     def test_plain_var_from_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """${VAR} (no default) reads from os.environ."""
@@ -83,17 +92,27 @@ class TestParseVersionFromImage:
         """Resolve ${VAR:=default} and parse version."""
         monkeypatch.delenv("EOS_IMAGE", raising=False)
         monkeypatch.delenv("EOS_VERSION", raising=False)
-        assert _parse_version_from_image("${EOS_IMAGE:=arista/ceos}:${EOS_VERSION:=4.34.2.1F}") == "4.34.2.1F"
+        assert (
+            _parse_version_from_image(
+                "${EOS_IMAGE:=arista/ceos}:${EOS_VERSION:=4.34.2.1F}"
+            )
+            == "4.34.2.1F"
+        )
 
     def test_env_var_with_dash_default(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Resolve ${VAR:-default} and parse version."""
         monkeypatch.delenv("EOS_VERSION", raising=False)
-        assert _parse_version_from_image("arista/ceos:${EOS_VERSION:-4.33.1F}") == "4.33.1F"
+        assert (
+            _parse_version_from_image("arista/ceos:${EOS_VERSION:-4.33.1F}")
+            == "4.33.1F"
+        )
 
     def test_env_var_whole_image(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Resolve when entire image is a single env var with default containing a colon."""
         monkeypatch.delenv("EOS_IMAGE", raising=False)
-        assert _parse_version_from_image("${EOS_IMAGE:-arista/ceos:4.33.1F}") == "4.33.1F"
+        assert (
+            _parse_version_from_image("${EOS_IMAGE:-arista/ceos:4.33.1F}") == "4.33.1F"
+        )
 
     def test_env_var_no_default(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Plain env vars with no values resolve to empty, yielding no version."""
@@ -104,7 +123,10 @@ class TestParseVersionFromImage:
     def test_env_override(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """os.environ takes priority over YAML default."""
         monkeypatch.setenv("EOS_VERSION", "4.30.1F")
-        assert _parse_version_from_image("arista/ceos:${EOS_VERSION:=4.34.2.1F}") == "4.30.1F"
+        assert (
+            _parse_version_from_image("arista/ceos:${EOS_VERSION:=4.34.2.1F}")
+            == "4.30.1F"
+        )
 
 
 class TestExtractCeosVersions:
@@ -261,7 +283,11 @@ class TestExtractCeosVersions:
         """End-to-end: extract version from kinds image with env var defaults."""
         topo = {
             "topology": {
-                "kinds": {"ceos": {"image": "${EOS_IMAGE:=arista/ceos}:${EOS_VERSION:=4.34.2.1F}"}},
+                "kinds": {
+                    "ceos": {
+                        "image": "${EOS_IMAGE:=arista/ceos}:${EOS_VERSION:=4.34.2.1F}"
+                    }
+                },
                 "nodes": {"spine1": {"kind": "ceos"}},
             }
         }

@@ -586,8 +586,10 @@ class TestDownloadFromContainerlabTopologyDryRun:
         mock_soft_manager.return_value = mock_cli
         console = MagicMock()
 
-        with patch("eos_downloader.cli.get.utils.handle_docker_import") as mock_docker, \
-             patch("eos_downloader.cli.get.utils.download_files"):
+        with (
+            patch("eos_downloader.cli.get.utils.handle_docker_import") as mock_docker,
+            patch("eos_downloader.cli.get.utils.download_files"),
+        ):
             result = download_from_containerlab_topology(
                 console=console,
                 token="test-token",
