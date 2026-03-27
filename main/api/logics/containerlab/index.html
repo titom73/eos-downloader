@@ -10,21 +10,25 @@
       
       
       
+        <link rel="prev" href="../download/">
       
       
-      <link rel="icon" href="../imgs/favicon.ico">
+        <link rel="next" href="../../helpers/">
+      
+      
+      <link rel="icon" href="../../../imgs/favicon.ico">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
     
     
       
-        <title>Docker - Arista EOS Downloader</title>
+        <title>Containerlab - Arista EOS Downloader</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.84d31ad4.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -43,18 +47,18 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../stylesheets/extra.material.css">
+      <link rel="stylesheet" href="../../../stylesheets/extra.material.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
     
     
     
-  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+  <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
             .gslide-desc { color: #666; user-select: text; }
@@ -83,7 +87,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#docker-image" class="md-skip">
+        <a href="#eos_downloader.logics.containerlab" class="md-skip">
           Skip to content
         </a>
       
@@ -103,7 +107,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Arista EOS Downloader" class="md-header__button md-logo" aria-label="Arista EOS Downloader" data-md-component="logo">
+    <a href="../../.." title="Arista EOS Downloader" class="md-header__button md-logo" aria-label="Arista EOS Downloader" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M248 88h80v48h-80zm-8-56c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h16v32H32c-17.7 0-32 14.3-32 32s14.3 32 32 32h96v32h-16c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h96c26.5 0 48-21.5 48-48v-64c0-26.5-21.5-48-48-48h-16v-32h192v32h-16c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h96c26.5 0 48-21.5 48-48v-64c0-26.5-21.5-48-48-48h-16v-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H320v-32h16c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm208 344h8v48h-80v-48zm-256 0h8v48h-80v-48z"></path></svg>
@@ -123,7 +127,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Docker
+              Containerlab
             
           </span>
         </div>
@@ -239,7 +243,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Arista EOS Downloader" class="md-nav__button md-logo" aria-label="Arista EOS Downloader" data-md-component="logo">
+    <a href="../../.." title="Arista EOS Downloader" class="md-nav__button md-logo" aria-label="Arista EOS Downloader" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M248 88h80v48h-80zm-8-56c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h16v32H32c-17.7 0-32 14.3-32 32s14.3 32 32 32h96v32h-16c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h96c26.5 0 48-21.5 48-48v-64c0-26.5-21.5-48-48-48h-16v-32h192v32h-16c-26.5 0-48 21.5-48 48v64c0 26.5 21.5 48 48 48h96c26.5 0 48-21.5 48-48v-64c0-26.5-21.5-48-48-48h-16v-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H320v-32h16c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm208 344h8v48h-80v-48zm-256 0h8v48h-80v-48z"></path></svg>
@@ -269,7 +273,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -347,7 +351,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/eos/" class="md-nav__link">
+      <a href="../../../usage/eos/" class="md-nav__link">
         
   
   
@@ -370,7 +374,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/cvp/" class="md-nav__link">
+      <a href="../../../usage/cvp/" class="md-nav__link">
         
   
   
@@ -393,7 +397,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/path/" class="md-nav__link">
+      <a href="../../../usage/path/" class="md-nav__link">
         
   
   
@@ -416,7 +420,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/containerlab/" class="md-nav__link">
+      <a href="../../../usage/containerlab/" class="md-nav__link">
         
   
   
@@ -439,7 +443,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/environment/" class="md-nav__link">
+      <a href="../../../usage/environment/" class="md-nav__link">
         
   
   
@@ -462,7 +466,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/configuration/" class="md-nav__link">
+      <a href="../../../usage/configuration/" class="md-nav__link">
         
   
   
@@ -485,7 +489,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/info/" class="md-nav__link">
+      <a href="../../../usage/info/" class="md-nav__link">
         
   
   
@@ -508,7 +512,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usage/mapping/" class="md-nav__link">
+      <a href="../../../usage/mapping/" class="md-nav__link">
         
   
   
@@ -582,7 +586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dev-notes/uv-installation-modes/" class="md-nav__link">
+      <a href="../../../dev-notes/uv-installation-modes/" class="md-nav__link">
         
   
   
@@ -605,7 +609,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dev-notes/tox-to-uv-migration/" class="md-nav__link">
+      <a href="../../../dev-notes/tox-to-uv-migration/" class="md-nav__link">
         
   
   
@@ -632,8 +636,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -657,11 +663,11 @@
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -677,7 +683,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Code documentation
@@ -737,7 +743,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/models/version/" class="md-nav__link">
+      <a href="../../models/version/" class="md-nav__link">
         
   
   
@@ -760,7 +766,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/models/data/" class="md-nav__link">
+      <a href="../../models/data/" class="md-nav__link">
         
   
   
@@ -783,7 +789,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/models/custom_types/" class="md-nav__link">
+      <a href="../../models/custom_types/" class="md-nav__link">
         
   
   
@@ -811,8 +817,10 @@
                 
   
   
+    
   
   
+  
     
     
       
@@ -828,11 +836,11 @@
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" checked>
         
           
           <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
@@ -848,7 +856,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4_2">
             <span class="md-nav__icon md-icon"></span>
             Logics
@@ -862,7 +870,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/logics/arista_server/" class="md-nav__link">
+      <a href="../arista_server/" class="md-nav__link">
         
   
   
@@ -885,7 +893,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/logics/arista_xml_server/" class="md-nav__link">
+      <a href="../arista_xml_server/" class="md-nav__link">
         
   
   
@@ -908,7 +916,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/logics/download/" class="md-nav__link">
+      <a href="../download/" class="md-nav__link">
         
   
   
@@ -928,10 +936,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../api/logics/containerlab/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Containerlab
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -942,6 +970,84 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#eos_downloader.logics.containerlab" class="md-nav__link">
+    <span class="md-ellipsis">
+      containerlab
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="containerlab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eos_downloader.logics.containerlab.ContainerlabFile" class="md-nav__link">
+    <span class="md-ellipsis">
+      ContainerlabFile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eos_downloader.logics.containerlab.ContainerlabKind" class="md-nav__link">
+    <span class="md-ellipsis">
+      ContainerlabKind
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eos_downloader.logics.containerlab.ContainerlabNode" class="md-nav__link">
+    <span class="md-ellipsis">
+      ContainerlabNode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eos_downloader.logics.containerlab.ContainerlabTopologyData" class="md-nav__link">
+    <span class="md-ellipsis">
+      ContainerlabTopologyData
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eos_downloader.logics.containerlab.extract_ceos_versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_ceos_versions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1006,7 +1112,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/helpers/" class="md-nav__link">
+      <a href="../../helpers/" class="md-nav__link">
         
   
   
@@ -1029,7 +1135,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/helpers/security/" class="md-nav__link">
+      <a href="../../helpers/security/" class="md-nav__link">
         
   
   
@@ -1060,7 +1166,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/config/" class="md-nav__link">
+      <a href="../../config/" class="md-nav__link">
         
   
   
@@ -1083,7 +1189,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/logging_config/" class="md-nav__link">
+      <a href="../../logging_config/" class="md-nav__link">
         
   
   
@@ -1106,7 +1212,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/exceptions/" class="md-nav__link">
+      <a href="../../exceptions/" class="md-nav__link">
         
   
   
@@ -1129,7 +1235,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/defaults/" class="md-nav__link">
+      <a href="../../defaults/" class="md-nav__link">
         
   
   
@@ -1152,7 +1258,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/tools/" class="md-nav__link">
+      <a href="../../tools/" class="md-nav__link">
         
   
   
@@ -1182,7 +1288,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../contributing/" class="md-nav__link">
+      <a href="../../../contributing/" class="md-nav__link">
         
   
   
@@ -1204,7 +1310,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../faq/" class="md-nav__link">
+      <a href="../../../faq/" class="md-nav__link">
         
   
   
@@ -1244,45 +1350,57 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#docker-image" class="md-nav__link">
+  <a href="#eos_downloader.logics.containerlab" class="md-nav__link">
     <span class="md-ellipsis">
-      Docker Image
+      containerlab
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Docker Image">
+    <nav class="md-nav" aria-label="containerlab">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#connect-to-your-docker-container" class="md-nav__link">
+  <a href="#eos_downloader.logics.containerlab.ContainerlabFile" class="md-nav__link">
     <span class="md-ellipsis">
-      Connect to your docker container
+      ContainerlabFile
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-cli-with-docker" class="md-nav__link">
+  <a href="#eos_downloader.logics.containerlab.ContainerlabKind" class="md-nav__link">
     <span class="md-ellipsis">
-      Use CLI with docker
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Use CLI with docker">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#available-tags" class="md-nav__link">
-    <span class="md-ellipsis">
-      Available TAGS
+      ContainerlabKind
     </span>
   </a>
   
 </li>
         
-      </ul>
-    </nav>
+          <li class="md-nav__item">
+  <a href="#eos_downloader.logics.containerlab.ContainerlabNode" class="md-nav__link">
+    <span class="md-ellipsis">
+      ContainerlabNode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eos_downloader.logics.containerlab.ContainerlabTopologyData" class="md-nav__link">
+    <span class="md-ellipsis">
+      ContainerlabTopologyData
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eos_downloader.logics.containerlab.extract_ceos_versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_ceos_versions
+    </span>
+  </a>
   
 </li>
         
@@ -1310,50 +1428,460 @@
   
 
 
-  <h1>Docker</h1>
+  <h1>Containerlab</h1>
 
-<h2 id="docker-image">Docker Image<a class="headerlink" href="#docker-image" title="Permanent link">¶</a></h2>
-<p>A <a href="https://hub.docker.com/repository/docker/titom73/eos-downloader/tags?page=1&amp;ordering=last_updated">docker image</a> is also available when Python cannot be used.</p>
-<h3 id="connect-to-your-docker-container">Connect to your docker container<a class="headerlink" href="#connect-to-your-docker-container" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>docker<span class="w"> </span>pull<span class="w"> </span>titom73/eos-downloader:edge
-docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>--entrypoint<span class="w"> </span>bash<span class="w"> </span>titom73/eos-downloader:dev
-root@a9a8ceb533df:/local#<span class="w"> </span>ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--help
-$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/download
-$<span class="w"> </span>ardl<span class="w"> </span>--token<span class="w"> </span>xxxx<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--image-format<span class="w"> </span>cEOS<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.28.3M
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="eos_downloader.logics.containerlab" class="doc doc-heading">
+            <span class="doc doc-object-name doc-module-name">containerlab</span>
+
+
+<a href="#eos_downloader.logics.containerlab" class="headerlink" title="Permanent link">¶</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Containerlab topology parser for extracting cEOS version information.</p>
+<p>This module parses containerlab topology YAML files and extracts
+the EOS versions used by cEOS nodes, enabling batch download of
+all required cEOS images.</p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="eos_downloader.logics.containerlab.ContainerlabFile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">ContainerlabFile</span>
+
+
+<a href="#eos_downloader.logics.containerlab.ContainerlabFile" class="headerlink" title="Permanent link">¶</a></h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+
+
+        <p>Represents a containerlab topology file.</p>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="eos_downloader.logics.containerlab.ContainerlabKind" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">ContainerlabKind</span>
+
+
+<a href="#eos_downloader.logics.containerlab.ContainerlabKind" class="headerlink" title="Permanent link">¶</a></h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+
+
+        <p>Represents a kind definition in a containerlab topology.</p>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="eos_downloader.logics.containerlab.ContainerlabNode" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">ContainerlabNode</span>
+
+
+<a href="#eos_downloader.logics.containerlab.ContainerlabNode" class="headerlink" title="Permanent link">¶</a></h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+
+
+        <p>Represents a node definition in a containerlab topology.</p>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="eos_downloader.logics.containerlab.ContainerlabTopologyData" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">ContainerlabTopologyData</span>
+
+
+<a href="#eos_downloader.logics.containerlab.ContainerlabTopologyData" class="headerlink" title="Permanent link">¶</a></h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+
+
+        <p>Represents the topology section of a containerlab file.</p>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="eos_downloader.logics.containerlab.extract_ceos_versions" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">extract_ceos_versions</span>
+
+
+<a href="#eos_downloader.logics.containerlab.extract_ceos_versions" class="headerlink" title="Permanent link">¶</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">extract_ceos_versions</span><span class="p">(</span><span class="n">topology_file</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 </code></pre></div>
-<h3 id="use-cli-with-docker">Use CLI with docker<a class="headerlink" href="#use-cli-with-docker" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>titom73/eos-downloader:dev<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--help
-Usage:<span class="w"> </span>ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 
-<span class="w">  </span>Download<span class="w"> </span>EOS<span class="w"> </span>image<span class="w"> </span>from<span class="w"> </span>Arista<span class="w"> </span>website
+    <div class="doc doc-contents ">
 
-Options:
-<span class="w">  </span>--image-type<span class="w"> </span><span class="o">[</span><span class="m">64</span><span class="p">|</span>INT<span class="p">|</span>2GB-INT<span class="p">|</span>cEOS<span class="p">|</span>cEOS64<span class="p">|</span>vEOS<span class="p">|</span>vEOS-lab<span class="p">|</span>EOS-2GB<span class="p">|</span>default<span class="o">]</span>
-<span class="w">                                  </span>EOS<span class="w"> </span>Image<span class="w"> </span><span class="nb">type</span><span class="w">  </span><span class="o">[</span>required<span class="o">]</span>
-<span class="w">  </span>--version<span class="w"> </span>TEXT<span class="w">                  </span>EOS<span class="w"> </span>version<span class="w">  </span><span class="o">[</span>required<span class="o">]</span>
-<span class="w">  </span>--docker-name<span class="w"> </span>TEXT<span class="w">              </span>Docker<span class="w"> </span>image<span class="w"> </span>name<span class="w"> </span><span class="o">(</span>default:<span class="w"> </span>arista/ceos<span class="o">)</span>
-<span class="w">                                  </span><span class="o">[</span>default:<span class="w"> </span>arista/ceos<span class="o">]</span>
-<span class="w">  </span>--output<span class="w"> </span>PATH<span class="w">                   </span>Path<span class="w"> </span>to<span class="w"> </span>save<span class="w"> </span>image<span class="w">  </span><span class="o">[</span>default:<span class="w"> </span>.<span class="o">]</span>
-<span class="w">  </span>--log-level,<span class="w"> </span>--log<span class="w"> </span><span class="o">[</span>debug<span class="p">|</span>info<span class="p">|</span>warning<span class="p">|</span>error<span class="p">|</span>critical<span class="o">]</span>
-<span class="w">                                  </span>Logging<span class="w"> </span>level<span class="w"> </span>of<span class="w"> </span>the<span class="w"> </span><span class="nb">command</span>
-<span class="w">  </span>--eve-ng<span class="w"> </span>/<span class="w"> </span>--no-eve-ng<span class="w">          </span>Run<span class="w"> </span>EVE-NG<span class="w"> </span>vEOS<span class="w"> </span>provisioning<span class="w"> </span><span class="o">(</span>only<span class="w"> </span><span class="k">if</span><span class="w"> </span>CLI
-<span class="w">                                  </span>runs<span class="w"> </span>on<span class="w"> </span>an<span class="w"> </span>EVE-NG<span class="w"> </span>server<span class="o">)</span>
-<span class="w">  </span>--disable-ztp<span class="w"> </span>/<span class="w"> </span>--no-disable-ztp
-<span class="w">                                  </span>Disable<span class="w"> </span>ZTP<span class="w"> </span>process<span class="w"> </span><span class="k">in</span><span class="w"> </span>vEOS<span class="w"> </span>image<span class="w"> </span><span class="o">(</span>only
-<span class="w">                                  </span>available<span class="w"> </span>with<span class="w"> </span>--eve-ng<span class="o">)</span>
-<span class="w">  </span>--import-docker<span class="w"> </span>/<span class="w"> </span>--no-import-docker
-<span class="w">                                  </span>Import<span class="w"> </span>docker<span class="w"> </span>image<span class="w"> </span><span class="o">(</span>only<span class="w"> </span>available<span class="w"> </span>with
-<span class="w">                                  </span>--image_type<span class="w"> </span>cEOSlab<span class="o">)</span>
-<span class="w">  </span>--help<span class="w">                          </span>Show<span class="w"> </span>this<span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span>exit.
-</code></pre></div>
-<h5 id="available-tags">Available TAGS<a class="headerlink" href="#available-tags" title="Permanent link">¶</a></h5>
-<ul>
-<li><code>edge</code>: Latest version built from the main branch</li>
-<li><code>latest</code>: Latest stable Version</li>
-<li><code>semver</code>: Version built from git tag</li>
-<li><code>latest-dind</code>: Latest stable Version with docker CLI</li>
-<li><code>semver-dind</code>: Version built from git tag with docker CLI</li>
-</ul>
+        <p>Extract deduplicated cEOS versions from a containerlab topology file.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>topology_file</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Path to the containerlab topology YAML file.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" title="typing.List" href="https://docs.python.org/3/library/typing.html#typing.List">List</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Sorted list of unique EOS version strings found in cEOS nodes.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError">FileNotFoundError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the topology file does not exist.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="yaml.YAMLError">YAMLError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the file contains invalid YAML.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="quote">
+              <summary>Source code in <code>eos_downloader/logics/containerlab.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">extract_ceos_versions</span><span class="p">(</span><span class="n">topology_file</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Extract deduplicated cEOS versions from a containerlab topology file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topology_file : Path</span>
+<span class="sd">        Path to the containerlab topology YAML file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    List[str]</span>
+<span class="sd">        Sorted list of unique EOS version strings found in cEOS nodes.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    FileNotFoundError</span>
+<span class="sd">        If the topology file does not exist.</span>
+<span class="sd">    yaml.YAMLError</span>
+<span class="sd">        If the file contains invalid YAML.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">topology_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Topology file not found: </span><span class="si">{</span><span class="n">topology_file</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">topology_file</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Empty topology file: </span><span class="si">{</span><span class="n">topology_file</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="n">topology</span> <span class="o">=</span> <span class="n">ContainerlabFile</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="c1"># Get the default ceos image from kinds if defined</span>
+    <span class="n">ceos_kind</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">kinds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ceos"</span><span class="p">)</span>
+    <span class="n">default_image</span> <span class="o">=</span> <span class="n">ceos_kind</span><span class="o">.</span><span class="n">image</span> <span class="k">if</span> <span class="n">ceos_kind</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="n">versions</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">topology</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Only process ceos nodes</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"ceos"</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Resolve image: node-level overrides kind-level</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">image</span> <span class="ow">or</span> <span class="n">default_image</span>
+
+        <span class="k">if</span> <span class="n">image</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"cEOS node '</span><span class="si">{</span><span class="n">node_name</span><span class="si">}</span><span class="s2">' has no resolvable image"</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">version</span> <span class="o">=</span> <span class="n">_parse_version_from_image</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">versions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">versions</span><span class="p">)</span>
+</code></pre></div></td></tr></tbody></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
 
 
 
@@ -1374,7 +1902,7 @@ Options:
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 3, 2023 09:31:06 UTC">February 3, 2023</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 27, 2026 15:58:07 UTC">March 27, 2026</span>
   </span>
 
     
@@ -1469,10 +1997,10 @@ Options:
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.top", "content.tabs.link", "content.code.copy", "toc.follow", "navigation.indexes", "content.tabs.link"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": ["stable"], "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.instant", "navigation.top", "content.tabs.link", "content.code.copy", "toc.follow", "navigation.indexes", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": ["stable"], "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.f55a23d4.min.js"></script>
       
         <script src="https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.2.1/tablesort.min.js"></script>
       
