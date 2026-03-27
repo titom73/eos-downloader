@@ -5,16 +5,20 @@
 
 import os
 import sys
-from typing import cast, Optional, Union, Any
+from pathlib import Path
+from typing import cast, List, Optional, Union, Any
 import subprocess
 
 import click
+from loguru import logger
 from rich.console import Console
 
 from eos_downloader.cli.utils import console_configuration
 from eos_downloader.models.data import RTYPE_FEATURE, RTYPES
 from eos_downloader.models.types import ReleaseType
-from eos_downloader.logics.arista_xml_server import AristaXmlQuerier, AristaXmlObjects
+from eos_downloader.logics.arista_xml_server import AristaXmlQuerier, AristaXmlObjects, EosXmlObject
+from eos_downloader.logics.containerlab import extract_ceos_versions
+from eos_downloader.logics.download import SoftManager
 from eos_downloader.exceptions import AuthenticationError
 from eos_downloader.logging_config import configure_logging, get_logger
 from eos_downloader.helpers.security import mask_token
@@ -297,4 +301,120 @@ def handle_docker_import(
             f"Docker image imported successfully: [green]{docker_name}: {docker_tag}[/green]"
         )
 
+    return 0
+
+
+def download_from_containerlab_topology(
+    console: Console,
+    token: str,
+    topology_file: Path,
+    image_format: str,
+    output: str,
+    docker_name: str,
+    docker_tag: Optional[str],
+    dry_run: bool,
+    force: bool,
+    debug: bool,
+    skip_download: bool,
+) -> int:
+    """Download all cEOS images referenced in a containerlab topology file.
+
+    Parameters
+    ----------
+    console : Console
+        The console object for printing messages.
+    token : str
+        The authentication token for Arista API.
+    topology_file : Path
+        Path to the containerlab topology YAML file.
+    image_format : str
+        The cEOS image format (e.g., "cEOS", "cEOS64", "cEOSarm").
+    output : str
+        Output directory for downloaded files.
+    docker_name : str
+        Docker image name for import.
+    docker_tag : str or None
+        Docker image tag override. If None, uses the version string.
+    dry_run : bool
+        If True, only simulate actions.
+    force : bool
+        If True, force re-download and re-import.
+    debug : bool
+        If True, show detailed error information.
+    skip_download : bool
+        If True, skip the download step (useful for import-only).
+
+    Returns
+    -------
+    int
+        0 if all versions processed successfully, 1 if any failures.
+    """
+    versions = extract_ceos_versions(topology_file)
+
+    if not versions:
+        console.print(
+            "[yellow]No cEOS versions found in topology file.[/yellow]"
+        )
+        return 0
+
+    console.print(
+        f"Found [green]{len(versions)}[/green] unique cEOS version(s): "
+        f"[cyan]{', '.join(versions)}[/cyan]"
+    )
+
+    failures: List[str] = []
+
+    for version in versions:
+        console.print(f"\n[bold]Processing cEOS version {version}...[/bold]")
+
+        try:
+            eos_dl_obj = EosXmlObject(
+                searched_version=version, token=token, image_type=image_format
+            )
+        except Exception as e:
+            logger.error(f"Failed to create download object for {version}: {e}")
+            if debug:
+                console.print_exception(show_locals=True)
+            else:
+                console.print(f"[red]Failed to resolve version {version}: {e}[/red]")
+            failures.append(version)
+            continue
+
+        cli = SoftManager(dry_run=dry_run, force_download=force)
+
+        if not skip_download:
+            try:
+                download_files(
+                    console, cli, eos_dl_obj, output, rich_interface=True, debug=debug
+                )
+            except Exception as e:
+                logger.error(f"Failed to download {version}: {e}")
+                if debug:
+                    console.print_exception(show_locals=True)
+                else:
+                    console.print(f"[red]Failed to download {version}: {e}[/red]")
+                failures.append(version)
+                continue
+
+        tag = docker_tag if docker_tag is not None else version
+        if dry_run:
+            console.print(
+                f"[DRY-RUN] Would import docker image [green]{docker_name}:{tag}[/green]"
+            )
+        else:
+            result = handle_docker_import(
+                console, cli, eos_dl_obj, output, docker_name, tag, debug, force
+            )
+            if result != 0:
+                failures.append(version)
+
+    if failures:
+        console.print(
+            f"\n[red]Failed versions: {', '.join(failures)}[/red]"
+        )
+        return 1
+
+    console.print(
+        f"\n[green]All {len(versions)} cEOS version(s) processed successfully.[/green]"
+    )
     return 0

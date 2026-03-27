@@ -11,7 +11,8 @@
 """CLI commands for listing Arista package information."""
 
 import os
-from typing import Union
+from pathlib import Path
+from typing import Optional, Union
 import click
 from eos_downloader.models.data import RTYPE_FEATURE
 from eos_downloader.logics.download import SoftManager
@@ -23,7 +24,7 @@ from eos_downloader.logics.arista_xml_server import (
 )
 from eos_downloader.exceptions import AuthenticationError
 
-from .utils import initialize, search_version, download_files, handle_docker_import
+from .utils import initialize, search_version, download_files, handle_docker_import, download_from_containerlab_topology
 
 
 @click.command()
@@ -111,6 +112,13 @@ from .utils import initialize, search_version, download_files, handle_docker_imp
     default=False,
     show_envvar=True,
 )
+@click.option(
+    "--containerlab-topology",
+    "--clab",
+    default=None,
+    help="Path to containerlab topology file to download all cEOS images.",
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+)
 @click.pass_context
 def eos(
     ctx: click.Context,
@@ -127,10 +135,31 @@ def eos(
     branch: Union[str, None],
     dry_run: bool,
     force: bool,
+    containerlab_topology: Optional[str],
 ) -> int:
     """Download EOS image from Arista server."""
     # pylint: disable=unused-variable
     console, token, debug, log_level = initialize(ctx)
+
+    if containerlab_topology is not None:
+        if version is not None or latest or branch is not None:
+            raise click.UsageError(
+                "--containerlab-topology is mutually exclusive with --version, --latest, and --branch"
+            )
+        return download_from_containerlab_topology(
+            console=console,
+            token=token,
+            topology_file=Path(containerlab_topology),
+            image_format=format,
+            output=output,
+            docker_name=docker_name,
+            docker_tag=docker_tag,
+            dry_run=dry_run,
+            force=force,
+            debug=debug,
+            skip_download=skip_download,
+        )
+
     version = search_version(
         console, token, version, latest, branch, format, release_type
     )
@@ -162,6 +191,11 @@ def eos(
                 ctx.exit(1)
 
     if import_docker:
+        if dry_run:
+            console.print(
+                f"[DRY-RUN] Would import docker image [green]{docker_name}:{docker_tag}[/green]"
+            )
+            return 0
         return handle_docker_import(
             console, cli, eos_dl_obj, output, docker_name, docker_tag, debug, force
         )

@@ -28,6 +28,7 @@ dependencies = [
   "click-help-colors>=0.9",
   "pydantic>2.0.0",
   "urllib3>=2.2.2",
+  "pyyaml>=6.0",
 ]
 keywords = [
   "eos_downloader",

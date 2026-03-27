@@ -20,6 +20,7 @@ from click.testing import CliRunner
 
 from eos_downloader.cli.get.utils import (
     download_files,
+    download_from_containerlab_topology,
     handle_docker_import,
     initialize,
     search_version,
@@ -563,3 +564,85 @@ class TestHandleDockerImport:
             docker_tag="4.29.3M",
             force=False,
         )
+
+
+class TestDownloadFromContainerlabTopologyDryRun:
+    """Test that dry_run skips docker import in containerlab topology download."""
+
+    @patch("eos_downloader.cli.get.utils.SoftManager")
+    @patch("eos_downloader.cli.get.utils.EosXmlObject")
+    @patch("eos_downloader.cli.get.utils.extract_ceos_versions")
+    def test_dry_run_skips_docker_import(
+        self,
+        mock_extract: Mock,
+        mock_eos_xml: Mock,
+        mock_soft_manager: Mock,
+    ) -> None:
+        """When dry_run=True, handle_docker_import must not be called."""
+        mock_extract.return_value = ["4.29.3M"]
+        mock_eos_dl = MagicMock()
+        mock_eos_xml.return_value = mock_eos_dl
+        mock_cli = MagicMock()
+        mock_soft_manager.return_value = mock_cli
+        console = MagicMock()
+
+        with patch("eos_downloader.cli.get.utils.handle_docker_import") as mock_docker, \
+             patch("eos_downloader.cli.get.utils.download_files"):
+            result = download_from_containerlab_topology(
+                console=console,
+                token="test-token",
+                topology_file=Path("/fake/topo.clab.yaml"),
+                image_format="cEOSarm",
+                output="/tmp/out",
+                docker_name="arista/ceos",
+                docker_tag=None,
+                dry_run=True,
+                force=False,
+                debug=False,
+                skip_download=False,
+            )
+
+        assert result == 0
+        mock_docker.assert_not_called()
+        # Should print DRY-RUN message
+        dry_run_printed = any(
+            "DRY-RUN" in str(call) for call in console.print.call_args_list
+        )
+        assert dry_run_printed, "Expected a [DRY-RUN] message to be printed"
+
+    @patch("eos_downloader.cli.get.utils.SoftManager")
+    @patch("eos_downloader.cli.get.utils.EosXmlObject")
+    @patch("eos_downloader.cli.get.utils.extract_ceos_versions")
+    @patch("eos_downloader.cli.get.utils.handle_docker_import")
+    def test_no_dry_run_calls_docker_import(
+        self,
+        mock_docker: Mock,
+        mock_extract: Mock,
+        mock_eos_xml: Mock,
+        mock_soft_manager: Mock,
+    ) -> None:
+        """When dry_run=False, handle_docker_import must be called."""
+        mock_extract.return_value = ["4.29.3M"]
+        mock_eos_dl = MagicMock()
+        mock_eos_xml.return_value = mock_eos_dl
+        mock_cli = MagicMock()
+        mock_soft_manager.return_value = mock_cli
+        mock_docker.return_value = 0
+
+        with patch("eos_downloader.cli.get.utils.download_files"):
+            result = download_from_containerlab_topology(
+                console=MagicMock(),
+                token="test-token",
+                topology_file=Path("/fake/topo.clab.yaml"),
+                image_format="cEOSarm",
+                output="/tmp/out",
+                docker_name="arista/ceos",
+                docker_tag=None,
+                dry_run=False,
+                force=False,
+                debug=False,
+                skip_download=False,
+            )
+
+        assert result == 0
+        mock_docker.assert_called_once()
