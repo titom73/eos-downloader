@@ -13,9 +13,11 @@ ARDL CLI Baseline.
 import click
 
 from eos_downloader import __version__
+from eos_downloader.config import get_default_map
 from eos_downloader.cli.debug import commands as debug_commands
 from eos_downloader.cli.info import commands as info_commands
 from eos_downloader.cli.get import commands as get_commands
+from eos_downloader.cli.config import commands as config_commands
 
 from eos_downloader.cli.utils import AliasedGroup
 
@@ -49,6 +51,23 @@ from eos_downloader.cli.utils import AliasedGroup
 def ardl(ctx: click.Context, token: str, log_level: str, debug_enabled: bool) -> None:
     """Arista Network Download CLI"""
     ctx.ensure_object(dict)
+
+    # Load config file and inject as default_map for subcommands
+    default_map = get_default_map()
+    if default_map is not None:
+        ctx.default_map = default_map
+
+        # Apply root-level config values for options not provided via CLI or env var
+        for param_name in ("token", "log_level", "debug_enabled"):
+            source = ctx.get_parameter_source(param_name)
+            if source == click.core.ParameterSource.DEFAULT and param_name in default_map:
+                if param_name == "token":
+                    token = default_map[param_name]
+                elif param_name == "log_level":
+                    log_level = default_map[param_name]
+                elif param_name == "debug_enabled":
+                    debug_enabled = default_map[param_name]
+
     ctx.obj["token"] = token
     ctx.obj["log_level"] = log_level
     ctx.obj["debug"] = debug_enabled
@@ -80,7 +99,18 @@ def debug(ctx: click.Context, cls: click.Group = AliasedGroup) -> None:
     """Debug commands to work with ardl"""
 
 
+@ardl.group(cls=AliasedGroup, no_args_is_help=True)
+@click.pass_context
+def config(ctx: click.Context, cls: click.Group = AliasedGroup) -> None:
+    # pylint: disable=redefined-builtin
+    """Manage ardl configuration."""
+
+
 # Load commands at module import time
+# Config commands
+config.add_command(config_commands.init)
+config.add_command(config_commands.show)
+
 # Load group commands for get
 get.add_command(get_commands.eos)
 get.add_command(get_commands.cvp)

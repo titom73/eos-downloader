@@ -169,6 +169,7 @@ nav:
   - Get Any package: usage/path.md
   - Containerlab topology: usage/containerlab.md
   - Environment variables: usage/environment.md
+  - Configuration file: usage/configuration.md
   - Version information: usage/info.md
   - Software mapping: usage/mapping.md
 - Development:
