@@ -49,6 +49,9 @@ ardl get eos --version 4.33.0F --eve-ng
 # Get 64-bit vEOS lab image (vmdk for VMware, qcow2 for KVM)
 ardl get eos --version 4.35.1F --format vEOS64-lab
 ardl get eos --version 4.35.1F --format vEOS64-lab-qcow2
+
+# Download all cEOS images from a containerlab topology
+ardl get eos --clab topology.clab.yml --format cEOS
 ```
 
 ## Author

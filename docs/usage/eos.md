@@ -94,30 +94,39 @@ Usage: ardl get eos [OPTIONS]
   Download EOS image from Arista server.
 
 Options:
-  --format TEXT        Image format  [default: vmdk]
-  --output PATH        Path to save image  [env var: ARISTA_GET_EOS_OUTPUT;
-                       default: .]
-  --latest             Get latest version. If --branch is not use, get the
-                       latest branch with specific release type  [env var:
-                       ARISTA_GET_EOS_LATEST]
-  --eve-ng             Run EVE-NG vEOS provisioning (only if CLI runs on an
-                       EVE-NG server)  [env var: ARISTA_GET_EOS_EVE_NG]
-  --import-docker      Import docker image to local docker  [env var:
-                       ARISTA_GET_EOS_IMPORT_DOCKER]
-  --skip-download      Skip download process - for debug only
-  --docker-name TEXT   Docker image name  [env var:
-                       ARISTA_GET_EOS_DOCKER_NAME; default: arista/ceos]
-  --docker-tag TEXT    Docker image tag  [env var: ARISTA_GET_EOS_DOCKER_TAG]
-  --version TEXT       EOS version to download  [env var:
-                       ARISTA_GET_EOS_VERSION]
-  --release-type TEXT  Release type (M for Maintenance, F for Feature)  [env
-                       var: ARISTA_GET_EOS_RELEASE_TYPE; default: F]
-  --branch TEXT        Branch to download  [env var: ARISTA_GET_EOS_BRANCH]
-  --dry-run            Enable dry-run mode: only run code without system
-                       changes
-  --force              Force download/import even if cached files or Docker
-                       images exist  [env var: ARISTA_GET_EOS_FORCE]
-  --help               Show this message and exit.
+  --format TEXT                   Image format  [default: vmdk]
+  --output PATH                   Path to save image  [env var:
+                                  ARISTA_GET_EOS_OUTPUT; default: .]
+  --latest                        Get latest version. If --branch is not use,
+                                  get the latest branch with specific release
+                                  type  [env var: ARISTA_GET_EOS_LATEST]
+  --eve-ng                        Run EVE-NG vEOS provisioning (only if CLI
+                                  runs on an EVE-NG server)  [env var:
+                                  ARISTA_GET_EOS_EVE_NG]
+  --import-docker                 Import docker image to local docker  [env
+                                  var: ARISTA_GET_EOS_IMPORT_DOCKER]
+  --skip-download                 Skip download process - for debug only
+  --docker-name TEXT              Docker image name  [env var:
+                                  ARISTA_GET_EOS_DOCKER_NAME; default:
+                                  arista/ceos]
+  --docker-tag TEXT               Docker image tag  [env var:
+                                  ARISTA_GET_EOS_DOCKER_TAG]
+  --version TEXT                  EOS version to download  [env var:
+                                  ARISTA_GET_EOS_VERSION]
+  --release-type TEXT             Release type (M for Maintenance, F for
+                                  Feature)  [env var:
+                                  ARISTA_GET_EOS_RELEASE_TYPE; default: F]
+  --branch TEXT                   Branch to download  [env var:
+                                  ARISTA_GET_EOS_BRANCH]
+  --dry-run                       Enable dry-run mode: only run code without
+                                  system changes
+  --force                         Force download/import even if cached files
+                                  or Docker images exist  [env var:
+                                  ARISTA_GET_EOS_FORCE]
+  --containerlab-topology, --clab FILE
+                                  Path to containerlab topology file to
+                                  download all cEOS images.
+  --help                          Show this message and exit.
 ```
 
 !!! info
