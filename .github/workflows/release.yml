@@ -19,6 +19,7 @@ jobs:
     permissions:
       contents: read
       id-token: write # Required for OIDC authentication with PyPI
+      attestations: write # Required for build attestations
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
@@ -40,11 +41,30 @@ jobs:
       run: |
         uv build
 
+    - name: Validate version matches tag
+      run: |
+        TAG_VERSION="${GITHUB_REF_NAME#v}"
+        PKG_VERSION=$(python3 -c "
+        try:
+            import tomllib
+        except ImportError:
+            import tomli as tomllib
+        with open('pyproject.toml', 'rb') as f:
+            data = tomllib.load(f)
+        v = data['project']['version']
+        print(v.lstrip('v'))
+        ")
+        echo "Tag version: $TAG_VERSION"
+        echo "Package version: $PKG_VERSION"
+        if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+          echo "::error::Version mismatch! Tag=$TAG_VERSION but pyproject.toml=$PKG_VERSION"
+          exit 1
+        fi
+
     - name: Publish distribution 📦 to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
+        attestations: true
 
   docker:
     name: Docker Image Build
