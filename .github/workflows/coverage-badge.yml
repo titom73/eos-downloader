@@ -97,7 +97,7 @@ jobs:
 
       - name: Comment coverage on commit
         if: github.event_name == 'push'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const coverage = '${{ steps.coverage.outputs.percentage }}';
