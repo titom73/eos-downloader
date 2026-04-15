@@ -92,7 +92,7 @@ dev = [
 doc = [
   "fontawesome_markdown>=0.2.6",
   "griffe >=1.2.0",
-  "mike==2.1.4",
+  "mike==2.2.0",
   "mkdocs>=1.6.1",
   "mkdocs-autorefs>=1.2.0",
   "mkdocs-bootswatch>=1.1",
