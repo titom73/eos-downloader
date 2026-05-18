@@ -159,6 +159,6 @@ eos_downloader/debug.py
 # UV package manager
 .uv/
 
-# Claude Code
-.claude
-.claude/*
+# Claude Code - ignore local/personal config, track shared config
+.claude/settings.local.json
+.claude/worktrees/
