@@ -47,8 +47,8 @@ if [ "$is_reserved" -eq 0 ]; then
   exit 0
 fi
 
-# Collect staged OpenSpec artifact paths (added/copied/modified/renamed).
-staged="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "$GUARDED_PREFIXES" || true)"
+# Collect staged OpenSpec artifact paths.
+staged="$(git diff --cached --name-only | grep -E "$GUARDED_PREFIXES" || true)"
 
 if [ -z "$staged" ]; then
   exit 0
