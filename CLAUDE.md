@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Contribution Workflow (OpenSpec branch discipline)
+
+Changes are planned with OpenSpec (`opsx:*`). **One change = one typed branch**: the whole lifecycle (`explore → propose → apply → archive`) is committed on a branch named `<type>/<change-name>` (`feat`/`fix`/`doc`, extensible) and merged into `main` as a single PR. When creating the first OpenSpec artifact while on `main`/`master`, run `git checkout -b <type>/<change-name>` first. A `pre-commit` guard (`.github/scripts/opsx-branch-guard`) deterministically blocks OpenSpec artifacts committed on `main`. See `AGENTS.md` and `docs/contributing.md`.
+
 ## Project Overview
 
 **eos-downloader** is a Python CLI tool and library for downloading Arista Networks software packages (EOS and CloudVision Portal). It provides both a command-line interface (`ardl`) and a programmatic API for automation workflows.

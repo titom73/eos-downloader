@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+#
+# opsx-branch-guard
+#
+# Deterministic guard for the OpenSpec contribution workflow.
+#
+# It refuses any commit that stages files under `openspec/changes/` or
+# `openspec/specs/` while the current branch is a reserved branch
+# (`main` / `master`). Every OpenSpec change must live on its own typed
+# branch (`feat/<change-name>`, `fix/<change-name>`, `doc/<change-name>`, ...),
+# so that the whole lifecycle (proposal -> design -> specs -> tasks ->
+# implementation -> archive) is reviewed and merged as a single unit.
+#
+# This runs independently of any AI assistant: it is enforced by git via
+# pre-commit, so the rule holds whichever tool (or human) authors the commit.
+#
+# Scope: it blocks ONLY OpenSpec artifact paths on reserved branches. It never
+# blocks other commits on `main`, and never blocks OpenSpec commits on a
+# working branch.
+#
+# Escape hatch (intentional, explicit): `git commit --no-verify`.
+
+set -euo pipefail
+
+# Reserved branches on which OpenSpec artifacts must not be committed directly.
+RESERVED_BRANCHES="main master"
+
+# Path prefixes that are considered OpenSpec artifacts.
+GUARDED_PREFIXES='^openspec/(changes|specs)/'
+
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')"
+
+# Detached HEAD or unknown branch: nothing to guard here.
+if [ -z "$branch" ] || [ "$branch" = "HEAD" ]; then
+  exit 0
+fi
+
+# Only act on reserved branches.
+is_reserved=0
+for reserved in $RESERVED_BRANCHES; do
+  if [ "$branch" = "$reserved" ]; then
+    is_reserved=1
+    break
+  fi
+done
+if [ "$is_reserved" -eq 0 ]; then
+  exit 0
+fi
+
+# Collect staged OpenSpec artifact paths.
+staged="$(git diff --cached --name-only | grep -E "$GUARDED_PREFIXES" || true)"
+
+if [ -z "$staged" ]; then
+  exit 0
+fi
+
+cat >&2 <<EOF
+
+  ✗ OpenSpec artifacts cannot be committed on '$branch'.
+
+  Every OpenSpec change lives on its own typed branch, and the whole
+  lifecycle (explore -> propose -> apply -> archive) belongs to that branch,
+  merged into '$branch' as a single Pull Request.
+
+  Staged OpenSpec files:
+$(while IFS= read -r path; do printf '    %s\n' "$path"; done <<<"$staged")
+
+  Create a typed branch, then commit again:
+
+    git checkout -b <type>/<change-name>
+      feat/<change-name>   add or extend a capability (docs optional)
+      fix/<change-name>    correct a problem
+      doc/<change-name>    documentation only
+
+  (Escape hatch, only if you really mean it: git commit --no-verify)
+
+EOF
+
+exit 1
