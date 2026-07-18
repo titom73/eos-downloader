@@ -63,7 +63,7 @@ cat >&2 <<EOF
   merged into '$branch' as a single Pull Request.
 
   Staged OpenSpec files:
-$(printf '    %s\n' $staged)
+$(while IFS= read -r path; do printf '    %s\n' "$path"; done <<<"$staged")
 
   Create a typed branch, then commit again:
 
