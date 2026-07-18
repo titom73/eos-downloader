@@ -1,7 +1,7 @@
 # opsx-branch-workflow Specification
 
 ## Purpose
-TBD - created by archiving change opsx-branch-workflow. Update Purpose after archive.
+Define and enforce the OpenSpec typed-branch contribution workflow, including auto-branch creation at first artifact write and a deterministic pre-commit guard preventing OpenSpec artifacts from being committed on main/master.
 ## Requirements
 ### Requirement: Typed branch naming convention
 
