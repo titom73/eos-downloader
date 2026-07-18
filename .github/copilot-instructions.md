@@ -16,6 +16,17 @@ This project uses a **modular instruction system** for better maintainability an
 
 **This file provides**: High-level overview, quick start guide, architectural decisions, and common patterns. **For detailed guidance**, always refer to the specialized instruction files above.
 
+## Contribution Workflow (OpenSpec branch discipline)
+
+Changes are planned with OpenSpec (`opsx:*`). **One change = one typed branch**:
+the whole lifecycle (`explore → propose → apply → archive`) is committed on a
+branch named `<type>/<change-name>` (`feat`/`fix`/`doc`, extensible) and merged
+into `main` as a single PR. When creating the first OpenSpec artifact while on
+`main`/`master`, run `git checkout -b <type>/<change-name>` first. A `pre-commit`
+guard (`.github/scripts/opsx-branch-guard`) blocks OpenSpec artifacts committed on
+`main` regardless of the tool used. See [`AGENTS.md`](../AGENTS.md) and
+[`docs/contributing.md`](../docs/contributing.md).
+
 ## Project Overview
 
 **eos-downloader** is a Python CLI tool and framework for automating the download and deployment of Arista Networks software packages (EOS and CloudVision Portal). It provides both a command-line interface for human interaction and a programmatic API for automation workflows.

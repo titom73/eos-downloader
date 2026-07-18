@@ -6,6 +6,8 @@ Thank you for your interest in contributing to the eos-downloader project! This 
 
 eos-downloader is a Python CLI application built with Click, Rich, and pytest. It provides both a command-line interface and a programmatic API for downloading Arista software packages. The project follows modern Python development practices with comprehensive testing, type hints, and automated CI/CD.
 
+Changes are planned and tracked with [OpenSpec](https://github.com/Fission-AI/OpenSpec): every change is proposed, designed, specified, implemented, and archived on a **single dedicated branch**, then merged as one Pull Request. See [Contribution Workflow (OpenSpec)](#contribution-workflow-openspec) below for the full flow and the branch rules.
+
 ## Getting Started
 
 ### 1. Fork the Repository
@@ -63,6 +65,11 @@ uv sync --all-extras
 uv run pre-commit install
 ```
 
+> **Important:** `uv run pre-commit install` also activates the OpenSpec branch
+> guard (`.github/scripts/opsx-branch-guard`), which blocks OpenSpec artifacts from
+> being committed on `main`. Install it before you start working — see
+> [Contribution Workflow (OpenSpec)](#contribution-workflow-openspec).
+
 **What `uv sync` does:**
 - Creates `.venv/` directory if it doesn't exist
 - Installs dependencies from `uv.lock` (deterministic)
@@ -102,21 +109,85 @@ uv run ardl --help
 | Build package | `python -m build` | `uv build` |
 | Show dependencies | `pip list` | `uv pip list` |
 
-## Development Workflow
+## Contribution Workflow (OpenSpec)
 
-### 1. Create a Feature Branch
+This project uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) to plan and
+track changes. The workflow has four stages, driven by the `opsx:*` commands (or
+the `openspec` CLI directly):
+
+```
+  explore  ─▶  propose  ─▶  apply  ─▶  archive
+  (think)     (plan)       (build)    (finalize)
+```
+
+- **explore** — think through the problem. Read-only, produces nothing to commit.
+- **propose** — create the change and its artifacts (`proposal.md`, `design.md`,
+  delta specs, `tasks.md`).
+- **apply** — implement the tasks.
+- **archive** — move the change to `openspec/changes/archive/` and update the
+  main specs in `openspec/specs/`.
+
+### The golden rule: one change = one typed branch
+
+The **entire lifecycle of a change lives on a single dedicated branch**, with no
+dependency on `main` or on other change branches, and is merged into `main` as
+**one Pull Request**. The proposal, the design, the specs, the implementation,
+*and* the archive commit all belong to that branch.
+
+Branches are named after the change, with a Conventional-Commit-style type:
+
+| Branch pattern            | Use when the change…                              |
+|---------------------------|---------------------------------------------------|
+| `feat/<change-name>`      | adds or extends a capability (docs optional)      |
+| `fix/<change-name>`       | corrects a defect or problem                      |
+| `doc/<change-name>`       | updates documentation only                        |
+| `refactor/` `chore/` `ci/`| other conventional types, as needed              |
+
+If a change is a feature that also updates documentation, it is a `feat/…`. Only
+when the change is *documentation only* is it a `doc/…`.
+
+### Auto-switch from `main`
+
+When you start the first change of a session from `main`, the `opsx` workflow
+**creates the branch for you** at the first artifact write: it derives the type
+from your intent and runs `git checkout -b <type>/<change-name>`. Pure
+exploration never branches (nothing is committed).
+
+If you work by hand (or with an assistant that did not switch), create the branch
+yourself before writing artifacts:
 
 ```bash
-# Sync your fork with upstream
-git fetch upstream
 git checkout main
-git merge upstream/main
-
-# Create a new feature branch
-git checkout -b feature/your-feature-name
-# or
-git checkout -b fix/issue-description
+git pull                       # (fork: git fetch upstream && git merge upstream/main)
+git checkout -b feat/my-change # or fix/… or doc/…
 ```
+
+### The deterministic guard
+
+A local `pre-commit` hook, `.github/scripts/opsx-branch-guard`, enforces the golden
+rule independently of any AI assistant or editor. On every commit it checks:
+
+```
+staged files under openspec/changes/** or openspec/specs/**
+        AND  current branch ∈ { main, master }
+        ─▶  commit REJECTED (with guidance)
+```
+
+It blocks nothing else on `main`, and never blocks OpenSpec commits on a working
+branch. Activate it with `uv run pre-commit install`. If you are certain you need
+to bypass it, `git commit --no-verify` is the explicit escape hatch.
+
+AI assistants other than Claude Code read the same rules from
+[`AGENTS.md`](../AGENTS.md).
+
+## Development Workflow
+
+### 1. Start (or continue) a change on its branch
+
+Use `/opsx:propose` to create a change (it will auto-switch you to a
+`<type>/<change-name>` branch from `main`), then `/opsx:apply` to implement it.
+Prefer using the `opsx` workflow; if you branch manually, follow the typed-branch
+convention above so the guard stays happy.
 
 ### 2. Python Development Guidelines
 
@@ -393,9 +464,20 @@ uv lock --verbose
 
 ## Submitting Your Contribution
 
-### 1. Commit Your Changes
+Your change branch already holds the whole story — proposal, design, specs,
+implementation, and (once done) the archive commit. It is merged into `main` as
+**a single Pull Request**.
 
-Follow conventional commit messages:
+### 1. Archive the change (on the branch)
+
+When implementation is complete, finalize the change with `/opsx:archive`. This
+moves it to `openspec/changes/archive/` and updates the main specs in
+`openspec/specs/`. **These commits happen on your change branch**, not on `main` —
+the guard will reject them on `main`.
+
+### 2. Commit Your Changes
+
+Follow conventional commit messages, aligned with your branch type:
 
 ```bash
 # Stage your changes
@@ -411,23 +493,26 @@ git commit -m "feat(cli): add support for EOS 4.31 versions
 Closes #123"
 ```
 
-### 2. Push to Your Fork
+If the commit is rejected because OpenSpec artifacts are staged on `main`, you
+are on the wrong branch — create `<type>/<change-name>` and commit again.
+
+### 3. Push Your Branch
 
 ```bash
-git push origin feature/your-feature-name
+git push origin feat/<change-name>   # (fork: git push origin feat/<change-name>)
 ```
 
-### 3. Create a Pull Request
+### 4. Create a Pull Request
 
-1. Navigate to your fork on GitHub
-2. Click "Compare & pull request"
-3. Fill out the PR template with:
+1. Navigate to the repository (or your fork) on GitHub
+2. Click "Compare & pull request" for your `<type>/<change-name>` branch
+3. Open **one** PR covering the whole change, and fill out the PR template with:
    - Clear description of changes
    - Reference to related issues
    - Testing performed
    - Breaking changes (if any)
 
-### 4. PR Review Process
+### 5. PR Review Process
 
 - Automated checks will run (tests, linting, type checking)
 - Code coverage must not decrease significantly

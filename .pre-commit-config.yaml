@@ -25,6 +25,17 @@ repos:
 #     - id: isort
 #       name: Check for changes when running isort on all python files
 
+# OpenSpec contribution workflow guard - deterministic, LLM-agnostic
+- repo: local
+  hooks:
+  - id: opsx-branch-guard
+    name: Block OpenSpec artifacts committed on main
+    entry: .github/scripts/opsx-branch-guard
+    language: script
+    pass_filenames: false
+    always_run: true
+    require_serial: true
+
 # Python code quality hooks - all running via UV environment
 - repo: local
   hooks:
