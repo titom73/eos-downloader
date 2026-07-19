@@ -1472,10 +1472,10 @@
 
     <div class="doc doc-contents first">
 
-        <p>ObjectDownloader class to manage file downloads with an option to use rich interface.</p>
-<p>This class provides methods to download files from URLs with progress tracking using either
-tqdm or rich interface. It supports both raw downloads and enhanced visual feedback during
-the download process.</p>
+        <p>SoftManager class to manage file downloads with a progress display.</p>
+<p>This class downloads files from URLs with progress tracking rendered through the
+:mod:<code>eos_downloader.helpers</code> reporter layer, which selects a rich (terminal) or
+plain (CI / non-TTY) display automatically.</p>
 
 
 <p><span class="doc-section-title">Functions:</span></p>
@@ -1491,15 +1491,7 @@ the download process.</p>
               <td><code><span title="eos_downloader.logics.download.download_file">download_file</span></code></td>
               <td>
                 <div class="doc-md-description">
-                  <p>Downloads a file from the given URL to the specified path with optional rich interface.</p>
-                </div>
-              </td>
-            </tr>
-            <tr class="doc-section-item">
-              <td><code><span title="eos_downloader.logics.download._download_file_raw">_download_file_raw</span></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Static method that performs the actual file download with tqdm progress bar.</p>
+                  <p>Downloads a file from the given URL to the specified path with a progress display.</p>
                 </div>
               </td>
             </tr>
@@ -1533,12 +1525,11 @@ the download process.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <div class="codehilite"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span><span class="w"> </span><span class="n">downloader</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ObjectDownloader</span><span class="p">()</span>
+  <div class="codehilite"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span><span class="w"> </span><span class="n">downloader</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SoftManager</span><span class="p">()</span>
 <span class="o">&gt;&gt;&gt;</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">downloader</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span>
 <span class="o">...</span><span class="w">     </span><span class="n">url</span><span class="o">=</span><span class="s1">'http://example.com/file.zip'</span><span class="p">,</span>
 <span class="o">...</span><span class="w">     </span><span class="n">file_path</span><span class="o">=</span><span class="s1">'/downloads'</span><span class="p">,</span>
 <span class="o">...</span><span class="w">     </span><span class="n">filename</span><span class="o">=</span><span class="s1">'file.zip'</span><span class="p">,</span>
-<span class="o">...</span><span class="w">     </span><span class="n">rich_interface</span><span class="o">=</span><span class="n">True</span>
 <span class="o">...</span><span class="w"> </span><span class="p">)</span>
 </code></pre></div>
 </details>
@@ -1571,7 +1562,9 @@ the download process.</p>
 
 <a href="#eos_downloader.logics.download.SoftManager" class="headerlink" title="Permanent link">¶</a></h3>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">SoftManager</span><span class="p">(</span>
-    <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">console</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Console</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -1638,6 +1631,24 @@ or a rich interface with enhanced visual feedback.</p>
                   <code>False</code>
             </td>
           </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>console</code>
+            </td>
+            <td>
+                  <code><span title="rich.console.Console">Console</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Shared Rich console used to render the progress display. When omitted,
+a default <code>Console</code> is created (its terminal detection then drives
+<code>progress="auto"</code>).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
       </tbody>
     </table>
 
@@ -1650,26 +1661,41 @@ or a rich interface with enhanced visual feedback.</p>
 
                   <details class="quote">
                     <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-                    <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">66</span>
-<span class="normal">67</span>
-<span class="normal">68</span>
-<span class="normal">69</span>
-<span class="normal">70</span>
-<span class="normal">71</span>
-<span class="normal">72</span>
-<span class="normal">73</span>
-<span class="normal">74</span>
-<span class="normal">75</span>
-<span class="normal">76</span>
-<span class="normal">77</span>
-<span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span>
-<span class="normal">81</span>
-<span class="normal">82</span>
-<span class="normal">83</span>
-<span class="normal">84</span>
-<span class="normal">85</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                    <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">console</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Console</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Initialize SoftManager.</span>
 
@@ -1679,6 +1705,10 @@ or a rich interface with enhanced visual feedback.</p>
 <span class="sd">        If True, simulate operations without executing them, by default False</span>
 <span class="sd">    force_download : bool, optional</span>
 <span class="sd">        If True, bypass cache and force download/import, by default False</span>
+<span class="sd">    console : Console, optional</span>
+<span class="sd">        Shared Rich console used to render the progress display. When omitted,</span>
+<span class="sd">        a default ``Console`` is created (its terminal detection then drives</span>
+<span class="sd">        ``progress="auto"``).</span>
 <span class="sd">    """</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="s2">"name"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1686,6 +1716,7 @@ or a rich interface with enhanced visual feedback.</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="s2">"sha512sum"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span> <span class="o">=</span> <span class="n">dry_run</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">force_download</span> <span class="o">=</span> <span class="n">force_download</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">console</span> <span class="o">=</span> <span class="n">console</span> <span class="k">if</span> <span class="n">console</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Console</span><span class="p">()</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"SoftManager initialized</span><span class="si">{</span><span class="s1">' in dry-run mode'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">dry_run</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}{</span><span class="s1">' with force download'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">force_download</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span>
@@ -1817,11 +1848,7 @@ or a rich interface with enhanced visual feedback.</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">242</span>
-<span class="normal">243</span>
-<span class="normal">244</span>
-<span class="normal">245</span>
-<span class="normal">246</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">246</span>
 <span class="normal">247</span>
 <span class="normal">248</span>
 <span class="normal">249</span>
@@ -1900,7 +1927,11 @@ or a rich interface with enhanced visual feedback.</p>
 <span class="normal">322</span>
 <span class="normal">323</span>
 <span class="normal">324</span>
-<span class="normal">325</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">checksum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">check_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"md5sum"</span><span class="p">,</span> <span class="s2">"sha512sum"</span><span class="p">,</span> <span class="s2">"md5"</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">checksum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">check_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"md5sum"</span><span class="p">,</span> <span class="s2">"sha512sum"</span><span class="p">,</span> <span class="s2">"md5"</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Verifies the integrity of a downloaded file using a specified checksum algorithm.</span>
 
@@ -2003,7 +2034,8 @@ or a rich interface with enhanced visual feedback.</p>
     <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">rich_interface</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="n">ProgressMode</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
+    <span class="n">rich_interface</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 </code></pre></div>
@@ -2074,6 +2106,23 @@ or a rich interface with enhanced visual feedback.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
+                <code>progress</code>
+            </td>
+            <td>
+                  <code><span title="eos_downloader.models.types.ProgressMode">ProgressMode</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Progress rendering mode: <code>"auto"</code> (default, picks rich on a TTY and
+plain otherwise), <code>"rich"</code>, <code>"plain"</code> or <code>"none"</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>'auto'</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
                 <code>rich_interface</code>
             </td>
             <td>
@@ -2081,11 +2130,12 @@ or a rich interface with enhanced visual feedback.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Whether to use rich progress bar interface. Defaults to True.</p>
+                <p>Deprecated. Use <code>progress</code> instead. <code>False</code> maps to
+<code>progress="plain"</code> and <code>True</code> maps to <code>progress="auto"</code>.</p>
               </div>
             </td>
             <td>
-                  <code>True</code>
+                  <code>None</code>
             </td>
           </tr>
           <tr class="doc-section-item">
@@ -2144,11 +2194,7 @@ or a rich interface with enhanced visual feedback.</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">327</span>
-<span class="normal">328</span>
-<span class="normal">329</span>
-<span class="normal">330</span>
-<span class="normal">331</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">331</span>
 <span class="normal">332</span>
 <span class="normal">333</span>
 <span class="normal">334</span>
@@ -2212,13 +2258,22 @@ or a rich interface with enhanced visual feedback.</p>
 <span class="normal">392</span>
 <span class="normal">393</span>
 <span class="normal">394</span>
-<span class="normal">395</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">download_file</span><span class="p">(</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">download_file</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">rich_interface</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="n">ProgressMode</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
+    <span class="n">rich_interface</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -2232,8 +2287,12 @@ or a rich interface with enhanced visual feedback.</p>
 <span class="sd">        The directory path where the file should be saved.</span>
 <span class="sd">    filename : str</span>
 <span class="sd">        The name to be given to the downloaded file.</span>
+<span class="sd">    progress : ProgressMode, optional</span>
+<span class="sd">        Progress rendering mode: ``"auto"`` (default, picks rich on a TTY and</span>
+<span class="sd">        plain otherwise), ``"rich"``, ``"plain"`` or ``"none"``.</span>
 <span class="sd">    rich_interface : bool, optional</span>
-<span class="sd">        Whether to use rich progress bar interface. Defaults to True.</span>
+<span class="sd">        Deprecated. Use ``progress`` instead. ``False`` maps to</span>
+<span class="sd">        ``progress="plain"`` and ``True`` maps to ``progress="auto"``.</span>
 <span class="sd">    force : bool, optional</span>
 <span class="sd">        If True, download even if file exists locally. Defaults to False.</span>
 
@@ -2252,6 +2311,7 @@ or a rich interface with enhanced visual feedback.</p>
 <span class="sd">    ... )</span>
 <span class="sd">    '/downloads/EOS-4.29.3M.swi'</span>
 <span class="sd">    """</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">_resolve_progress_mode</span><span class="p">(</span><span class="n">progress</span><span class="p">,</span> <span class="n">rich_interface</span><span class="p">)</span>
     <span class="n">full_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">filename</span>
 
     <span class="c1"># Check cache unless force flag is set</span>
@@ -2271,12 +2331,10 @@ or a rich interface with enhanced visual feedback.</p>
 
     <span class="c1"># Proceed with download</span>
     <span class="k">if</span> <span class="n">url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">rich_interface</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_download_file_raw</span><span class="p">(</span>
-                <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">file_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="n">rich_downloader</span> <span class="o">=</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">helpers</span><span class="o">.</span><span class="n">DownloadProgressBar</span><span class="p">()</span>
-        <span class="n">rich_downloader</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">urls</span><span class="o">=</span><span class="p">[</span><span class="n">url</span><span class="p">],</span> <span class="n">dest_dir</span><span class="o">=</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="n">reporter</span> <span class="o">=</span> <span class="n">resolve_reporter</span><span class="p">(</span>
+            <span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">console</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Downloading </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+        <span class="n">download_files_concurrently</span><span class="p">([(</span><span class="n">url</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">full_path</span><span class="p">),</span> <span class="n">filename</span><span class="p">)],</span> <span class="n">reporter</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Cannot download file </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -2298,7 +2356,9 @@ or a rich interface with enhanced visual feedback.</p>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">downloads</span><span class="p">(</span>
     <span class="n">object_arista</span><span class="p">:</span> <span class="n">AristaXmlObjects</span><span class="p">,</span>
     <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">rich_interface</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="n">ProgressMode</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
+    <span class="n">rich_interface</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span>
 </code></pre></div>
 
@@ -2308,7 +2368,8 @@ or a rich interface with enhanced visual feedback.</p>
 <p>Downloads the EOS image and optional md5/sha512 files based on the
 provided EOS XML object. Each file is downloaded to the specified path
 with appropriate filenames. Uses cache to skip already downloaded files
-unless force_download is enabled.</p>
+unless force_download is enabled. The files of a single download are
+fetched concurrently and rendered in one shared progress display.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2356,6 +2417,23 @@ unless force_download is enabled.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
+                <code>progress</code>
+            </td>
+            <td>
+                  <code><span title="eos_downloader.models.types.ProgressMode">ProgressMode</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Progress rendering mode: <code>"auto"</code> (default), <code>"rich"</code>,
+<code>"plain"</code> or <code>"none"</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>'auto'</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
                 <code>rich_interface</code>
             </td>
             <td>
@@ -2363,11 +2441,12 @@ unless force_download is enabled.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Whether to use rich console output. Defaults to True.</p>
+                <p>Deprecated. Use <code>progress</code> instead. <code>False</code> maps to
+<code>progress="plain"</code> and <code>True</code> maps to <code>progress="auto"</code>.</p>
               </div>
             </td>
             <td>
-                  <code>True</code>
+                  <code>None</code>
             </td>
           </tr>
       </tbody>
@@ -2416,15 +2495,7 @@ unless force_download is enabled.</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">397</span>
-<span class="normal">398</span>
-<span class="normal">399</span>
-<span class="normal">400</span>
-<span class="normal">401</span>
-<span class="normal">402</span>
-<span class="normal">403</span>
-<span class="normal">404</span>
-<span class="normal">405</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">405</span>
 <span class="normal">406</span>
 <span class="normal">407</span>
 <span class="normal">408</span>
@@ -2523,11 +2594,30 @@ unless force_download is enabled.</p>
 <span class="normal">501</span>
 <span class="normal">502</span>
 <span class="normal">503</span>
-<span class="normal">504</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">downloads</span><span class="p">(</span>
+<span class="normal">504</span>
+<span class="normal">505</span>
+<span class="normal">506</span>
+<span class="normal">507</span>
+<span class="normal">508</span>
+<span class="normal">509</span>
+<span class="normal">510</span>
+<span class="normal">511</span>
+<span class="normal">512</span>
+<span class="normal">513</span>
+<span class="normal">514</span>
+<span class="normal">515</span>
+<span class="normal">516</span>
+<span class="normal">517</span>
+<span class="normal">518</span>
+<span class="normal">519</span>
+<span class="normal">520</span>
+<span class="normal">521</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">downloads</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">object_arista</span><span class="p">:</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">logics</span><span class="o">.</span><span class="n">arista_xml_server</span><span class="o">.</span><span class="n">AristaXmlObjects</span><span class="p">,</span>
     <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">rich_interface</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="n">ProgressMode</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
+    <span class="n">rich_interface</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Downloads files from Arista EOS server with caching support.</span>
@@ -2535,7 +2625,8 @@ unless force_download is enabled.</p>
 <span class="sd">    Downloads the EOS image and optional md5/sha512 files based on the</span>
 <span class="sd">    provided EOS XML object. Each file is downloaded to the specified path</span>
 <span class="sd">    with appropriate filenames. Uses cache to skip already downloaded files</span>
-<span class="sd">    unless force_download is enabled.</span>
+<span class="sd">    unless force_download is enabled. The files of a single download are</span>
+<span class="sd">    fetched concurrently and rendered in one shared progress display.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -2543,8 +2634,12 @@ unless force_download is enabled.</p>
 <span class="sd">        Object containing EOS image and hash file URLs.</span>
 <span class="sd">    file_path : str</span>
 <span class="sd">        Directory path where files should be downloaded.</span>
+<span class="sd">    progress : ProgressMode, optional</span>
+<span class="sd">        Progress rendering mode: ``"auto"`` (default), ``"rich"``,</span>
+<span class="sd">        ``"plain"`` or ``"none"``.</span>
 <span class="sd">    rich_interface : bool, optional</span>
-<span class="sd">        Whether to use rich console output. Defaults to True.</span>
+<span class="sd">        Deprecated. Use ``progress`` instead. ``False`` maps to</span>
+<span class="sd">        ``progress="plain"`` and ``True`` maps to ``progress="auto"``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -2569,6 +2664,8 @@ unless force_download is enabled.</p>
 <span class="sd">    &gt;&gt;&gt; cached  # Will be False</span>
 <span class="sd">    False</span>
 <span class="sd">    """</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">_resolve_progress_mode</span><span class="p">(</span><span class="n">progress</span><span class="p">,</span> <span class="n">rich_interface</span><span class="p">)</span>
+
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"Processing files for </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2"> "</span>
         <span class="sa">f</span><span class="s2">"(force_download=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">force_download</span><span class="si">}</span><span class="s2">)"</span>
@@ -2586,6 +2683,8 @@ unless force_download is enabled.</p>
 
     <span class="c1"># Track if all files were retrieved from cache</span>
     <span class="n">all_files_cached</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1"># Files that actually need downloading, streamed together under one display.</span>
+    <span class="n">to_download</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">DownloadItem</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">file_type</span><span class="p">,</span> <span class="n">url</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">object_arista</span><span class="o">.</span><span class="n">urls</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processing </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -2601,27 +2700,12 @@ unless force_download is enabled.</p>
         <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filename not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filename not found for </span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">:</span>
-            <span class="c1"># Check if file is already cached before download</span>
-            <span class="n">full_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">filename</span>
-            <span class="n">file_was_cached</span> <span class="o">=</span> <span class="n">full_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_download</span>
 
-            <span class="c1"># download_file will check cache automatically</span>
-            <span class="c1"># unless self.force_download is True</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span>
-                <span class="n">url</span><span class="p">,</span>
-                <span class="n">file_path</span><span class="p">,</span>
-                <span class="n">filename</span><span class="p">,</span>
-                <span class="n">rich_interface</span><span class="o">=</span><span class="n">rich_interface</span><span class="p">,</span>
-                <span class="n">force</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">force_download</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="n">full_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">filename</span>
+        <span class="n">file_was_cached</span> <span class="o">=</span> <span class="n">full_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_download</span>
 
-            <span class="c1"># Update cache tracking</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">file_was_cached</span><span class="p">:</span>
-                <span class="n">all_files_cached</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">full_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">filename</span>
-            <span class="k">if</span> <span class="n">full_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_download</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">file_was_cached</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[DRY-RUN] Would use cached file: </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -2629,6 +2713,19 @@ unless force_download is enabled.</p>
                     <span class="sa">f</span><span class="s2">"for version </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">"</span>
                 <span class="p">)</span>
                 <span class="n">all_files_cached</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">file_was_cached</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Using cached file: </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">all_files_cached</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">to_download</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">url</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">full_path</span><span class="p">),</span> <span class="n">filename</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">to_download</span><span class="p">:</span>
+        <span class="n">reporter</span> <span class="o">=</span> <span class="n">resolve_reporter</span><span class="p">(</span>
+            <span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">console</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Downloading </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+        <span class="n">download_files_concurrently</span><span class="p">(</span><span class="n">to_download</span><span class="p">,</span> <span class="n">reporter</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">all_files_cached</span>
 </code></pre></div></td></tr></tbody></table></div>
@@ -2799,24 +2896,7 @@ False if image was imported</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">576</span>
-<span class="normal">577</span>
-<span class="normal">578</span>
-<span class="normal">579</span>
-<span class="normal">580</span>
-<span class="normal">581</span>
-<span class="normal">582</span>
-<span class="normal">583</span>
-<span class="normal">584</span>
-<span class="normal">585</span>
-<span class="normal">586</span>
-<span class="normal">587</span>
-<span class="normal">588</span>
-<span class="normal">589</span>
-<span class="normal">590</span>
-<span class="normal">591</span>
-<span class="normal">592</span>
-<span class="normal">593</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">593</span>
 <span class="normal">594</span>
 <span class="normal">595</span>
 <span class="normal">596</span>
@@ -2888,7 +2968,24 @@ False if image was imported</p>
 <span class="normal">662</span>
 <span class="normal">663</span>
 <span class="normal">664</span>
-<span class="normal">665</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">import_docker</span><span class="p">(</span>
+<span class="normal">665</span>
+<span class="normal">666</span>
+<span class="normal">667</span>
+<span class="normal">668</span>
+<span class="normal">669</span>
+<span class="normal">670</span>
+<span class="normal">671</span>
+<span class="normal">672</span>
+<span class="normal">673</span>
+<span class="normal">674</span>
+<span class="normal">675</span>
+<span class="normal">676</span>
+<span class="normal">677</span>
+<span class="normal">678</span>
+<span class="normal">679</span>
+<span class="normal">680</span>
+<span class="normal">681</span>
+<span class="normal">682</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">import_docker</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">local_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">docker_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"arista/ceos"</span><span class="p">,</span>
@@ -2993,7 +3090,9 @@ False if image was imported</p>
 
 <a href="#eos_downloader.logics.download.SoftManager.provision_eve" class="headerlink" title="Permanent link">¶</a></h4>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">provision_eve</span><span class="p">(</span>
-    <span class="n">object_arista</span><span class="p">:</span> <span class="n">EosXmlObject</span><span class="p">,</span> <span class="n">noztp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">object_arista</span><span class="p">:</span> <span class="n">EosXmlObject</span><span class="p">,</span>
+    <span class="n">noztp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="n">ProgressMode</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
 
@@ -3043,6 +3142,23 @@ False if image was imported</p>
             </td>
             <td>
                   <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>progress</code>
+            </td>
+            <td>
+                  <code><span title="eos_downloader.models.types.ProgressMode">ProgressMode</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Progress rendering mode: <code>"auto"</code> (default), <code>"rich"</code>,
+<code>"plain"</code> or <code>"none"</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>'auto'</code>
             </td>
           </tr>
       </tbody>
@@ -3097,24 +3213,7 @@ False if image was imported</p>
 
             <details class="quote">
               <summary>Source code in <code>eos_downloader/logics/download.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">668</span>
-<span class="normal">669</span>
-<span class="normal">670</span>
-<span class="normal">671</span>
-<span class="normal">672</span>
-<span class="normal">673</span>
-<span class="normal">674</span>
-<span class="normal">675</span>
-<span class="normal">676</span>
-<span class="normal">677</span>
-<span class="normal">678</span>
-<span class="normal">679</span>
-<span class="normal">680</span>
-<span class="normal">681</span>
-<span class="normal">682</span>
-<span class="normal">683</span>
-<span class="normal">684</span>
-<span class="normal">685</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">685</span>
 <span class="normal">686</span>
 <span class="normal">687</span>
 <span class="normal">688</span>
@@ -3218,10 +3317,32 @@ False if image was imported</p>
 <span class="normal">786</span>
 <span class="normal">787</span>
 <span class="normal">788</span>
-<span class="normal">789</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">provision_eve</span><span class="p">(</span>
+<span class="normal">789</span>
+<span class="normal">790</span>
+<span class="normal">791</span>
+<span class="normal">792</span>
+<span class="normal">793</span>
+<span class="normal">794</span>
+<span class="normal">795</span>
+<span class="normal">796</span>
+<span class="normal">797</span>
+<span class="normal">798</span>
+<span class="normal">799</span>
+<span class="normal">800</span>
+<span class="normal">801</span>
+<span class="normal">802</span>
+<span class="normal">803</span>
+<span class="normal">804</span>
+<span class="normal">805</span>
+<span class="normal">806</span>
+<span class="normal">807</span>
+<span class="normal">808</span>
+<span class="normal">809</span>
+<span class="normal">810</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">provision_eve</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">object_arista</span><span class="p">:</span> <span class="n">eos_downloader</span><span class="o">.</span><span class="n">logics</span><span class="o">.</span><span class="n">arista_xml_server</span><span class="o">.</span><span class="n">EosXmlObject</span><span class="p">,</span>
     <span class="n">noztp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="n">ProgressMode</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Provisions EVE-NG with the specified Arista EOS object.</span>
@@ -3232,6 +3353,9 @@ False if image was imported</p>
 <span class="sd">        The Arista EOS object containing version, filename, and URLs.</span>
 <span class="sd">    noztp : bool, optional</span>
 <span class="sd">        If True, disables ZTP (Zero Touch Provisioning). Defaults to False.</span>
+<span class="sd">    progress : ProgressMode, optional</span>
+<span class="sd">        Progress rendering mode: ``"auto"`` (default), ``"rich"``,</span>
+<span class="sd">        ``"plain"`` or ``"none"``.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
@@ -3294,7 +3418,7 @@ False if image was imported</p>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"downloading file </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> for version </span><span class="si">{</span><span class="n">object_arista</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">rich_interface</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="n">progress</span><span class="p">)</span>
 
     <span class="c1"># Convert to QCOW2 format</span>
     <span class="k">if</span> <span class="n">eos_filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
