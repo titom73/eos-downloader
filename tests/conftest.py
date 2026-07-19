@@ -26,9 +26,15 @@ from loguru import logger
 
 @pytest.fixture(autouse=True)
 def _isolate_test_environment(monkeypatch: pytest.MonkeyPatch) -> object:
-    """Isolate loguru handlers and terminal width around every test."""
+    """Isolate loguru handlers, terminal width and color around every test."""
     # Stable, wide terminal so Rich-rendered Typer help never wraps/truncates.
     monkeypatch.setenv("COLUMNS", "200")
+    # Disable ANSI colorization. CI runners set FORCE_COLOR/CI, which makes Rich
+    # emit color escape codes in the Typer help; those codes split tokens such
+    # as "Usage: ardl" or "--log-level" so plain-substring assertions would fail
+    # only on CI. NO_COLOR keeps help output plain text everywhere.
+    monkeypatch.setenv("NO_COLOR", "1")
+    monkeypatch.delenv("FORCE_COLOR", raising=False)
 
     # Drop any loguru handler left over from a previous test (it may be bound to
     # a captured stream that has since been closed).
