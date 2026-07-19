@@ -197,12 +197,25 @@ class TestSigintGuard:
             assert during != original
         assert signal.getsignal(signal.SIGINT) == original
 
-    def test_guard_sets_event_on_signal(self) -> None:
-        done = Event()
-        with sigint_guard(done):
-            handler = signal.getsignal(signal.SIGINT)
-            handler(signal.SIGINT, None)  # type: ignore[misc]
-        assert done.is_set()
+    def test_guard_sets_event_and_chains_to_previous(self) -> None:
+        calls: List[int] = []
+
+        def previous(signum: int, frame: Any) -> None:
+            calls.append(signum)
+
+        original = signal.getsignal(signal.SIGINT)
+        signal.signal(signal.SIGINT, previous)
+        try:
+            done = Event()
+            with sigint_guard(done):
+                handler = signal.getsignal(signal.SIGINT)
+                handler(signal.SIGINT, None)  # type: ignore[misc]
+            # Event is set (workers stop) AND the previous handler still runs
+            # (interruption is not swallowed).
+            assert done.is_set()
+            assert calls == [signal.SIGINT]
+        finally:
+            signal.signal(signal.SIGINT, original)
 
 
 class TestStreamToFile:
@@ -220,9 +233,12 @@ class TestStreamToFile:
         mock_file.assert_called_once_with("/tmp/file.txt", "wb")
         assert mock_file().write.call_count > 0
 
+    @patch("eos_downloader.helpers.os.remove")
     @patch("eos_downloader.helpers.requests.get")
     @patch("builtins.open", new_callable=mock_open)
-    def test_interrupted_by_event(self, mock_file: Mock, mock_get: Mock) -> None:
+    def test_interrupted_by_event(
+        self, mock_file: Mock, mock_get: Mock, mock_remove: Mock
+    ) -> None:
         done = Event()
 
         def chunks(chunk_size: int) -> Any:
@@ -239,6 +255,8 @@ class TestStreamToFile:
             ("http://x/file.txt", "/tmp/file.txt", "file.txt"), NoopReporter(), done
         )
         assert interrupted is True
+        # The partial file is removed so it is not later treated as cached.
+        mock_remove.assert_called_once_with("/tmp/file.txt")
 
     @patch("eos_downloader.helpers.requests.get")
     @patch("builtins.open", new_callable=mock_open)
@@ -261,6 +279,47 @@ class TestStreamToFile:
                 Event(),
             )
         assert mock_get.call_args[1]["headers"] is not None
+
+    @patch("eos_downloader.helpers.requests.get")
+    @patch("builtins.open", new_callable=mock_open)
+    def test_http_error_raises_before_writing(
+        self, mock_file: Mock, mock_get: Mock
+    ) -> None:
+        resp = _mock_response([b"data"], "4")
+        resp.raise_for_status.side_effect = requests.HTTPError("404")
+        mock_get.return_value = resp
+
+        with pytest.raises(requests.HTTPError):
+            _stream_to_file(
+                ("http://x/file.txt", "/tmp/file.txt", "file.txt"),
+                NoopReporter(),
+                Event(),
+            )
+        # No error page written to disk.
+        mock_file().write.assert_not_called()
+        resp.close.assert_called_once()
+
+    @patch("eos_downloader.helpers.requests.get")
+    @patch("builtins.open", new_callable=mock_open)
+    def test_empty_keep_alive_chunks_skipped(
+        self, mock_file: Mock, mock_get: Mock
+    ) -> None:
+        mock_get.return_value = _mock_response([b"", b"data", b"", b"more"], "8")
+        _stream_to_file(
+            ("http://x/file.txt", "/tmp/file.txt", "file.txt"), NoopReporter(), Event()
+        )
+        # Only the two non-empty chunks are written.
+        assert mock_file().write.call_count == 2
+
+    @patch("eos_downloader.helpers.requests.get")
+    @patch("builtins.open", new_callable=mock_open)
+    def test_response_closed_on_success(self, mock_file: Mock, mock_get: Mock) -> None:
+        resp = _mock_response([b"data"], "4")
+        mock_get.return_value = resp
+        _stream_to_file(
+            ("http://x/file.txt", "/tmp/file.txt", "file.txt"), NoopReporter(), Event()
+        )
+        resp.close.assert_called_once()
 
 
 class _RecordingReporter(DownloadReporter):

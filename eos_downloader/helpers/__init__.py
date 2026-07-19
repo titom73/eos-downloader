@@ -31,6 +31,7 @@ Functions
 # pylint: disable=unused-argument
 # pylint: disable=too-few-public-methods
 
+import os
 import signal
 import time
 from abc import ABC, abstractmethod
@@ -66,11 +67,15 @@ DownloadItem = Tuple[str, str, str]
 
 @contextmanager
 def sigint_guard(done_event: Event) -> Iterator[None]:
-    """Temporarily route ``SIGINT`` to a done event for the duration of a block.
+    """Route ``SIGINT`` to a done event, then defer to the previous handler.
 
-    The previous handler is saved and restored on exit, so importing this module
-    has no process-wide side effect. If a handler cannot be installed (e.g. the
-    caller is not in the main thread), the block still runs without interception.
+    On Ctrl+C the workers are asked to stop promptly (via ``done_event``) and the
+    previous handler is then invoked so the interruption still propagates — a
+    default handler raises ``KeyboardInterrupt`` in the main thread rather than
+    letting the download look like a clean completion. The previous handler is
+    saved and restored on exit, so importing this module has no process-wide side
+    effect. If a handler cannot be installed (e.g. the caller is not in the main
+    thread), the block still runs without interception.
 
     Parameters
     ----------
@@ -83,9 +88,19 @@ def sigint_guard(done_event: Event) -> Iterator[None]:
     """
     previous: Any = None
     installed = False
+
+    def handler(signum: int, frame: Any) -> None:
+        done_event.set()
+        if callable(previous):
+            previous(signum, frame)
+        elif previous == signal.SIG_DFL:
+            # Reproduce the default behaviour: raise KeyboardInterrupt.
+            signal.default_int_handler(signum, frame)
+        # signal.SIG_IGN: intentionally leave the signal ignored.
+
     try:
         previous = signal.getsignal(signal.SIGINT)
-        signal.signal(signal.SIGINT, lambda signum, frame: done_event.set())
+        signal.signal(signal.SIGINT, handler)
         installed = True
     except ValueError:
         # Not in the main thread: leave signal handling untouched.
@@ -182,24 +197,40 @@ class RichReporter(DownloadReporter):
     def __exit__(self, *exc_info: Any) -> None:
         self._live.stop()
 
+    def _total_completed(self) -> float:
+        """Return the bytes already counted on the Total task."""
+        task = next((t for t in self._progress.tasks if t.id == self._total_task), None)
+        return task.completed if task is not None else 0
+
     def add_file(self, name: str, total: Optional[int]) -> TaskID:
         task_id = self._progress.add_task(name, total=total)
         with self._lock:
             if total is None:
-                # A file of unknown size makes the aggregate indeterminate.
-                self._total_indeterminate = True
+                if not self._total_indeterminate:
+                    # A file of unknown size makes the aggregate indeterminate.
+                    # ``Progress.update(total=None)`` means "leave unchanged", so
+                    # the Total task is re-created (public API), preserving the
+                    # bytes already counted.
+                    completed = self._total_completed()
+                    self._progress.remove_task(self._total_task)
+                    self._total_task = self._progress.add_task(
+                        "Total", total=None, completed=completed
+                    )
+                    self._total_indeterminate = True
             else:
                 self._total_known += total
-            # ``Progress.update(total=None)`` means "leave unchanged", so the
-            # indeterminate total is set on the Task directly.
-            self._progress._tasks[  # pylint: disable=protected-access
-                self._total_task
-            ].total = (None if self._total_indeterminate else self._total_known)
+                if not self._total_indeterminate:
+                    self._progress.update(self._total_task, total=self._total_known)
         return task_id
 
     def advance(self, handle: TaskID, n_bytes: int) -> None:
         self._progress.update(handle, advance=n_bytes)
-        self._progress.update(self._total_task, advance=n_bytes)
+        try:
+            self._progress.update(self._total_task, advance=n_bytes)
+        except KeyError:
+            # The Total task may be mid-recreation (an unknown-size file is
+            # registering and switching the aggregate to indeterminate).
+            pass
 
     def complete(self, handle: TaskID) -> None:
         task = next((t for t in self._progress.tasks if t.id == handle), None)
@@ -320,6 +351,11 @@ def _stream_to_file(
     -------
     bool
         True if the download was interrupted, False if it completed.
+
+    Raises
+    ------
+    requests.HTTPError
+        If the server returns an error status code.
     """
     url, dest_path, display_name = item
     response = requests.get(
@@ -328,15 +364,34 @@ def _stream_to_file(
         timeout=5,
         headers=eos_downloader.defaults.DEFAULT_REQUEST_HEADERS,
     )
-    content_length = response.headers.get("Content-Length")
-    total = int(content_length) if content_length is not None else None
-    handle = reporter.add_file(display_name, total)
-    with open(dest_path, "wb") as dest_file:
-        for data in response.iter_content(chunk_size=block_size):
-            dest_file.write(data)
-            reporter.advance(handle, len(data))
-            if done_event.is_set():
-                return True
+    interrupted = False
+    try:
+        # Surface HTTP errors before writing an error page to disk.
+        response.raise_for_status()
+        content_length = response.headers.get("Content-Length")
+        total = int(content_length) if content_length is not None else None
+        handle = reporter.add_file(display_name, total)
+        with open(dest_path, "wb") as dest_file:
+            for data in response.iter_content(chunk_size=block_size):
+                if not data:
+                    # Skip empty keep-alive chunks so they don't inflate progress.
+                    continue
+                dest_file.write(data)
+                reporter.advance(handle, len(data))
+                if done_event.is_set():
+                    interrupted = True
+                    break
+    finally:
+        response.close()
+
+    if interrupted:
+        # Drop the partial file so a later run does not mistake it for a
+        # complete, cached download.
+        try:
+            os.remove(dest_path)
+        except OSError:
+            pass
+        return True
     reporter.complete(handle)
     return False
 
