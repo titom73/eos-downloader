@@ -20,7 +20,7 @@ uv sync
 **Packages installed**: 31 packages (core dependencies only)
 
 **Includes**:
-- Core application dependencies (click, requests, rich, loguru, tqdm, pydantic, etc.)
+- Core application dependencies (typer, requests, rich, loguru, pydantic, etc.)
 - Runtime requirements for CLI commands (ardl, lard)
 - Essential libraries (cryptography, paramiko, cvprac)
 

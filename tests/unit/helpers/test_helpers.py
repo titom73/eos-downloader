@@ -4,411 +4,327 @@
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
 
-"""
-Comprehensive tests for helpers/__init__.py module.
+"""Tests for the download progress reporter layer in helpers/__init__.py.
 
-Tests the DownloadProgressBar class and signal handling for file downloads.
+Covers reporter selection, the plain (non-TTY) reporter, the rich reporter,
+signal-handler scoping, single-file streaming and concurrent downloads.
 """
 
+import re
 import signal
-from pathlib import Path
+import time
 from threading import Event
-from typing import List
-from unittest.mock import Mock, MagicMock, patch, mock_open
+from typing import Any, Dict, List, Optional
+from unittest.mock import Mock, mock_open, patch
 
 import pytest
 import requests
+from loguru import logger
+from rich.console import Console
 
 from eos_downloader.helpers import (
-    DownloadProgressBar,
-    handle_sigint,
-    done_event,
-    console,
+    DownloadReporter,
+    NoopReporter,
+    PlainReporter,
+    RichReporter,
+    download_files_concurrently,
+    resolve_reporter,
+    sigint_guard,
+    _stream_to_file,
 )
 
-
-class TestSignalHandling:
-    """Test suite for signal handling functions."""
-
-    def test_handle_sigint_sets_done_event(self) -> None:
-        """Test that handle_sigint sets the done_event."""
-        # Arrange - create fresh event for testing
-        test_event = Event()
-        assert not test_event.is_set()
-
-        # Act - simulate SIGINT with mock event
-        with patch("eos_downloader.helpers.done_event", test_event):
-            handle_sigint(signal.SIGINT, None)
-
-        # Assert
-        assert test_event.is_set()
-
-    def test_handle_sigint_callable(self) -> None:
-        """Test that handle_sigint is callable with signal args."""
-        # Should not raise any exceptions
-        handle_sigint(signal.SIGINT, None)
-        handle_sigint(15, Mock())  # Any signal number
-
-    def test_console_instance_exists(self) -> None:
-        """Test that console instance is available."""
-        from eos_downloader.helpers import console
-        from rich.console import Console
-
-        assert console is not None
-        assert isinstance(console, Console)
-
-    def test_done_event_instance_exists(self) -> None:
-        """Test that done_event instance is available."""
-        from eos_downloader.helpers import done_event
-
-        assert done_event is not None
-        assert isinstance(done_event, Event)
+ANSI_RE = re.compile(r"\x1b\[")
 
 
-class TestDownloadProgressBar:
-    """Test suite for DownloadProgressBar class."""
+def _mock_response(chunks: List[bytes], content_length: Optional[str]) -> Mock:
+    """Build a mock streaming ``requests`` response."""
+    resp = Mock(spec=requests.Response)
+    resp.headers = {} if content_length is None else {"Content-Length": content_length}
+    resp.iter_content = lambda chunk_size: iter(chunks)
+    return resp
 
-    @pytest.fixture(autouse=True)
-    def reset_done_event(self) -> None:
-        """Ensure done_event is cleared before each test."""
-        done_event.clear()
-        yield
-        done_event.clear()  # Also clear after test
+
+class TestReporterSelection:
+    """resolve_reporter picks the right implementation."""
 
     @pytest.fixture
-    def progress_bar(self) -> DownloadProgressBar:
-        """Provide DownloadProgressBar instance."""
-        return DownloadProgressBar()
+    def tty_console(self) -> Console:
+        return Console(force_terminal=True)
 
     @pytest.fixture
-    def mock_response(self) -> Mock:
-        """Provide mock HTTP response."""
-        mock_resp = Mock(spec=requests.Response)
-        mock_resp.headers = {"Content-Length": "1024"}
+    def notty_console(self) -> Console:
+        return Console(force_terminal=False)
 
-        # iter_content should return a fresh iterator each time
-        def make_chunks(chunk_size):
-            """Generate chunks for each call."""
-            return iter([b"data" * 64 for _ in range(4)])
+    def test_auto_on_terminal_selects_rich(self, tty_console: Console) -> None:
+        assert isinstance(resolve_reporter("auto", tty_console), RichReporter)
 
-        mock_resp.iter_content = make_chunks
-        return mock_resp
+    def test_auto_off_terminal_selects_plain(self, notty_console: Console) -> None:
+        assert isinstance(resolve_reporter("auto", notty_console), PlainReporter)
 
-    def test_progress_bar_initialization(
-        self, progress_bar: DownloadProgressBar
-    ) -> None:
-        """Test DownloadProgressBar initializes correctly."""
-        from rich.progress import Progress
+    def test_explicit_rich_overrides_detection(self, notty_console: Console) -> None:
+        assert isinstance(resolve_reporter("rich", notty_console), RichReporter)
 
-        assert progress_bar is not None
-        assert hasattr(progress_bar, "progress")
-        assert isinstance(progress_bar.progress, Progress)
+    def test_explicit_plain_overrides_detection(self, tty_console: Console) -> None:
+        assert isinstance(resolve_reporter("plain", tty_console), PlainReporter)
 
-    def test_progress_bar_has_custom_columns(
-        self, progress_bar: DownloadProgressBar
-    ) -> None:
-        """Test that progress bar has custom columns configured."""
-        # Verify progress object has columns
-        assert progress_bar.progress is not None
-        # Should have multiple columns (text, bar, percentage, etc.)
-        assert len(progress_bar.progress.columns) > 0
+    def test_none_selects_noop(self, tty_console: Console) -> None:
+        assert isinstance(resolve_reporter("none", tty_console), NoopReporter)
 
-    @patch("requests.get")
-    @patch("builtins.open", new_callable=mock_open)
-    def test_copy_url_success(
-        self,
-        mock_file: Mock,
-        mock_get: Mock,
-        progress_bar: DownloadProgressBar,
-        mock_response: Mock,
-    ) -> None:
-        """Test _copy_url downloads file successfully."""
-        # Arrange
-        mock_get.return_value = mock_response
-        task_id = progress_bar.progress.add_task("test", start=False)
 
-        # Act
-        result = progress_bar._copy_url(
-            task_id, "http://example.com/file.txt", "/tmp/file.txt"
+class TestNoopReporter:
+    """NoopReporter does nothing and never raises."""
+
+    def test_noop_lifecycle(self) -> None:
+        reporter = NoopReporter()
+        with reporter:
+            handle = reporter.add_file("file.swi", 100)
+            reporter.advance(handle, 50)
+            reporter.complete(handle)
+        assert handle is None
+
+
+class TestPlainReporter:
+    """PlainReporter emits ANSI-free loguru lifecycle lines."""
+
+    @pytest.fixture
+    def captured(self) -> List[str]:
+        """Capture the raw (unformatted) loguru message text of each record."""
+        messages: List[str] = []
+        sink_id = logger.add(
+            lambda message: messages.append(message.record["message"]), colorize=False
         )
+        yield messages
+        logger.remove(sink_id)
 
-        # Assert
-        assert result is False  # False means completed successfully
-        mock_get.assert_called_once()
+    def test_lifecycle_lines_emitted(self, captured: List[str]) -> None:
+        reporter = PlainReporter()
+        with reporter:
+            handle = reporter.add_file("EOS.swi", 100)
+            for _ in range(10):
+                reporter.advance(handle, 10)
+            reporter.complete(handle)
+
+        joined = "\n".join(captured)
+        assert "Downloading EOS.swi" in joined
+        assert "done in" in joined
+
+    def test_progress_reported_every_10_percent(self, captured: List[str]) -> None:
+        reporter = PlainReporter()
+        handle = reporter.add_file("EOS.swi", 100)
+        for _ in range(10):
+            reporter.advance(handle, 10)
+        reporter.complete(handle)
+
+        joined = "\n".join(captured)
+        # 10%..90% milestones (100% is covered by the completion line).
+        for milestone in range(10, 100, 10):
+            assert f"{milestone}%" in joined
+
+    def test_no_ansi_escape_sequences(self, captured: List[str]) -> None:
+        reporter = PlainReporter()
+        handle = reporter.add_file("EOS.swi", 100)
+        reporter.advance(handle, 50)
+        reporter.advance(handle, 50)
+        reporter.complete(handle)
+
+        for message in captured:
+            assert not ANSI_RE.search(message), f"ANSI sequence found in: {message!r}"
+
+    def test_unknown_size_does_not_crash(self, captured: List[str]) -> None:
+        reporter = PlainReporter()
+        handle = reporter.add_file("EOS.swi", None)
+        reporter.advance(handle, 500)
+        reporter.complete(handle)
+
+        joined = "\n".join(captured)
+        assert "unknown size" in joined
+
+
+class TestRichReporter:
+    """RichReporter aggregates files into one shared Progress."""
+
+    @pytest.fixture
+    def reporter(self) -> RichReporter:
+        return RichReporter(Console(force_terminal=True))
+
+    def test_add_file_aggregates_total(self, reporter: RichReporter) -> None:
+        reporter.add_file("a", 100)
+        reporter.add_file("b", 50)
+        total_task = next(
+            t for t in reporter._progress.tasks if t.id == reporter._total_task
+        )
+        assert total_task.total == 150
+
+    def test_unknown_size_makes_total_indeterminate(
+        self, reporter: RichReporter
+    ) -> None:
+        reporter.add_file("a", None)
+        total_task = next(
+            t for t in reporter._progress.tasks if t.id == reporter._total_task
+        )
+        assert total_task.total is None
+
+    def test_advance_updates_file_and_total(self, reporter: RichReporter) -> None:
+        handle = reporter.add_file("a", 100)
+        reporter.advance(handle, 40)
+        file_task = next(t for t in reporter._progress.tasks if t.id == handle)
+        total_task = next(
+            t for t in reporter._progress.tasks if t.id == reporter._total_task
+        )
+        assert file_task.completed == 40
+        assert total_task.completed == 40
+
+
+class TestSigintGuard:
+    """Signal handling is scoped, with no import-time side effect."""
+
+    def test_import_does_not_replace_sigint_handler(self) -> None:
+        # Re-importing the module must not have installed a global handler.
+        import importlib
+
+        import eos_downloader.helpers as helpers_module
+
+        before = signal.getsignal(signal.SIGINT)
+        importlib.reload(helpers_module)
+        after = signal.getsignal(signal.SIGINT)
+        assert before == after
+
+    def test_guard_installs_then_restores_handler(self) -> None:
+        original = signal.getsignal(signal.SIGINT)
+        done = Event()
+        with sigint_guard(done):
+            during = signal.getsignal(signal.SIGINT)
+            assert during != original
+        assert signal.getsignal(signal.SIGINT) == original
+
+    def test_guard_sets_event_on_signal(self) -> None:
+        done = Event()
+        with sigint_guard(done):
+            handler = signal.getsignal(signal.SIGINT)
+            handler(signal.SIGINT, None)  # type: ignore[misc]
+        assert done.is_set()
+
+
+class TestStreamToFile:
+    """_stream_to_file streams a single file into a reporter."""
+
+    @patch("eos_downloader.helpers.requests.get")
+    @patch("builtins.open", new_callable=mock_open)
+    def test_success(self, mock_file: Mock, mock_get: Mock) -> None:
+        mock_get.return_value = _mock_response([b"data" * 64] * 4, "1024")
+        reporter = NoopReporter()
+        interrupted = _stream_to_file(
+            ("http://x/file.txt", "/tmp/file.txt", "file.txt"), reporter, Event()
+        )
+        assert interrupted is False
         mock_file.assert_called_once_with("/tmp/file.txt", "wb")
-        # Verify data was written
         assert mock_file().write.call_count > 0
 
-    @patch("requests.get")
+    @patch("eos_downloader.helpers.requests.get")
     @patch("builtins.open", new_callable=mock_open)
-    def test_copy_url_with_custom_block_size(
-        self,
-        mock_file: Mock,
-        mock_get: Mock,
-        progress_bar: DownloadProgressBar,
-        mock_response: Mock,
-    ) -> None:
-        """Test _copy_url with custom block size."""
-        mock_get.return_value = mock_response
-        task_id = progress_bar.progress.add_task("test", start=False)
+    def test_interrupted_by_event(self, mock_file: Mock, mock_get: Mock) -> None:
+        done = Event()
 
-        # Wrap iter_content to track calls while keeping functionality
-        original_iter_content = mock_response.iter_content
-        mock_response.iter_content = Mock(side_effect=original_iter_content)
-
-        result = progress_bar._copy_url(
-            task_id,
-            "http://example.com/file.txt",
-            "/tmp/file.txt",
-            block_size=2048,
-        )
-
-        assert result is False
-        # Verify iter_content called with custom block size
-        mock_response.iter_content.assert_called_with(chunk_size=2048)
-
-    @patch("requests.get")
-    @patch("builtins.open", new_callable=mock_open)
-    def test_copy_url_interrupted_by_done_event(
-        self,
-        mock_file: Mock,
-        mock_get: Mock,
-        progress_bar: DownloadProgressBar,
-    ) -> None:
-        """Test _copy_url respects done_event interruption."""
-        # Arrange - create response that sets done_event mid-download
-        mock_resp = Mock()
-        mock_resp.headers = {"Content-Length": "1024"}
-
-        def iter_with_interrupt(chunk_size: int):
-            """Simulate interrupt after first chunk."""
+        def chunks(chunk_size: int) -> Any:
             yield b"data1"
-            done_event.set()  # Interrupt
-            yield b"data2"  # This shouldn't be written
+            done.set()
+            yield b"data2"
 
-        mock_resp.iter_content = iter_with_interrupt
-        mock_get.return_value = mock_resp
-        task_id = progress_bar.progress.add_task("test", start=False)
+        resp = Mock()
+        resp.headers = {"Content-Length": "1024"}
+        resp.iter_content = chunks
+        mock_get.return_value = resp
 
-        try:
-            # Act
-            result = progress_bar._copy_url(
-                task_id, "http://example.com/file.txt", "/tmp/file.txt"
-            )
+        interrupted = _stream_to_file(
+            ("http://x/file.txt", "/tmp/file.txt", "file.txt"), NoopReporter(), done
+        )
+        assert interrupted is True
 
-            # Assert - should return True for interrupted
-            assert result is True
-        finally:
-            # Cleanup - clear the event
-            done_event.clear()
-
-    @patch("requests.get")
-    def test_copy_url_handles_missing_content_length(
-        self,
-        mock_get: Mock,
-        progress_bar: DownloadProgressBar,
-    ) -> None:
-        """Test _copy_url raises error when Content-Length missing."""
-        # Arrange
-        mock_resp = Mock()
-        mock_resp.headers = {}  # No Content-Length
-        mock_get.return_value = mock_resp
-        task_id = progress_bar.progress.add_task("test", start=False)
-
-        # Act & Assert
-        with pytest.raises(KeyError):
-            progress_bar._copy_url(
-                task_id, "http://example.com/file.txt", "/tmp/file.txt"
-            )
-
-    @patch("requests.get")
-    def test_copy_url_handles_network_error(
-        self,
-        mock_get: Mock,
-        progress_bar: DownloadProgressBar,
-    ) -> None:
-        """Test _copy_url handles network errors."""
-        # Arrange
-        mock_get.side_effect = requests.RequestException("Network error")
-        task_id = progress_bar.progress.add_task("test", start=False)
-
-        # Act & Assert
-        with pytest.raises(requests.RequestException):
-            progress_bar._copy_url(
-                task_id, "http://example.com/file.txt", "/tmp/file.txt"
-            )
-
-    @patch("requests.get")
+    @patch("eos_downloader.helpers.requests.get")
     @patch("builtins.open", new_callable=mock_open)
-    def test_copy_url_updates_progress(
-        self,
-        mock_file: Mock,
-        mock_get: Mock,
-        progress_bar: DownloadProgressBar,
-        mock_response: Mock,
+    def test_missing_content_length_does_not_crash(
+        self, mock_file: Mock, mock_get: Mock
     ) -> None:
-        """Test that _copy_url updates progress correctly."""
-        mock_get.return_value = mock_response
-        task_id = progress_bar.progress.add_task("test", start=False)
+        mock_get.return_value = _mock_response([b"data"], None)
+        interrupted = _stream_to_file(
+            ("http://x/file.txt", "/tmp/file.txt", "file.txt"), NoopReporter(), Event()
+        )
+        assert interrupted is False
 
-        with patch.object(progress_bar.progress, "update") as mock_update:
-            progress_bar._copy_url(
-                task_id, "http://example.com/file.txt", "/tmp/file.txt"
+    @patch("eos_downloader.helpers.requests.get")
+    def test_default_headers_sent(self, mock_get: Mock) -> None:
+        mock_get.return_value = _mock_response([b"data"], "4")
+        with patch("builtins.open", new_callable=mock_open):
+            _stream_to_file(
+                ("http://x/file.txt", "/tmp/file.txt", "file.txt"),
+                NoopReporter(),
+                Event(),
             )
+        assert mock_get.call_args[1]["headers"] is not None
 
-            # Verify progress.update was called
-            assert mock_update.call_count > 0
-            # First call should set total
-            first_call = mock_update.call_args_list[0]
-            assert "total" in first_call[1]
 
-    @patch.object(DownloadProgressBar, "_copy_url")
-    def test_download_single_url(
-        self,
-        mock_copy: Mock,
-        progress_bar: DownloadProgressBar,
-        tmp_path: Path,
-    ) -> None:
-        """Test download method with single URL."""
-        # Arrange
-        mock_copy.return_value = False
-        urls = ["http://example.com/file.txt"]
+class _RecordingReporter(DownloadReporter):
+    """Reporter that records add_file/advance/complete calls thread-safely."""
 
-        # Act
-        progress_bar.download(urls, str(tmp_path))
+    def __init__(self) -> None:
+        self.added: List[str] = []
+        self.completed: List[str] = []
+        self._names: Dict[int, str] = {}
+        self._counter = 0
 
-        # Assert
-        mock_copy.assert_called_once()
-        call_args = mock_copy.call_args
-        assert "http://example.com/file.txt" in call_args[0]
-        assert str(tmp_path) in call_args[0][2]
+    def add_file(self, name: str, total: Optional[int]) -> int:
+        handle = self._counter
+        self._counter += 1
+        self._names[handle] = name
+        self.added.append(name)
+        return handle
 
-    @patch.object(DownloadProgressBar, "_copy_url")
-    def test_download_multiple_urls(
-        self,
-        mock_copy: Mock,
-        progress_bar: DownloadProgressBar,
-        tmp_path: Path,
-    ) -> None:
-        """Test download method with multiple URLs."""
-        mock_copy.return_value = False
-        urls = [
-            "http://example.com/file1.txt",
-            "http://example.com/file2.txt",
-            "http://example.com/file3.txt",
+    def advance(self, handle: int, n_bytes: int) -> None:
+        return None
+
+    def complete(self, handle: int) -> None:
+        self.completed.append(self._names[handle])
+
+
+class TestDownloadFilesConcurrently:
+    """download_files_concurrently drives one shared reporter over many files."""
+
+    @patch("eos_downloader.helpers.requests.get")
+    @patch("builtins.open", new_callable=mock_open)
+    def test_all_files_completed(self, mock_file: Mock, mock_get: Mock) -> None:
+        mock_get.return_value = _mock_response([b"data"], "4")
+        reporter = _RecordingReporter()
+        items = [
+            ("http://x/image.swi", "/tmp/image.swi", "image.swi"),
+            ("http://x/image.sha512", "/tmp/image.sha512", "image.sha512"),
         ]
+        download_files_concurrently(items, reporter)
 
-        progress_bar.download(urls, str(tmp_path))
+        assert set(reporter.added) == {"image.swi", "image.sha512"}
+        assert set(reporter.completed) == {"image.swi", "image.sha512"}
 
-        assert mock_copy.call_count == 3
+    def test_empty_list_is_noop(self) -> None:
+        reporter = _RecordingReporter()
+        download_files_concurrently([], reporter)
+        assert reporter.added == []
 
-    @patch.object(DownloadProgressBar, "_copy_url")
-    def test_download_extracts_filename_from_url(
-        self,
-        mock_copy: Mock,
-        progress_bar: DownloadProgressBar,
-        tmp_path: Path,
-    ) -> None:
-        """Test that download correctly extracts filename from URL."""
-        mock_copy.return_value = False
-        urls = ["http://example.com/path/to/myfile.zip?param=value"]
-
-        progress_bar.download(urls, str(tmp_path))
-
-        # Verify filename was extracted correctly
-        call_args = mock_copy.call_args[0]
-        dest_path = call_args[2]
-        assert "myfile.zip" in dest_path
-        assert "param" not in dest_path  # Query params removed
-
-    @patch.object(DownloadProgressBar, "_copy_url")
-    def test_download_handles_url_without_extension(
-        self,
-        mock_copy: Mock,
-        progress_bar: DownloadProgressBar,
-        tmp_path: Path,
-    ) -> None:
-        """Test download handles URLs without file extension."""
-        mock_copy.return_value = False
-        urls = ["http://example.com/download"]
-
-        progress_bar.download(urls, str(tmp_path))
-
-        call_args = mock_copy.call_args[0]
-        dest_path = call_args[2]
-        assert "download" in dest_path
-
-    @patch.object(DownloadProgressBar, "_copy_url")
-    def test_download_concurrent_execution(
-        self,
-        mock_copy: Mock,
-        progress_bar: DownloadProgressBar,
-        tmp_path: Path,
-    ) -> None:
-        """Test that download uses ThreadPoolExecutor."""
-        # Make _copy_url slower to test concurrency
-        import time
-
-        def slow_copy(*args, **kwargs):
-            time.sleep(0.1)
-            return False
-
-        mock_copy.side_effect = slow_copy
-        urls = [f"http://example.com/file{i}.txt" for i in range(5)]
-
-        import time
-
-        start = time.time()
-        progress_bar.download(urls, str(tmp_path))
-        duration = time.time() - start
-
-        # With ThreadPoolExecutor, should be faster than sequential
-        # Sequential would be ~0.5s, concurrent should be ~0.1-0.2s
-        assert duration < 0.3  # Allow some overhead
-        assert mock_copy.call_count == 5
-
-    @patch.object(DownloadProgressBar, "_copy_url")
-    def test_download_waits_for_all_futures(
-        self,
-        mock_copy: Mock,
-        progress_bar: DownloadProgressBar,
-        tmp_path: Path,
-    ) -> None:
-        """Test that download waits for all downloads to complete."""
-        completed: List[int] = []
-
-        def track_completion(task_id, url, path):
-            import time
-
-            time.sleep(0.05)
-            completed.append(1)
-            return False
-
-        mock_copy.side_effect = track_completion
-        urls = [f"http://example.com/file{i}.txt" for i in range(3)]
-
-        progress_bar.download(urls, str(tmp_path))
-
-        # All should be completed
-        assert len(completed) == 3
-
-    @patch("requests.get")
+    @patch("eos_downloader.helpers.requests.get")
     @patch("builtins.open", new_callable=mock_open)
-    def test_copy_url_includes_default_headers(
-        self,
-        mock_file: Mock,
-        mock_get: Mock,
-        progress_bar: DownloadProgressBar,
-        mock_response: Mock,
-    ) -> None:
-        """Test that _copy_url includes default request headers."""
-        mock_get.return_value = mock_response
-        task_id = progress_bar.progress.add_task("test", start=False)
+    def test_runs_concurrently(self, mock_file: Mock, mock_get: Mock) -> None:
+        def slow_get(*args: Any, **kwargs: Any) -> Mock:
+            resp = Mock()
+            resp.headers = {"Content-Length": "4"}
 
-        progress_bar._copy_url(task_id, "http://example.com/file.txt", "/tmp/file.txt")
+            def chunks(chunk_size: int) -> Any:
+                time.sleep(0.1)
+                yield b"data"
 
-        # Verify headers were passed
-        call_kwargs = mock_get.call_args[1]
-        assert "headers" in call_kwargs
-        # Should include default headers
-        assert call_kwargs["headers"] is not None
+            resp.iter_content = chunks
+            return resp
+
+        mock_get.side_effect = slow_get
+        items = [(f"http://x/file{i}", f"/tmp/file{i}", f"file{i}") for i in range(4)]
+        start = time.time()
+        download_files_concurrently(items, NoopReporter())
+        # 4 files sequential ≈ 0.4s; concurrent (4 workers) should be well under.
+        assert time.time() - start < 0.3

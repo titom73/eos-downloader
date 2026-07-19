@@ -13,6 +13,8 @@ AristaVersions : Union
     Union type for supported SemVer object types. Can be either EosVersion or CvpVersion.
 ReleaseType : Literal
     Literal type for release types. Can be either "M" (maintenance) or "F" (feature).
+ProgressMode : Literal
+    Literal type for download progress rendering modes: "auto", "rich", "plain" or "none".
 
 Examples
 --------
@@ -47,3 +49,6 @@ AristaVersions = Union[
 
 # List of supported release codes
 ReleaseType = Literal["M", "F"]
+
+# Download progress rendering modes
+ProgressMode = Literal["auto", "rich", "plain", "none"]

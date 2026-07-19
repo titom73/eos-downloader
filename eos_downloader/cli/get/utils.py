@@ -15,7 +15,7 @@ from rich.console import Console
 
 from eos_downloader.cli.utils import console_configuration
 from eos_downloader.models.data import RTYPE_FEATURE, RTYPES
-from eos_downloader.models.types import ReleaseType
+from eos_downloader.models.types import ProgressMode, ReleaseType
 from eos_downloader.logics.arista_xml_server import (
     AristaXmlQuerier,
     AristaXmlObjects,
@@ -161,8 +161,8 @@ def download_files(
     cli: Any,
     arista_dl_obj: AristaXmlObjects,
     output: str,
-    rich_interface: bool,
     debug: bool,
+    progress: ProgressMode = "auto",
     checksum_format: str = "sha512sum",
 ) -> None:
     """Downloads EOS files and verifies their checksums.
@@ -177,10 +177,10 @@ def download_files(
         The EOS download object containing version and filename information.
     output : str
         The output directory where the files will be saved.
-    rich_interface : bool
-        Flag to indicate if rich interface should be used.
     debug : bool
         Flag to indicate if debug information should be printed.
+    progress : ProgressMode, optional
+        Progress rendering mode: "auto" (default), "rich", "plain" or "none".
     checksum_format : str, optional
         The checksum format to use for verification. Defaults to "sha512sum".
 
@@ -197,7 +197,7 @@ def download_files(
     try:
         # downloads() returns a tuple (path, was_cached)
         _file_path, was_cached = cli.downloads(
-            arista_dl_obj, file_path=output, rich_interface=rich_interface
+            arista_dl_obj, file_path=output, progress=progress
         )
         cli.checksum(checksum_format)
 
@@ -320,6 +320,7 @@ def download_from_containerlab_topology(  # pylint: disable=too-many-branches
     force: bool,
     debug: bool,
     skip_download: bool,
+    progress: ProgressMode = "auto",
 ) -> int:
     """Download all cEOS images referenced in a containerlab topology file.
 
@@ -347,6 +348,8 @@ def download_from_containerlab_topology(  # pylint: disable=too-many-branches
         If True, show detailed error information.
     skip_download : bool
         If True, skip the download step (useful for import-only).
+    progress : ProgressMode, optional
+        Progress rendering mode: "auto" (default), "rich", "plain" or "none".
 
     Returns
     -------
@@ -382,12 +385,12 @@ def download_from_containerlab_topology(  # pylint: disable=too-many-branches
             failures.append(version)
             continue
 
-        cli = SoftManager(dry_run=dry_run, force_download=force)
+        cli = SoftManager(dry_run=dry_run, force_download=force, console=console)
 
         if not skip_download:
             try:
                 download_files(
-                    console, cli, eos_dl_obj, output, rich_interface=True, debug=debug
+                    console, cli, eos_dl_obj, output, debug=debug, progress=progress
                 )
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.error(f"Failed to download {version}: {e}")

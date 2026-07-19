@@ -27,7 +27,6 @@ from eos_downloader.cli.get.utils import (
 )
 from eos_downloader.models.version import EosVersion
 
-
 # Fixtures
 
 
@@ -245,7 +244,7 @@ class TestDownloadFiles:
             cli=mock_cli,
             arista_dl_obj=mock_arista_dl_obj,
             output=str(output_path),
-            rich_interface=True,
+            progress="auto",
             debug=False,
             checksum_format="sha512sum",
         )
@@ -253,7 +252,7 @@ class TestDownloadFiles:
         # Assert - Function should execute without error
         # Check that cli.downloads() was called
         mock_cli.downloads.assert_called_once_with(
-            mock_arista_dl_obj, file_path=str(output_path), rich_interface=True
+            mock_arista_dl_obj, file_path=str(output_path), progress="auto"
         )
         mock_cli.checksum.assert_called_once_with("sha512sum")
 
@@ -274,7 +273,7 @@ class TestDownloadFiles:
             cli=mock_cli,
             arista_dl_obj=mock_arista_dl_obj,
             output=str(output_path),
-            rich_interface=True,
+            progress="auto",
             debug=False,
             checksum_format=checksum,
         )
@@ -298,7 +297,7 @@ class TestDownloadFiles:
             cli=mock_cli,
             arista_dl_obj=mock_arista_dl_obj,
             output=str(output_path),
-            rich_interface=True,
+            progress="auto",
             debug=False,
             checksum_format="sha512sum",
         )
@@ -330,7 +329,7 @@ class TestDownloadFiles:
                 cli=mock_cli,
                 arista_dl_obj=mock_arista_dl_obj,
                 output=str(tmp_path),
-                rich_interface=True,
+                progress="auto",
                 debug=False,
                 checksum_format="sha512sum",
             )
@@ -359,7 +358,7 @@ class TestDownloadFiles:
                 cli=mock_cli,
                 arista_dl_obj=mock_arista_dl_obj,
                 output=str(tmp_path),
-                rich_interface=True,
+                progress="auto",
                 debug=True,  # Enable debug mode
                 checksum_format="sha512sum",
             )
@@ -369,10 +368,10 @@ class TestDownloadFiles:
         # Assert that print_exception was called in debug mode
         mock_console.print_exception.assert_called_once_with(show_locals=True)
 
-    def test_download_files_no_rich_interface(
+    def test_download_files_plain_progress(
         self, mock_arista_dl_obj, mock_console, tmp_path
     ):
-        """Test download without Rich interface."""
+        """Test download with the plain (non-rich) progress mode."""
         # Setup
         mock_cli = MagicMock()
         # Mock downloads to return tuple (path, was_cached)
@@ -384,14 +383,14 @@ class TestDownloadFiles:
             cli=mock_cli,
             arista_dl_obj=mock_arista_dl_obj,
             output=str(tmp_path),
-            rich_interface=False,  # Disable Rich interface
+            progress="plain",  # Force plain (non-rich) interface
             debug=False,
             checksum_format="sha512sum",
         )
 
-        # Assert - cli.downloads should be called with rich_interface=False
+        # Assert - cli.downloads should be called with progress="plain"
         mock_cli.downloads.assert_called_once_with(
-            mock_arista_dl_obj, file_path=str(tmp_path), rich_interface=False
+            mock_arista_dl_obj, file_path=str(tmp_path), progress="plain"
         )
 
 
@@ -717,7 +716,7 @@ class TestDownloadFilesValueError:
                 cli=mock_cli,
                 arista_dl_obj=mock_dl_obj,
                 output="/tmp",
-                rich_interface=True,
+                progress="auto",
                 debug=False,
             )
 
@@ -749,7 +748,8 @@ class TestHandleDockerImportSuccess:
         assert result == 0
         # Verify "imported successfully" message
         success_msg = any(
-            "imported successfully" in str(call) for call in mock_console.print.call_args_list
+            "imported successfully" in str(call)
+            for call in mock_console.print.call_args_list
         )
         assert success_msg
 
@@ -907,7 +907,12 @@ class TestContainerlabTopologyEdgeCases:
     @patch("eos_downloader.cli.get.utils.EosXmlObject")
     @patch("eos_downloader.cli.get.utils.extract_ceos_versions")
     def test_docker_import_failure_returns_1(
-        self, mock_extract, mock_eos_xml, mock_soft_manager, mock_download_files, mock_docker
+        self,
+        mock_extract,
+        mock_eos_xml,
+        mock_soft_manager,
+        mock_download_files,
+        mock_docker,
     ):
         """Test failed docker import causes return code 1 (lines 411, 414-415)."""
         mock_extract.return_value = ["4.29.3M"]
