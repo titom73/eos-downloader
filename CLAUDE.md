@@ -46,7 +46,7 @@ uv run ardl --help
 
 ### Core Components
 
-- **`eos_downloader/cli/`** - Click-based CLI with command groups:
+- **`eos_downloader/cli/`** - Typer-based CLI with command groups:
   - `get` - Download commands (eos, cvp, path)
   - `info` - Version information commands (versions, latest, mapping)
   - `debug` - Debug commands (xml)
@@ -71,10 +71,15 @@ print(version.branch)  # "4.29"
 print(version.rtype)   # "M"
 ```
 
-**CLI Commands** - Commands pass context containing token and config:
+**CLI Commands** - Commands are Typer sub-apps; they read shared state from the
+context object populated by the root callback:
 ```python
-@click.pass_context
-def command(ctx: click.Context) -> None:
+import typer
+
+app = typer.Typer()
+
+@app.command()
+def command(ctx: typer.Context) -> None:
     token = ctx.obj["token"]
     log_level = ctx.obj["log_level"]
 ```

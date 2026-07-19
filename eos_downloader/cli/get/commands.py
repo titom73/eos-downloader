@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8 -*-
-# pylint: disable=no-value-for-parameter
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
 # pylint: disable=line-too-long
@@ -14,8 +13,10 @@
 
 import os
 from pathlib import Path
-from typing import Optional, Union
-import click
+from typing import Optional
+
+import typer
+
 from eos_downloader.models.data import RTYPE_FEATURE
 from eos_downloader.logics.download import SoftManager
 from eos_downloader.logics.arista_server import AristaServer
@@ -26,6 +27,8 @@ from eos_downloader.logics.arista_xml_server import (
 )
 from eos_downloader.exceptions import AuthenticationError
 
+from eos_downloader.cli.utils import AliasedTyperGroup
+
 from .utils import (
     initialize,
     search_version,
@@ -34,116 +37,95 @@ from .utils import (
     download_from_containerlab_topology,
 )
 
+app = typer.Typer(
+    cls=AliasedTyperGroup,
+    no_args_is_help=True,
+    help="Download Arista from Arista website",
+)
 
-@click.command()
-@click.option("--format", default="vmdk", help="Image format", show_default=True)
-@click.option(
-    "--output",
-    default=str(os.path.relpath(os.getcwd(), start=os.curdir)),
-    help="Path to save image",
-    type=click.Path(),
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--latest",
-    is_flag=True,
-    help="Get latest version. If --branch is not use, get the latest branch with specific release type",
-    default=False,
-    show_envvar=True,
-)
-@click.option(
-    "--eve-ng",
-    is_flag=True,
-    help="Run EVE-NG vEOS provisioning (only if CLI runs on an EVE-NG server)",
-    default=False,
-    show_envvar=True,
-)
-@click.option(
-    "--import-docker",
-    is_flag=True,
-    help="Import docker image to local docker",
-    default=False,
-    show_envvar=True,
-)
-@click.option(
-    "--skip-download",
-    is_flag=True,
-    help="Skip download process - for debug only",
-    default=False,
-)
-@click.option(
-    "--docker-name",
-    default="arista/ceos",
-    help="Docker image name",
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--docker-tag",
-    default=None,
-    help="Docker image tag",
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--version",
-    default=None,
-    help="EOS version to download",
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--release-type",
-    default=RTYPE_FEATURE,
-    help="Release type (M for Maintenance, F for Feature)",
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--branch",
-    default=None,
-    help="Branch to download",
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--dry-run",
-    is_flag=True,
-    help="Enable dry-run mode: only run code without system changes",
-    default=False,
-)
-@click.option(
-    "--force",
-    is_flag=True,
-    help="Force download/import even if cached files or Docker images exist",
-    default=False,
-    show_envvar=True,
-)
-@click.option(
-    "--containerlab-topology",
-    "--clab",
-    default=None,
-    help="Path to containerlab topology file to download all cEOS images.",
-    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
-)
-@click.pass_context
+_DEFAULT_OUTPUT = str(os.path.relpath(os.getcwd(), start=os.curdir))
+
+
+@app.command()
 def eos(
-    ctx: click.Context,
-    format: str,
-    output: str,
-    eve_ng: bool,
-    import_docker: bool,
-    skip_download: bool,
-    docker_name: str,
-    docker_tag: str,
-    version: Union[str, None],
-    release_type: str,
-    latest: bool,
-    branch: Union[str, None],
-    dry_run: bool,
-    force: bool,
-    containerlab_topology: Optional[str],
+    ctx: typer.Context,
+    format: str = typer.Option("vmdk", "--format", help="Image format"),
+    output: str = typer.Option(
+        _DEFAULT_OUTPUT, "--output", help="Path to save image", show_envvar=True
+    ),
+    latest: bool = typer.Option(
+        False,
+        "--latest",
+        help="Get latest version. If --branch is not use, get the latest branch with specific release type",
+        show_envvar=True,
+    ),
+    eve_ng: bool = typer.Option(
+        False,
+        "--eve-ng",
+        help="Run EVE-NG vEOS provisioning (only if CLI runs on an EVE-NG server)",
+        show_envvar=True,
+    ),
+    import_docker: bool = typer.Option(
+        False,
+        "--import-docker",
+        help="Import docker image to local docker",
+        show_envvar=True,
+    ),
+    skip_download: bool = typer.Option(
+        False,
+        "--skip-download",
+        help="Skip download process - for debug only",
+    ),
+    docker_name: str = typer.Option(
+        "arista/ceos",
+        "--docker-name",
+        help="Docker image name",
+        show_envvar=True,
+    ),
+    docker_tag: Optional[str] = typer.Option(
+        None,
+        "--docker-tag",
+        help="Docker image tag",
+        show_envvar=True,
+    ),
+    version: Optional[str] = typer.Option(
+        None,
+        "--version",
+        help="EOS version to download",
+        show_envvar=True,
+    ),
+    release_type: str = typer.Option(
+        RTYPE_FEATURE,
+        "--release-type",
+        help="Release type (M for Maintenance, F for Feature)",
+        show_envvar=True,
+    ),
+    branch: Optional[str] = typer.Option(
+        None,
+        "--branch",
+        help="Branch to download",
+        show_envvar=True,
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Enable dry-run mode: only run code without system changes",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Force download/import even if cached files or Docker images exist",
+        show_envvar=True,
+    ),
+    containerlab_topology: Optional[Path] = typer.Option(
+        None,
+        "--containerlab-topology",
+        "--clab",
+        help="Path to containerlab topology file to download all cEOS images.",
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
 ) -> int:
     """Download EOS image from Arista server."""
     # pylint: disable=unused-variable
@@ -151,7 +133,7 @@ def eos(
 
     if containerlab_topology is not None:
         if version is not None or latest or branch is not None:
-            raise click.UsageError(
+            raise typer.BadParameter(
                 "--containerlab-topology is mutually exclusive with --version, --latest, and --branch"
             )
         # Auto-default to cEOS format when using containerlab topology
@@ -185,9 +167,14 @@ def eos(
         eos_dl_obj = EosXmlObject(
             searched_version=version, token=token, image_type=format
         )
-    except Exception:
-        console.print_exception(show_locals=True)
-        ctx.exit(1)
+    except Exception as exc:
+        # Only dump the locals-rich traceback in debug mode: it contains the
+        # Arista token and other sensitive locals.
+        if debug:
+            console.print_exception(show_locals=True)
+        else:
+            console.print(f"\n[red]Exception raised: {exc}[/red]")
+        raise typer.Exit(1) from exc
 
     cli = SoftManager(dry_run=dry_run, force_download=force)
 
@@ -204,7 +191,7 @@ def eos(
                     console.print_exception(show_locals=True)
                 else:
                     console.print(f"\n[red]Exception raised: {e}[/red]")
-                ctx.exit(1)
+                raise typer.Exit(1)
 
     if import_docker:
         if dry_run:
@@ -220,66 +207,50 @@ def eos(
     return 0
 
 
-@click.command()
-@click.option(
-    "--format",
-    default="ova",
-    help="Image format",
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--output",
-    default=str(os.path.relpath(os.getcwd(), start=os.curdir)),
-    help="Path to save image",
-    type=click.Path(),
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--latest",
-    is_flag=True,
-    help="Get latest version. If --branch is not use, get the latest branch with specific release type",
-    default=False,
-    show_envvar=True,
-)
-@click.option(
-    "--version",
-    default=None,
-    help="EOS version to download",
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--branch",
-    default=None,
-    help="Branch to download",
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--dry-run",
-    is_flag=True,
-    help="Enable dry-run mode: only run code without system changes",
-    default=False,
-)
-@click.option(
-    "--force",
-    is_flag=True,
-    help="Force download even if cached files exist",
-    default=False,
-    show_envvar=True,
-)
-@click.pass_context
+@app.command()
 def cvp(
-    ctx: click.Context,
-    latest: bool,
-    format: str,
-    output: str,
-    version: Union[str, None],
-    branch: Union[str, None],
-    dry_run: bool = False,
-    force: bool = False,
+    ctx: typer.Context,
+    latest: bool = typer.Option(
+        False,
+        "--latest",
+        help="Get latest version. If --branch is not use, get the latest branch with specific release type",
+        show_envvar=True,
+    ),
+    format: str = typer.Option(
+        "ova",
+        "--format",
+        help="Image format",
+        show_envvar=True,
+    ),
+    output: str = typer.Option(
+        _DEFAULT_OUTPUT,
+        "--output",
+        help="Path to save image",
+        show_envvar=True,
+    ),
+    version: Optional[str] = typer.Option(
+        None,
+        "--version",
+        help="EOS version to download",
+        show_envvar=True,
+    ),
+    branch: Optional[str] = typer.Option(
+        None,
+        "--branch",
+        help="Branch to download",
+        show_envvar=True,
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Enable dry-run mode: only run code without system changes",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Force download even if cached files exist",
+        show_envvar=True,
+    ),
 ) -> int:
     """Download CVP image from Arista server."""
     # pylint: disable=unused-variable
@@ -305,11 +276,15 @@ def cvp(
             version = str(version_obj)
         except AuthenticationError as auth_error:
             console.print(f"[red]Authentication Error:[/red] {str(auth_error)}")
-            ctx.exit(1)
+            raise typer.Exit(1) from auth_error
         except Exception as e:
-            console.print(f"Token is set to: {token}")
-            console.print_exception(show_locals=True)
-            ctx.exit(1)
+            # Never echo the token; only show the locals-rich traceback (which
+            # also contains the token) when debug mode is enabled.
+            if debug:
+                console.print_exception(show_locals=True)
+            else:
+                console.print(f"\n[red]Exception raised: {e}[/red]")
+            raise typer.Exit(1) from e
 
     console.print(f"version to download is {version}")
 
@@ -324,7 +299,7 @@ def cvp(
             console.print_exception(show_locals=True)
         else:
             console.print(f"\n[red]Exception raised: {e}[/red]")
-        ctx.exit(1)
+        raise typer.Exit(1)
 
     cli = SoftManager(dry_run=dry_run, force_download=force)
     download_files(
@@ -341,69 +316,53 @@ def cvp(
     return 0
 
 
-@click.command()
-@click.option(
-    "--source",
-    "-s",
-    help="Image path to download from Arista Website",
-    type=str,
-    show_default=False,
-    show_envvar=False,
-)
-@click.option(
-    "--output",
-    "-o",
-    default=str(os.path.relpath(os.getcwd(), start=os.curdir)),
-    help="Path to save downloaded package",
-    type=click.Path(),
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--import-docker",
-    is_flag=True,
-    help="Import docker image to local docker",
-    default=False,
-    show_envvar=True,
-)
-@click.option(
-    "--docker-name",
-    default="arista/ceos:raw",
-    help="Docker image name",
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--docker-tag",
-    default="dev",
-    help="Docker image tag",
-    show_default=True,
-    show_envvar=True,
-)
-@click.option(
-    "--force",
-    is_flag=True,
-    help="Force download/import even if cached files or Docker images exist",
-    default=False,
-    show_envvar=True,
-)
-@click.pass_context
-# pylint: disable=too-many-branches
+@app.command()
 def path(
-    ctx: click.Context,
-    output: str,
-    source: str,
-    import_docker: bool,
-    docker_name: str,
-    docker_tag: str,
-    force: bool,
+    ctx: typer.Context,
+    source: Optional[str] = typer.Option(
+        None,
+        "--source",
+        "-s",
+        help="Image path to download from Arista Website",
+    ),
+    output: str = typer.Option(
+        _DEFAULT_OUTPUT,
+        "--output",
+        "-o",
+        help="Path to save downloaded package",
+        show_envvar=True,
+    ),
+    import_docker: bool = typer.Option(
+        False,
+        "--import-docker",
+        help="Import docker image to local docker",
+        show_envvar=True,
+    ),
+    docker_name: str = typer.Option(
+        "arista/ceos:raw",
+        "--docker-name",
+        help="Docker image name",
+        show_envvar=True,
+    ),
+    docker_tag: str = typer.Option(
+        "dev",
+        "--docker-tag",
+        help="Docker image tag",
+        show_envvar=True,
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Force download/import even if cached files or Docker images exist",
+        show_envvar=True,
+    ),
 ) -> int:
     """Download image from Arista server using direct path."""
     console, token, debug, log_level = initialize(ctx)
 
     if source is None:
         console.print("[red]Source is not set correctly ![/red]")
-        ctx.exit(1)
+        raise typer.Exit(1)
 
     filename = os.path.basename(source)
 
@@ -421,11 +380,11 @@ def path(
             console.print_exception(show_locals=True)
         else:
             console.print(f"\n[red]Exception raised: {e}[/red]")
-        ctx.exit(1)
+        raise typer.Exit(1)
 
     if file_url is None:
         console.print("File URL is set to None when we expect a string")
-        ctx.exit(1)
+        raise typer.Exit(1)
 
     # At this point, mypy knows file_url is not None due to the check above
     assert file_url is not None  # Type assertion for mypy
@@ -439,7 +398,7 @@ def path(
             console.print_exception(show_locals=True)
         else:
             console.print(f"\n[red]Exception raised: {e}[/red]")
-        ctx.exit(1)
+        raise typer.Exit(1)
 
     if import_docker:
         console.print(
@@ -454,14 +413,14 @@ def path(
                 docker_tag=docker_tag,
                 force=force,
             )
-        except FileNotFoundError:
+        except FileNotFoundError as exc:
             if debug:
                 console.print_exception(show_locals=True)
             else:
                 console.print(
                     f"\n[red]File not found: {os.path.join(output, filename)}[/red]"
                 )
-            ctx.exit(1)
+            raise typer.Exit(1) from exc
 
         console.print(
             f"Docker image imported successfully: [green]{docker_name}:{docker_tag}[/green]"

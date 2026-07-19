@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import cast, List, Optional, Union, Any
 import subprocess
 
-import click
+import typer
 from loguru import logger
 from rich.console import Console
 
@@ -28,13 +28,13 @@ from eos_downloader.logging_config import configure_logging, get_logger
 from eos_downloader.helpers.security import mask_token
 
 
-def initialize(ctx: click.Context) -> tuple[Console, str, bool, str]:
+def initialize(ctx: typer.Context) -> tuple[Console, str, bool, str]:
     """Initializes the CLI context with necessary configurations.
 
     Parameters
     ----------
-    ctx : click.Context
-        The Click context object containing command-line parameters.
+    ctx : typer.Context
+        The Typer/Click context object containing command-line parameters.
 
     Returns
     -------

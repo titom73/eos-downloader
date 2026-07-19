@@ -4,7 +4,7 @@ Thank you for your interest in contributing to the eos-downloader project! This 
 
 ## Overview
 
-eos-downloader is a Python CLI application built with Click, Rich, and pytest. It provides both a command-line interface and a programmatic API for downloading Arista software packages. The project follows modern Python development practices with comprehensive testing, type hints, and automated CI/CD.
+eos-downloader is a Python CLI application built with Typer, Rich, and pytest. It provides both a command-line interface and a programmatic API for downloading Arista software packages. The project follows modern Python development practices with comprehensive testing, type hints, and automated CI/CD.
 
 Changes are planned and tracked with [OpenSpec](https://github.com/Fission-AI/OpenSpec): every change is proposed, designed, specified, implemented, and archived on a **single dedicated branch**, then merged as one Pull Request. See [Contribution Workflow (OpenSpec)](#contribution-workflow-openspec) below for the full flow and the branch rules.
 
@@ -178,7 +178,7 @@ branch. Activate it with `uv run pre-commit install`. If you are certain you nee
 to bypass it, `git commit --no-verify` is the explicit escape hatch.
 
 AI assistants other than Claude Code read the same rules from
-[`AGENTS.md`](../AGENTS.md).
+[`AGENTS.md`](https://github.com/titom73/eos-downloader/blob/main/AGENTS.md).
 
 ## Development Workflow
 
@@ -245,7 +245,7 @@ def download_eos_image(
 #### Project Structure
 
 - `eos_downloader/` - Main package
-  - `cli/` - Click-based command line interface
+  - `cli/` - Typer-based command line interface
   - `logics/` - Business logic and core functionality
   - `models/` - Data models with Pydantic validation
   - `exceptions/` - Custom exception classes

@@ -12,16 +12,16 @@ import json
 from unittest.mock import Mock, patch
 
 import pytest
-from click.testing import CliRunner
+from typer.testing import CliRunner
 
-from eos_downloader.cli.cli import ardl
+from eos_downloader.cli.cli import app
 from eos_downloader.models.version import EosVersion, CvpVersion
 from eos_downloader.exceptions import AuthenticationError
 
 
 @pytest.fixture
 def runner():
-    """Provide Click test runner."""
+    """Provide Typer test runner."""
     return CliRunner()
 
 
@@ -53,7 +53,7 @@ def mock_cvp_versions():
 
 def test_info_help(runner):
     """Test info command help output."""
-    result = runner.invoke(ardl, ["info", "--help"])
+    result = runner.invoke(app, ["info", "--help"])
     assert result.exit_code == 0
     assert "List information from Arista website" in result.output
 
@@ -78,7 +78,7 @@ class TestInfoVersionsCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             ["--token", "test-token", "info", "versions", "--package", "eos"],
         )
 
@@ -103,7 +103,7 @@ class TestInfoVersionsCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -133,7 +133,7 @@ class TestInfoVersionsCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -163,7 +163,7 @@ class TestInfoVersionsCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -196,7 +196,7 @@ class TestInfoVersionsCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -227,7 +227,7 @@ class TestInfoVersionsCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -250,7 +250,7 @@ class TestInfoVersionsCommand:
 
         # Execute with debug
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -275,7 +275,7 @@ class TestInfoVersionsCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "invalid-token",
@@ -300,7 +300,7 @@ class TestInfoVersionsCommand:
 
         # Execute with debug
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "expired-token",
@@ -336,7 +336,7 @@ class TestInfoLatestCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -363,7 +363,7 @@ class TestInfoLatestCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -389,7 +389,7 @@ class TestInfoLatestCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -420,7 +420,7 @@ class TestInfoLatestCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -447,7 +447,7 @@ class TestInfoLatestCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -473,7 +473,7 @@ class TestInfoLatestCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -499,7 +499,7 @@ class TestInfoLatestCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -523,7 +523,7 @@ class TestInfoLatestCommand:
 
         # Execute
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "invalid-token",
@@ -548,7 +548,7 @@ class TestInfoLatestCommand:
 
         # Execute with debug
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "expired-token",
@@ -575,7 +575,7 @@ class TestInfoMappingCommand:
     def test_mapping_eos_default(self, runner):
         """Test mapping command for EOS with default fancy format."""
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -595,7 +595,7 @@ class TestInfoMappingCommand:
     def test_mapping_cvp(self, runner):
         """Test mapping command for CVP."""
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -613,7 +613,7 @@ class TestInfoMappingCommand:
     def test_mapping_with_details(self, runner):
         """Test mapping command with details flag."""
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -632,7 +632,7 @@ class TestInfoMappingCommand:
     def test_mapping_json_format(self, runner):
         """Test mapping command with JSON output."""
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",
@@ -654,7 +654,7 @@ class TestInfoMappingCommand:
     def test_mapping_text_format(self, runner):
         """Test mapping command with text output."""
         result = runner.invoke(
-            ardl,
+            app,
             [
                 "--token",
                 "test-token",

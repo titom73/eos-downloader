@@ -2,7 +2,7 @@
 # coding: utf-8 -*-
 """Integration tests for CLI commands.
 
-Tests the complete CLI workflow using Click's test runner
+Tests the complete CLI workflow using Typer's test runner
 with mocked API responses.
 """
 
@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 import responses
-from click.testing import CliRunner
+from typer.testing import CliRunner
 
 from tests.integration.mock_arista_api import (
     MOCK_XML_CATALOG,
@@ -20,7 +20,7 @@ from tests.integration.mock_arista_api import (
     mock_download_dir,
 )
 
-from eos_downloader.cli.cli import ardl
+from eos_downloader.cli.cli import app
 from eos_downloader.defaults import DEFAULT_SOFTWARE_FOLDER_TREE, DEFAULT_SERVER_SESSION
 
 
@@ -39,7 +39,7 @@ def setup_cli_api_mocks() -> None:
 
 @pytest.fixture
 def cli_runner() -> CliRunner:
-    """Create Click CLI test runner."""
+    """Create Typer CLI test runner."""
     return CliRunner()
 
 
@@ -57,7 +57,7 @@ class TestCLIInfoCommands:
         setup_cli_api_mocks()
 
         result = cli_runner.invoke(
-            ardl,
+            app,
             ["--token", mock_arista_token, "info", "eos"],
             catch_exceptions=False,
         )
@@ -78,7 +78,7 @@ class TestCLIInfoCommands:
         setup_cli_api_mocks()
 
         result = cli_runner.invoke(
-            ardl,
+            app,
             ["--token", mock_arista_token, "info", "eos", "--branch", "4.32"],
             catch_exceptions=False,
         )
@@ -92,20 +92,20 @@ class TestCLIHelp:
 
     def test_main_help(self, cli_runner: CliRunner) -> None:
         """Test main help message."""
-        result = cli_runner.invoke(ardl, ["--help"])
+        result = cli_runner.invoke(app, ["--help"])
 
         assert result.exit_code == 0
         assert "Arista" in result.output or "ardl" in result.output.lower()
 
     def test_get_help(self, cli_runner: CliRunner) -> None:
         """Test get subcommand help."""
-        result = cli_runner.invoke(ardl, ["get", "--help"])
+        result = cli_runner.invoke(app, ["get", "--help"])
 
         assert result.exit_code == 0
 
     def test_info_help(self, cli_runner: CliRunner) -> None:
         """Test info subcommand help."""
-        result = cli_runner.invoke(ardl, ["info", "--help"])
+        result = cli_runner.invoke(app, ["info", "--help"])
 
         assert result.exit_code == 0
 
@@ -117,7 +117,7 @@ class TestCLIErrorHandling:
     def test_missing_token_warning(self, cli_runner: CliRunner) -> None:
         """Test behavior when token is missing."""
         result = cli_runner.invoke(
-            ardl,
+            app,
             ["info", "eos"],
         )
 
@@ -141,7 +141,7 @@ class TestCLIErrorHandling:
         )
 
         result = cli_runner.invoke(
-            ardl,
+            app,
             ["--token", "invalid-token", "info", "eos"],
         )
 
@@ -154,7 +154,7 @@ class TestCLIVersion:
 
     def test_version_option(self, cli_runner: CliRunner) -> None:
         """Test --version option."""
-        result = cli_runner.invoke(ardl, ["--version"])
+        result = cli_runner.invoke(app, ["--version"])
 
         assert result.exit_code == 0
         assert "v0" in result.output or "version" in result.output.lower()
@@ -166,6 +166,6 @@ class TestCLIDebugCommands:
 
     def test_debug_help(self, cli_runner: CliRunner) -> None:
         """Test debug subcommand help."""
-        result = cli_runner.invoke(ardl, ["debug", "--help"])
+        result = cli_runner.invoke(app, ["debug", "--help"])
 
         assert result.exit_code == 0

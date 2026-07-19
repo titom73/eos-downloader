@@ -4,38 +4,41 @@
 
 
 """
-Extension for the python ``click`` module
-to provide a group or command with aliases.
+Extension for Typer's ``TyperGroup``
+to provide a command group with prefix aliases.
 """
 
 from typing import Any
-import click
+from typer.core import TyperGroup
 
 from rich import pretty
 from rich.console import Console
 
 
-class AliasedGroup(click.Group):
-    """
-    Implements a subclass of Group that accepts a prefix for a command.
-    If there were a command called push, it would accept pus as an alias (so long as it was unique)
+class AliasedTyperGroup(TyperGroup):
+    """Command group that accepts an unambiguous prefix as a command alias.
+
+    If there were a command called ``push``, it would accept ``pus`` as an alias
+    (so long as it was unique). Typer compiles its applications onto its own
+    (vendored) Click ``TyperGroup``, so the aliasing logic lives on that base for
+    the Typer root application and every sub-application. An ambiguous prefix
+    fails with the list of matches.
     """
 
-    def get_command(self, ctx: click.Context, cmd_name: str) -> Any:
-        """Documentation to build"""
-        rv = click.Group.get_command(self, ctx, cmd_name)
+    def get_command(self, ctx: Any, cmd_name: str) -> Any:
+        """Resolve ``cmd_name`` allowing an unambiguous prefix as an alias."""
+        rv = super().get_command(ctx, cmd_name)
         if rv is not None:
             return rv
         matches = [x for x in self.list_commands(ctx) if x.startswith(cmd_name)]
         if not matches:
             return None
         if len(matches) == 1:
-            return click.Group.get_command(self, ctx, matches[0])
+            return super().get_command(ctx, matches[0])
         ctx.fail(f"Too many matches: {', '.join(sorted(matches))}")
 
-    def resolve_command(self, ctx: click.Context, args: Any) -> Any:
-        """Documentation to build"""
-        # always return the full command name
+    def resolve_command(self, ctx: Any, args: Any) -> Any:
+        """Always return the full command name for a resolved (aliased) command."""
         _, cmd, args = super().resolve_command(ctx, args)
         return cmd.name, cmd, args
 

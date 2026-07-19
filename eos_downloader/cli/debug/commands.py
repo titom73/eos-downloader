@@ -12,43 +12,58 @@ Commands for ARDL CLI to get data.
 
 # Standard library imports
 import xml.etree.ElementTree as ET
+from enum import Enum
 from xml.dom import minidom
 
 # Third party imports
-import click
+import typer
 
 # Local imports
 import eos_downloader.defaults
 import eos_downloader.logics.arista_server
 from eos_downloader.logging_config import configure_logging, get_logger
+from eos_downloader.cli.utils import AliasedTyperGroup
 
-
-@click.command()
-@click.pass_context
-@click.option(
-    "--output",
-    default=str("arista.xml"),
-    help="Path to save XML file",
-    type=click.Path(),
-    show_default=True,
+app = typer.Typer(
+    cls=AliasedTyperGroup,
+    no_args_is_help=True,
+    help="Debug commands to work with ardl",
 )
-@click.option(
-    "--log-level",
-    "--log",
-    help="Logging level of the command",
-    default="INFO",
-    type=click.Choice(
-        ["debug", "info", "warning", "error", "critical"], case_sensitive=False
+
+
+class LogLevel(str, Enum):
+    """Logging levels accepted by the ``--log-level`` option."""
+
+    debug = "debug"
+    info = "info"
+    warning = "warning"
+    error = "error"
+    critical = "critical"
+
+
+@app.command()
+def xml(
+    ctx: typer.Context,
+    output: str = typer.Option(
+        "arista.xml",
+        "--output",
+        help="Path to save XML file",
     ),
-)
-def xml(ctx: click.Context, output: str, log_level: str) -> None:
+    log_level: LogLevel = typer.Option(
+        LogLevel.info,
+        "--log-level",
+        "--log",
+        help="Logging level of the command",
+        case_sensitive=False,
+    ),
+) -> None:
     """Downloads and saves XML data from Arista EOS server.
 
     This function authenticates with an Arista server, retrieves XML data,
     and saves it to a file in a prettified format.
 
     Args:
-        ctx (click.Context): Click context object containing authentication token
+        ctx (typer.Context): Context object containing authentication token
         output (str): File path where the XML output should be saved
         log_level (str): Logging level to use for output messages
 
@@ -61,7 +76,7 @@ def xml(ctx: click.Context, output: str, log_level: str) -> None:
         INFO: XML file saved under output.xml
     """
 
-    configure_logging(level=log_level.upper())
+    configure_logging(level=log_level.value.upper())
     log = get_logger()
     token = ctx.obj["token"]
     server = eos_downloader.logics.arista_server.AristaServer(

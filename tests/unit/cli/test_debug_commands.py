@@ -16,14 +16,14 @@ from typing import Generator
 from unittest.mock import Mock, MagicMock, patch, mock_open
 
 import pytest
-from click.testing import CliRunner
+from typer.testing import CliRunner
 
-from eos_downloader.cli.cli import ardl
+from eos_downloader.cli.cli import app
 
 
 @pytest.fixture
 def runner() -> CliRunner:
-    """Provide Click CLI test runner."""
+    """Provide Typer CLI test runner."""
     return CliRunner()
 
 
@@ -64,7 +64,7 @@ class TestXmlCommand:
 
     def test_xml_command_help(self, runner: CliRunner) -> None:
         """Test xml command help display."""
-        result = runner.invoke(ardl, ["debug", "xml", "--help"])
+        result = runner.invoke(app, ["debug", "xml", "--help"])
 
         assert result.exit_code == 0
         assert "Downloads and saves XML data" in result.output
@@ -84,7 +84,7 @@ class TestXmlCommand:
 
         with patch("builtins.open", mock_open()) as mock_file:
             result = runner.invoke(
-                ardl,
+                app,
                 [
                     "--token",
                     "test-token",
@@ -112,7 +112,7 @@ class TestXmlCommand:
         """Test XML command uses default output filename."""
         with patch("builtins.open", mock_open()) as mock_file:
             result = runner.invoke(
-                ardl,
+                app,
                 [
                     "--token",
                     "test-token",
@@ -137,7 +137,7 @@ class TestXmlCommand:
 
         with patch("builtins.open", mock_open()):
             result = runner.invoke(
-                ardl,
+                app,
                 [
                     "--token",
                     "test-token",
@@ -171,7 +171,7 @@ class TestXmlCommand:
 
             with patch("builtins.open", mock_open()):
                 result = runner.invoke(
-                    ardl,
+                    app,
                     [
                         "--token",
                         "invalid-token",
@@ -202,7 +202,7 @@ class TestXmlCommand:
             mock_class.return_value = mock_instance
 
             result = runner.invoke(
-                ardl,
+                app,
                 [
                     "--token",
                     "test-token",
@@ -237,7 +237,7 @@ class TestXmlCommand:
             mock_class.return_value = mock_instance
 
             result = runner.invoke(
-                ardl,
+                app,
                 [
                     "--token",
                     "test-token",
@@ -274,7 +274,7 @@ class TestXmlCommand:
 
         with patch("builtins.open", mock_file):
             result = runner.invoke(
-                ardl,
+                app,
                 [
                     "--token",
                     "test-token",
@@ -307,7 +307,7 @@ class TestXmlCommand:
             side_effect=PermissionError("Permission denied"),
         ):
             result = runner.invoke(
-                ardl,
+                app,
                 [
                     "--token",
                     "test-token",
@@ -340,7 +340,7 @@ class TestXmlCommand:
         with patch("builtins.open", mock_open()):
             for log_level in log_levels:
                 result = runner.invoke(
-                    ardl,
+                    app,
                     [
                         "--token",
                         "test-token",
