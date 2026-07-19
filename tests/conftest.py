@@ -29,12 +29,15 @@ def _isolate_test_environment(monkeypatch: pytest.MonkeyPatch) -> object:
     """Isolate loguru handlers, terminal width and color around every test."""
     # Stable, wide terminal so Rich-rendered Typer help never wraps/truncates.
     monkeypatch.setenv("COLUMNS", "200")
-    # Disable ANSI colorization. CI runners set FORCE_COLOR/CI, which makes Rich
-    # emit color escape codes in the Typer help; those codes split tokens such
-    # as "Usage: ardl" or "--log-level" so plain-substring assertions would fail
-    # only on CI. NO_COLOR keeps help output plain text everywhere.
-    monkeypatch.setenv("NO_COLOR", "1")
-    monkeypatch.delenv("FORCE_COLOR", raising=False)
+
+    # Force plain (non-terminal) help output. Typer sets its module-level
+    # ``FORCE_TERMINAL`` to True whenever ``GITHUB_ACTIONS``/``FORCE_COLOR``/
+    # ``PY_COLORS`` is set, which makes Rich emit bold/color escape codes in the
+    # rendered help. Those codes split tokens like "Usage: ardl" and
+    # "--log-level", so plain-substring assertions pass locally but fail on CI
+    # (where GITHUB_ACTIONS is always set). ``_get_rich_console`` reads this
+    # global at call time, so patching it to False yields plain text everywhere.
+    monkeypatch.setattr("typer.rich_utils.FORCE_TERMINAL", False)
 
     # Drop any loguru handler left over from a previous test (it may be bound to
     # a captured stream that has since been closed).
