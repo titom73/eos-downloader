@@ -7,29 +7,32 @@
 import os
 from pathlib import Path
 
-import click
+import typer
 
 from eos_downloader.config import find_config_file, generate_template, load_config
 from eos_downloader.helpers.security import mask_token
+from eos_downloader.cli.utils import AliasedTyperGroup
+
+app = typer.Typer(
+    cls=AliasedTyperGroup, no_args_is_help=True, help="Manage ardl configuration."
+)
 
 
-@click.command(name="init")
-@click.option(
-    "--output",
-    "-o",
-    default=str(Path("~/.eos-downloader.toml").expanduser()),
-    help="Path for the configuration file",
-    type=click.Path(),
-    show_default=True,
-)
-@click.option(
-    "--force",
-    "-f",
-    is_flag=True,
-    default=False,
-    help="Overwrite existing configuration file",
-)
-def init(output: str, force: bool) -> None:
+@app.command(name="init")
+def init(
+    output: str = typer.Option(
+        str(Path("~/.eos-downloader.toml").expanduser()),
+        "--output",
+        "-o",
+        help="Path for the configuration file",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Overwrite existing configuration file",
+    ),
+) -> None:
     """Generate a configuration file template.
 
     Creates a commented TOML configuration file with all available options.
@@ -39,12 +42,12 @@ def init(output: str, force: bool) -> None:
     output_path = Path(output).expanduser()
 
     if output_path.exists() and not force:
-        click.echo(
+        typer.echo(
             f"Configuration file already exists: {output_path}\n"
             "Use --force to overwrite.",
             err=True,
         )
-        raise SystemExit(1)
+        raise typer.Exit(1)
 
     # Create parent directories if needed
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -55,10 +58,10 @@ def init(output: str, force: bool) -> None:
     # Set restrictive permissions (token may be stored here)
     os.chmod(output_path, 0o600)
 
-    click.echo(f"Configuration file created: {output_path}")
+    typer.echo(f"Configuration file created: {output_path}")
 
 
-@click.command(name="show")
+@app.command(name="show")
 def show() -> None:
     """Display the active configuration file.
 
@@ -68,15 +71,15 @@ def show() -> None:
     config_path = find_config_file()
 
     if config_path is None:
-        click.echo("No configuration file found.")
-        click.echo("Run 'ardl config init' to create one.")
+        typer.echo("No configuration file found.")
+        typer.echo("Run 'ardl config init' to create one.")
         return
 
-    click.echo(f"Active configuration file: {config_path}\n")
+    typer.echo(f"Active configuration file: {config_path}\n")
 
     config = load_config(config_path)
     if not config:
-        click.echo("Configuration file is empty or invalid.")
+        typer.echo("Configuration file is empty or invalid.")
         return
 
     # Re-read raw content for display, masking the token
@@ -88,4 +91,4 @@ def show() -> None:
         masked = mask_token(token)
         content = content.replace(token, masked)
 
-    click.echo(content)
+    typer.echo(content)

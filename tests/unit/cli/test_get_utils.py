@@ -16,7 +16,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from click.testing import CliRunner
+from typer.testing import CliRunner
 
 from eos_downloader.cli.get.utils import (
     download_files,

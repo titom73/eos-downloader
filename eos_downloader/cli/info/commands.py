@@ -28,17 +28,18 @@ Dependencies:
 
 import json
 import sys
-from typing import Any, List, Union
+from enum import Enum
+from typing import Any, List, Optional, Union, cast
 
-import click
+import typer
 from rich import print_json
 from rich.panel import Panel
 
 from eos_downloader.models.data import software_mapping
-from eos_downloader.models.types import AristaPackage, ReleaseType, AristaMapping
+from eos_downloader.models.types import AristaPackage, AristaMapping, ReleaseType
 from eos_downloader.logics.arista_xml_server import AristaXmlQuerier
 from eos_downloader.models.version import EosVersion, CvpVersion
-from eos_downloader.cli.utils import console_configuration
+from eos_downloader.cli.utils import console_configuration, AliasedTyperGroup
 from eos_downloader.logging_config import configure_logging
 from eos_downloader.exceptions import AuthenticationError
 
@@ -46,40 +47,51 @@ from eos_downloader.exceptions import AuthenticationError
 # Commands for ARDL CLI to list data.
 # """
 
+app = typer.Typer(
+    cls=AliasedTyperGroup,
+    no_args_is_help=True,
+    help="List information from Arista website",
+)
 
-@click.command()
-@click.option(
-    "--format",
-    type=click.Choice(["json", "text", "fancy"]),
-    default="fancy",
-    help="Output format",
-)
-@click.option(
-    "--package", type=click.Choice(["eos", "cvp"]), default="eos", required=False
-)
-@click.option("--branch", "-b", type=str, required=False)
-@click.option("--release-type", type=str, required=False)
-@click.pass_context
+
+class OutputFormat(str, Enum):
+    """Output format for info commands."""
+
+    json = "json"
+    text = "text"
+    fancy = "fancy"
+
+
+class Package(str, Enum):
+    """Arista package selector."""
+
+    eos = "eos"
+    cvp = "cvp"
+
+
+@app.command()
 def versions(
-    ctx: click.Context,
-    package: AristaPackage,
-    branch: str,
-    release_type: ReleaseType,
-    format: str,
+    ctx: typer.Context,
+    package: Package = typer.Option(Package.eos, "--package"),
+    branch: Optional[str] = typer.Option(None, "--branch", "-b"),
+    release_type: Optional[str] = typer.Option(None, "--release-type"),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.fancy, "--format", help="Output format"
+    ),
 ) -> None:
     """List available package versions from Arista server.
 
     Parameters
     ----------
-    ctx : click.Context
-        Click context containing token, debug, and log_level
-    package : AristaPackage
+    ctx : typer.Context
+        Context containing token, debug, and log_level
+    package : Package
         Package type ("eos" or "cvp")
     branch : str
         Optional branch filter (e.g., "4.29")
     release_type : ReleaseType
         Optional release type filter ("M" or "F")
-    format : str
+    output_format : OutputFormat
         Output format ("text", "fancy", or "json")
 
     Examples
@@ -108,7 +120,7 @@ def versions(
 
     try:
         received_versions = querier.available_public_versions(
-            package=package, branch=branch, rtype=release_type
+            package=package.value, branch=branch, rtype=release_type
         )
     except ValueError:
         if debug:
@@ -123,7 +135,7 @@ def versions(
         return
 
     # Format and display output based on format choice
-    _print_versions_output(console, received_versions, format)
+    _print_versions_output(console, received_versions, output_format.value)
 
 
 def _print_versions_output(
@@ -197,25 +209,15 @@ def _print_json_versions(version_list: List[Union[EosVersion, CvpVersion]]) -> N
     print_json(json.dumps(response))
 
 
-@click.command()
-@click.option(
-    "--format",
-    type=click.Choice(["json", "text", "fancy"]),
-    default="fancy",
-    help="Output format",
-)
-@click.option(
-    "--package", type=click.Choice(["eos", "cvp"]), default="eos", required=False
-)
-@click.option("--branch", "-b", type=str, required=False)
-@click.option("--release-type", type=str, required=False)
-@click.pass_context
+@app.command()
 def latest(
-    ctx: click.Context,
-    package: AristaPackage,
-    branch: str,
-    release_type: ReleaseType,
-    format: str,
+    ctx: typer.Context,
+    package: Package = typer.Option(Package.eos, "--package"),
+    branch: Optional[str] = typer.Option(None, "--branch", "-b"),
+    release_type: Optional[str] = typer.Option(None, "--release-type"),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.fancy, "--format", help="Output format"
+    ),
 ) -> None:
     """List available versions of Arista packages (eos or CVP) packages."""
 
@@ -236,7 +238,9 @@ def latest(
     received_version = None
     try:
         received_version = querier.latest(
-            package=package, branch=branch, rtype=release_type
+            package=package.value,
+            branch=branch,
+            rtype=cast(Optional[ReleaseType], release_type),
         )
     except ValueError:
         if debug:
@@ -244,12 +248,12 @@ def latest(
         else:
             console.print("[red]No versions found[/red]")
 
-    if format in ["text", "fancy"]:
-        version_info = f"Latest version for [green]{package}[/green]: [blue]{received_version}[/blue]"
+    if output_format in (OutputFormat.text, OutputFormat.fancy):
+        version_info = f"Latest version for [green]{package.value}[/green]: [blue]{received_version}[/blue]"
         if branch:
             version_info += f" for branch [blue]{branch}[/blue]"
 
-        if format == "text":
+        if output_format == OutputFormat.text:
             console.print("")
             console.print(version_info)
         else:  # fancy format
@@ -307,35 +311,27 @@ def _print_fancy_mapping(console: Any, mapping_entries: Any, details: bool) -> N
     console.print("\n")
 
 
-@click.command()
-@click.option(
-    "--package", type=click.Choice(["eos", "cvp"]), default="eos", required=False
-)
-@click.option(
-    "--format",
-    type=click.Choice(["json", "text", "fancy"]),
-    default="fancy",
-    help="Output format",
-)
-@click.option(
-    "--details",
-    is_flag=True,
-    show_default=True,
-    default=False,
-    help="Show details for each flavor",
-)
-@click.pass_context
+@app.command()
 def mapping(
-    ctx: click.Context, package: AristaPackage, details: bool, format: str
+    ctx: typer.Context,
+    package: Package = typer.Option(Package.eos, "--package"),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.fancy, "--format", help="Output format"
+    ),
+    details: bool = typer.Option(
+        False,
+        "--details",
+        help="Show details for each flavor",
+    ),
 ) -> None:
     """List available flavors of Arista packages (eos or CVP) packages."""
 
-    mapping_pkg_name = _get_mapping_name(package)
+    mapping_pkg_name = _get_mapping_name(package.value)
     console = console_configuration()
     log_level = ctx.obj["log_level"]
 
     # Only print log level for non-JSON formats to avoid contaminating JSON output
-    if format != "json":
+    if output_format != OutputFormat.json:
         console.print(f"Log Level is: {log_level}")
     configure_logging(level=log_level.upper())
 
@@ -345,12 +341,12 @@ def mapping(
 
     mapping_entries = getattr(software_mapping, mapping_pkg_name, None)
 
-    if format == "text":
+    if output_format == OutputFormat.text:
         _print_text_mapping(
-            console, package, mapping_pkg_name, mapping_entries, details
+            console, package.value, mapping_pkg_name, mapping_entries, details
         )
-    elif format == "fancy":
+    elif output_format == OutputFormat.fancy:
         _print_fancy_mapping(console, mapping_entries, details)
-    elif format == "json":
-        mapping_json = software_mapping.model_dump()[package.upper()]
+    elif output_format == OutputFormat.json:
+        mapping_json = software_mapping.model_dump()[package.value.upper()]
         print_json(data=mapping_json)

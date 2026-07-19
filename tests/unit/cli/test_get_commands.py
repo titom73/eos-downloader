@@ -14,11 +14,11 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
-import click
 import pytest
-from click.testing import CliRunner
+import typer
+from typer.testing import CliRunner
 
-from eos_downloader.cli.get.commands import cvp, eos, path
+from eos_downloader.cli.cli import app
 
 
 # Fixtures
@@ -26,7 +26,7 @@ from eos_downloader.cli.get.commands import cvp, eos, path
 
 @pytest.fixture
 def runner() -> CliRunner:
-    """Provide a Click CLI runner for testing."""
+    """Provide a Typer CLI runner for testing."""
     return CliRunner()
 
 
@@ -96,8 +96,8 @@ class TestEosCommand:
 
         # Execute
         result = runner.invoke(
-            eos,
-            ["--version", "4.29.3M"],
+            app,
+            ["get", "eos", "--version", "4.29.3M"],
             obj=mock_context,
         )
 
@@ -134,8 +134,8 @@ class TestEosCommand:
         # Execute
         with patch("eos_downloader.cli.get.commands.download_files"):
             result = runner.invoke(
-                eos,
-                ["--latest"],
+            app,
+            ["get", "eos", "--latest"],
                 obj=mock_context,
             )
 
@@ -170,8 +170,8 @@ class TestEosCommand:
         # Execute
         with patch("eos_downloader.cli.get.commands.download_files"):
             result = runner.invoke(
-                eos,
-                ["--latest", "--branch", "4.29"],
+            app,
+            ["get", "eos", "--latest", "--branch", "4.29"],
                 obj=mock_context,
             )
 
@@ -206,8 +206,8 @@ class TestEosCommand:
 
         # Execute
         result = runner.invoke(
-            eos,
-            ["--version", "4.29.3M", "--eve-ng"],
+            app,
+            ["get", "eos", "--version", "4.29.3M", "--eve-ng"],
             obj=mock_context,
         )
 
@@ -245,8 +245,8 @@ class TestEosCommand:
         # Execute
         with patch("eos_downloader.cli.get.commands.download_files"):
             result = runner.invoke(
-                eos,
-                [
+            app,
+            ["get", "eos", 
                     "--version",
                     "4.29.3M",
                     "--import-docker",
@@ -287,8 +287,8 @@ class TestEosCommand:
         # Execute
         with patch("eos_downloader.cli.get.commands.SoftManager"):
             result = runner.invoke(
-                eos,
-                ["--version", "4.29.3M", "--skip-download"],
+            app,
+            ["get", "eos", "--version", "4.29.3M", "--skip-download"],
                 obj=mock_context,
             )
 
@@ -321,8 +321,8 @@ class TestEosCommand:
         with patch("eos_downloader.cli.get.commands.SoftManager") as mock_sm:
             with patch("eos_downloader.cli.get.commands.download_files"):
                 result = runner.invoke(
-                    eos,
-                    ["--version", "4.29.3M", "--dry-run"],
+            app,
+            ["get", "eos", "--version", "4.29.3M", "--dry-run"],
                     obj=mock_context,
                 )
 
@@ -352,8 +352,8 @@ class TestEosCommand:
 
         with patch("eos_downloader.cli.get.commands.download_files"):
             result = runner.invoke(
-                eos,
-                [
+            app,
+            ["get", "eos", 
                     "--version", "4.29.3M",
                     "--import-docker",
                     "--docker-name", "arista/ceos",
@@ -392,8 +392,8 @@ class TestEosCommand:
 
         # Execute
         result = runner.invoke(
-            eos,
-            ["--latest"],
+            app,
+            ["get", "eos", "--latest"],
             obj=mock_context,
         )
 
@@ -426,8 +426,8 @@ class TestEosCommand:
 
         # Execute
         result = runner.invoke(
-            eos,
-            ["--version", "4.29.3M"],
+            app,
+            ["get", "eos", "--version", "4.29.3M"],
             obj=mock_context,
         )
 
@@ -463,8 +463,8 @@ class TestEosCommand:
 
         # Execute
         result = runner.invoke(
-            eos,
-            ["--version", "4.29.3M", "--eve-ng"],
+            app,
+            ["get", "eos", "--version", "4.29.3M", "--eve-ng"],
             obj=mock_context,
         )
 
@@ -501,8 +501,8 @@ class TestEosCommand:
 
         # Execute
         result = runner.invoke(
-            eos,
-            ["--version", "4.29.3M", "--eve-ng"],
+            app,
+            ["get", "eos", "--version", "4.29.3M", "--eve-ng"],
             obj=mock_context,
         )
 
@@ -539,8 +539,8 @@ class TestCvpCommand:
 
         # Execute
         result = runner.invoke(
-            cvp,
-            ["--version", "2024.3.0"],
+            app,
+            ["get", "cvp", "--version", "2024.3.0"],
             obj=mock_context,
         )
 
@@ -581,8 +581,8 @@ class TestCvpCommand:
 
         # Execute
         result = runner.invoke(
-            cvp,
-            ["--latest"],
+            app,
+            ["get", "cvp", "--latest"],
             obj=mock_context,
         )
 
@@ -622,8 +622,8 @@ class TestCvpCommand:
 
         # Execute
         result = runner.invoke(
-            cvp,
-            ["--latest", "--branch", "2024.2"],
+            app,
+            ["get", "cvp", "--latest", "--branch", "2024.2"],
             obj=mock_context,
         )
 
@@ -656,8 +656,8 @@ class TestCvpCommand:
 
         # Execute
         result = runner.invoke(
-            cvp,
-            ["--version", "2024.3.0", "--format", "rpm"],
+            app,
+            ["get", "cvp", "--version", "2024.3.0", "--format", "rpm"],
             obj=mock_context,
         )
 
@@ -691,8 +691,8 @@ class TestCvpCommand:
 
         # Execute
         result = runner.invoke(
-            cvp,
-            ["--version", "2024.3.0", "--dry-run"],
+            app,
+            ["get", "cvp", "--version", "2024.3.0", "--dry-run"],
             obj=mock_context,
         )
 
@@ -722,8 +722,8 @@ class TestCvpCommand:
 
         # Execute
         result = runner.invoke(
-            cvp,
-            ["--latest"],
+            app,
+            ["get", "cvp", "--latest"],
             obj=mock_context,
         )
 
@@ -752,8 +752,8 @@ class TestCvpCommand:
 
         # Execute
         result = runner.invoke(
-            cvp,
-            ["--version", "2024.3.0"],
+            app,
+            ["get", "cvp", "--version", "2024.3.0"],
             obj=mock_context,
         )
 
@@ -783,8 +783,8 @@ class TestCvpCommand:
 
         # Execute
         result = runner.invoke(
-            cvp,
-            ["--version", "2024.3.0"],
+            app,
+            ["get", "cvp", "--version", "2024.3.0"],
             obj=mock_context,
         )
 
@@ -824,8 +824,8 @@ class TestPathCommand:
 
         # Execute
         result = runner.invoke(
-            path,
-            [
+            app,
+            ["get", "path", 
                 "--source",
                 "/path/to/EOS-4.29.3M.swi",
                 "--output",
@@ -858,8 +858,8 @@ class TestPathCommand:
 
         # Execute
         result = runner.invoke(
-            path,
-            ["--output", "/tmp"],
+            app,
+            ["get", "path", "--output", "/tmp"],
             obj=mock_context,
         )
 
@@ -890,8 +890,8 @@ class TestPathCommand:
 
         # Execute
         result = runner.invoke(
-            path,
-            ["--source", "/path/to/file.swi"],
+            app,
+            ["get", "path", "--source", "/path/to/file.swi"],
             obj=mock_context,
         )
 
@@ -923,8 +923,8 @@ class TestPathCommand:
 
         # Execute
         result = runner.invoke(
-            path,
-            ["--source", "/path/to/file.swi"],
+            app,
+            ["get", "path", "--source", "/path/to/file.swi"],
             obj=mock_context,
         )
 
@@ -956,8 +956,8 @@ class TestPathCommand:
 
         # Execute
         result = runner.invoke(
-            path,
-            ["--source", "/path/to/file.swi"],
+            app,
+            ["get", "path", "--source", "/path/to/file.swi"],
             obj=mock_context,
         )
 
@@ -993,8 +993,8 @@ class TestPathCommand:
 
         # Execute
         result = runner.invoke(
-            path,
-            ["--source", "/path/to/file.swi"],
+            app,
+            ["get", "path", "--source", "/path/to/file.swi"],
             obj=mock_context,
         )
 
@@ -1031,8 +1031,8 @@ class TestPathCommand:
 
         # Execute
         result = runner.invoke(
-            path,
-            ["--source", "/path/to/file.swi"],
+            app,
+            ["get", "path", "--source", "/path/to/file.swi"],
             obj=mock_context,
         )
 
@@ -1068,8 +1068,8 @@ class TestPathCommand:
 
         # Execute
         result = runner.invoke(
-            path,
-            [
+            app,
+            ["get", "path", 
                 "--source",
                 "/path/to/cEOS.tar",
                 "--import-docker",
@@ -1114,8 +1114,8 @@ class TestPathCommand:
 
         # Execute
         result = runner.invoke(
-            path,
-            [
+            app,
+            ["get", "path", 
                 "--source",
                 "/path/to/cEOS.tar",
                 "--import-docker",
@@ -1156,8 +1156,8 @@ class TestPathCommand:
 
         # Execute
         result = runner.invoke(
-            path,
-            [
+            app,
+            ["get", "path", 
                 "--source",
                 "/path/to/cEOS.tar",
                 "--import-docker",
@@ -1197,8 +1197,8 @@ class TestPathCommand:
 
         # Execute
         result = runner.invoke(
-            path,
-            ["--source", "/path/to/file.swi"],
+            app,
+            ["get", "path", "--source", "/path/to/file.swi"],
             obj=mock_context,
         )
 
@@ -1232,8 +1232,8 @@ class TestEosContainerlabCommand:
         topo_file.write_text("topology: {}")
 
         result = runner.invoke(
-            eos,
-            ["--containerlab-topology", str(topo_file)],
+            app,
+            ["get", "eos", "--containerlab-topology", str(topo_file)],
             obj=mock_context,
         )
 
@@ -1256,14 +1256,14 @@ class TestEosContainerlabCommand:
         topo_file.write_text("topology: {}")
 
         result = runner.invoke(
-            eos,
-            ["--containerlab-topology", str(topo_file), "--version", "4.29.3M"],
+            app,
+            ["get", "eos", "--containerlab-topology", str(topo_file), "--version", "4.29.3M"],
             obj=mock_context,
         )
 
         assert result.exit_code != 0
         assert "mutually exclusive" in result.output or isinstance(
-            result.exception, click.UsageError
+            result.exception, typer.BadParameter
         )
 
     @patch("eos_downloader.cli.get.commands.initialize")
@@ -1282,8 +1282,8 @@ class TestEosContainerlabCommand:
         topo_file.write_text("topology: {}")
 
         result = runner.invoke(
-            eos,
-            ["--containerlab-topology", str(topo_file), "--latest"],
+            app,
+            ["get", "eos", "--containerlab-topology", str(topo_file), "--latest"],
             obj=mock_context,
         )
 
@@ -1305,8 +1305,8 @@ class TestEosContainerlabCommand:
         topo_file.write_text("topology: {}")
 
         result = runner.invoke(
-            eos,
-            ["--containerlab-topology", str(topo_file), "--branch", "4.29"],
+            app,
+            ["get", "eos", "--containerlab-topology", str(topo_file), "--branch", "4.29"],
             obj=mock_context,
         )
 
@@ -1331,8 +1331,8 @@ class TestEosContainerlabCommand:
         topo_file.write_text("topology: {}")
 
         result = runner.invoke(
-            eos,
-            ["--containerlab-topology", str(topo_file)],
+            app,
+            ["get", "eos", "--containerlab-topology", str(topo_file)],
             obj=mock_context,
         )
 
@@ -1357,8 +1357,8 @@ class TestEosContainerlabCommand:
         topo_file.write_text("topology: {}")
 
         result = runner.invoke(
-            eos,
-            ["--clab", str(topo_file)],
+            app,
+            ["get", "eos", "--clab", str(topo_file)],
             obj=mock_context,
         )
 

@@ -8,14 +8,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from click.testing import CliRunner
+from typer.testing import CliRunner
 
-from eos_downloader.cli.cli import ardl
+from eos_downloader.cli.cli import app
 
 
 @pytest.fixture
 def runner() -> CliRunner:
-    """Create a Click test runner."""
+    """Create a Typer test runner."""
     return CliRunner()
 
 
@@ -25,7 +25,7 @@ class TestConfigInit:
     def test_creates_file(self, runner: CliRunner, tmp_path: Path) -> None:
         """Creates a config file at the specified path."""
         output = tmp_path / "config.toml"
-        result = runner.invoke(ardl, ["config", "init", "--output", str(output)])
+        result = runner.invoke(app, ["config", "init", "--output", str(output)])
 
         assert result.exit_code == 0
         assert output.exists()
@@ -34,7 +34,7 @@ class TestConfigInit:
     def test_sets_permissions(self, runner: CliRunner, tmp_path: Path) -> None:
         """Config file is created with restricted permissions."""
         output = tmp_path / "config.toml"
-        result = runner.invoke(ardl, ["config", "init", "--output", str(output)])
+        result = runner.invoke(app, ["config", "init", "--output", str(output)])
 
         assert result.exit_code == 0
         mode = oct(output.stat().st_mode & 0o777)
@@ -45,7 +45,7 @@ class TestConfigInit:
         output = tmp_path / "config.toml"
         output.write_text("existing content")
 
-        result = runner.invoke(ardl, ["config", "init", "--output", str(output)])
+        result = runner.invoke(app, ["config", "init", "--output", str(output)])
 
         assert result.exit_code != 0
         assert "already exists" in result.output or "already exists" in (result.stderr or "")
@@ -57,7 +57,7 @@ class TestConfigInit:
         output.write_text("old content")
 
         result = runner.invoke(
-            ardl, ["config", "init", "--output", str(output), "--force"]
+            app, ["config", "init", "--output", str(output), "--force"]
         )
 
         assert result.exit_code == 0
@@ -68,7 +68,7 @@ class TestConfigInit:
         custom_dir = tmp_path / "custom" / "nested"
         output = custom_dir / "my-config.toml"
 
-        result = runner.invoke(ardl, ["config", "init", "-o", str(output)])
+        result = runner.invoke(app, ["config", "init", "-o", str(output)])
 
         assert result.exit_code == 0
         assert output.exists()
@@ -88,7 +88,7 @@ class TestConfigShow:
             with patch(
                 "eos_downloader.cli.config.commands.find_config_file", return_value=None
             ):
-                result = runner.invoke(ardl, ["config", "show"])
+                result = runner.invoke(app, ["config", "show"])
 
         assert result.exit_code == 0
         assert "No configuration file found" in result.output
@@ -104,7 +104,7 @@ class TestConfigShow:
             "eos_downloader.cli.config.commands.find_config_file",
             return_value=config_file,
         ):
-            result = runner.invoke(ardl, ["config", "show"])
+            result = runner.invoke(app, ["config", "show"])
 
         assert result.exit_code == 0
         assert str(config_file) in result.output
@@ -123,7 +123,7 @@ class TestConfigShow:
             "eos_downloader.cli.config.commands.find_config_file",
             return_value=config_file,
         ):
-            result = runner.invoke(ardl, ["config", "show"])
+            result = runner.invoke(app, ["config", "show"])
 
         assert result.exit_code == 0
         assert 'log_level = "debug"' in result.output
