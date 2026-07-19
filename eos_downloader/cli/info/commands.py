@@ -13,15 +13,15 @@ It includes commands to:
 - List all available versions with filtering options
 - Get the latest version for a given package/branch
 
-The commands use Click for CLI argument parsing and support both text and JSON output formats.
-Authentication is handled via a token passed through Click context.
+The commands use Typer for CLI argument parsing and support both text and JSON output formats.
+Authentication is handled via a token passed through the Typer context.
 
 Commands:
     versions: Lists all available versions with optional filtering
     latest: Shows the latest version matching the filter criteria
 
 Dependencies:
-    click: CLI framework
+    typer: CLI framework
     rich: For pretty JSON output
     eos_downloader.logics.arista_server: Core logic for querying Arista servers
 """

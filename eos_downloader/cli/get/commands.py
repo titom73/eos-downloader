@@ -168,7 +168,12 @@ def eos(
             searched_version=version, token=token, image_type=format
         )
     except Exception as exc:
-        console.print_exception(show_locals=True)
+        # Only dump the locals-rich traceback in debug mode: it contains the
+        # Arista token and other sensitive locals.
+        if debug:
+            console.print_exception(show_locals=True)
+        else:
+            console.print(f"\n[red]Exception raised: {exc}[/red]")
         raise typer.Exit(1) from exc
 
     cli = SoftManager(dry_run=dry_run, force_download=force)
@@ -271,11 +276,15 @@ def cvp(
             version = str(version_obj)
         except AuthenticationError as auth_error:
             console.print(f"[red]Authentication Error:[/red] {str(auth_error)}")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from auth_error
         except Exception as e:
-            console.print(f"Token is set to: {token}")
-            console.print_exception(show_locals=True)
-            raise typer.Exit(1)
+            # Never echo the token; only show the locals-rich traceback (which
+            # also contains the token) when debug mode is enabled.
+            if debug:
+                console.print_exception(show_locals=True)
+            else:
+                console.print(f"\n[red]Exception raised: {e}[/red]")
+            raise typer.Exit(1) from e
 
     console.print(f"version to download is {version}")
 

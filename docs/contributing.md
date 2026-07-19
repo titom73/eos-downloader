@@ -178,7 +178,7 @@ branch. Activate it with `uv run pre-commit install`. If you are certain you nee
 to bypass it, `git commit --no-verify` is the explicit escape hatch.
 
 AI assistants other than Claude Code read the same rules from
-[`AGENTS.md`](../AGENTS.md).
+[`AGENTS.md`](https://github.com/titom73/eos-downloader/blob/main/AGENTS.md).
 
 ## Development Workflow
 

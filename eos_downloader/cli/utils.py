@@ -4,8 +4,8 @@
 
 
 """
-Extension for the python ``click`` module
-to provide a group or command with aliases.
+Extension for Typer's ``TyperGroup``
+to provide a command group with prefix aliases.
 """
 
 from typing import Any
