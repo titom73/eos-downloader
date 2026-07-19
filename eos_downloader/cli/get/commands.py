@@ -18,6 +18,7 @@ from typing import Optional
 import typer
 
 from eos_downloader.models.data import RTYPE_FEATURE
+from eos_downloader.models.types import ProgressMode
 from eos_downloader.logics.download import SoftManager
 from eos_downloader.logics.arista_server import AristaServer
 from eos_downloader.logics.arista_xml_server import (
@@ -117,6 +118,11 @@ def eos(
         help="Force download/import even if cached files or Docker images exist",
         show_envvar=True,
     ),
+    no_progress: bool = typer.Option(
+        False,
+        "--no-progress",
+        help="Disable the download progress display (useful for CI/non-TTY)",
+    ),
     containerlab_topology: Optional[Path] = typer.Option(
         None,
         "--containerlab-topology",
@@ -130,6 +136,7 @@ def eos(
     """Download EOS image from Arista server."""
     # pylint: disable=unused-variable
     console, token, debug, log_level = initialize(ctx)
+    progress: ProgressMode = "none" if no_progress else "auto"
 
     if containerlab_topology is not None:
         if version is not None or latest or branch is not None:
@@ -156,6 +163,7 @@ def eos(
             force=force,
             debug=debug,
             skip_download=skip_download,
+            progress=progress,
         )
 
     version = search_version(
@@ -176,16 +184,16 @@ def eos(
             console.print(f"\n[red]Exception raised: {exc}[/red]")
         raise typer.Exit(1) from exc
 
-    cli = SoftManager(dry_run=dry_run, force_download=force)
+    cli = SoftManager(dry_run=dry_run, force_download=force, console=console)
 
     if not skip_download:
         if not eve_ng:
             download_files(
-                console, cli, eos_dl_obj, output, rich_interface=True, debug=debug
+                console, cli, eos_dl_obj, output, debug=debug, progress=progress
             )
         else:
             try:
-                cli.provision_eve(eos_dl_obj, noztp=True)
+                cli.provision_eve(eos_dl_obj, noztp=True, progress=progress)
             except Exception as e:
                 if debug:
                     console.print_exception(show_locals=True)
@@ -251,10 +259,16 @@ def cvp(
         help="Force download even if cached files exist",
         show_envvar=True,
     ),
+    no_progress: bool = typer.Option(
+        False,
+        "--no-progress",
+        help="Disable the download progress display (useful for CI/non-TTY)",
+    ),
 ) -> int:
     """Download CVP image from Arista server."""
     # pylint: disable=unused-variable
     console, token, debug, log_level = initialize(ctx)
+    progress: ProgressMode = "none" if no_progress else "auto"
 
     if version is not None:
         console.print(
@@ -301,14 +315,14 @@ def cvp(
             console.print(f"\n[red]Exception raised: {e}[/red]")
         raise typer.Exit(1)
 
-    cli = SoftManager(dry_run=dry_run, force_download=force)
+    cli = SoftManager(dry_run=dry_run, force_download=force, console=console)
     download_files(
         console,
         cli,
         cvp_dl_obj,
         output,
-        rich_interface=True,
         debug=debug,
+        progress=progress,
         checksum_format="md5sum",
     )
 
@@ -356,9 +370,15 @@ def path(
         help="Force download/import even if cached files or Docker images exist",
         show_envvar=True,
     ),
+    no_progress: bool = typer.Option(
+        False,
+        "--no-progress",
+        help="Disable the download progress display (useful for CI/non-TTY)",
+    ),
 ) -> int:
     """Download image from Arista server using direct path."""
     console, token, debug, log_level = initialize(ctx)
+    progress: ProgressMode = "none" if no_progress else "auto"
 
     if source is None:
         console.print("[red]Source is not set correctly ![/red]")
@@ -389,10 +409,12 @@ def path(
     # At this point, mypy knows file_url is not None due to the check above
     assert file_url is not None  # Type assertion for mypy
 
-    cli = SoftManager(dry_run=False, force_download=force)
+    cli = SoftManager(dry_run=False, force_download=force, console=console)
 
     try:
-        cli.download_file(file_url, output, filename=filename, force=force)
+        cli.download_file(
+            file_url, output, filename=filename, force=force, progress=progress
+        )
     except Exception as e:
         if debug:
             console.print_exception(show_locals=True)

@@ -1,17 +1,14 @@
 # coding: utf-8 -*-
-"""ObjectDownloader class to manage file downloads with an option to use rich interface.
+"""SoftManager class to manage file downloads with a progress display.
 
-This class provides methods to download files from URLs with progress tracking using either
-tqdm or rich interface. It supports both raw downloads and enhanced visual feedback during
-the download process.
+This class downloads files from URLs with progress tracking rendered through the
+:mod:`eos_downloader.helpers` reporter layer, which selects a rich (terminal) or
+plain (CI / non-TTY) display automatically.
 
 Methods
 --------
-download_file(url: str, file_path: str, filename: str, rich_interface: bool = True) -> Union[None, str]
-    Downloads a file from the given URL to the specified path with optional rich interface.
-
-_download_file_raw(url: str, file_path: str) -> str
-    Static method that performs the actual file download with tqdm progress bar.
+download_file(url: str, file_path: str, filename: str, *, progress: ProgressMode = "auto") -> Union[None, str]
+    Downloads a file from the given URL to the specified path with a progress display.
 
 Attributes
 --------
@@ -19,12 +16,11 @@ None
 
 Example
 --------
-    >>> downloader = ObjectDownloader()
+    >>> downloader = SoftManager()
     >>> result = downloader.download_file(
     ...     url='http://example.com/file.zip',
     ...     file_path='/downloads',
     ...     filename='file.zip',
-    ...     rich_interface=True
     ... )
 """
 
@@ -32,18 +28,54 @@ import os
 import shutil
 import hashlib
 import subprocess
-from typing import Union, Literal, Dict, Optional
+import warnings
+from typing import Union, Literal, Dict, List, Optional
 from pathlib import Path
 
-import requests
-from tqdm import tqdm
 from loguru import logger
+from rich.console import Console
 
 import eos_downloader.models.types
 import eos_downloader.defaults
 import eos_downloader.helpers
 import eos_downloader.logics.arista_xml_server
 import eos_downloader.models.version
+from eos_downloader.helpers import (
+    DownloadItem,
+    download_files_concurrently,
+    resolve_reporter,
+)
+from eos_downloader.models.types import ProgressMode
+
+
+def _resolve_progress_mode(
+    progress: ProgressMode, rich_interface: Optional[bool]
+) -> ProgressMode:
+    """Resolve the effective progress mode, honouring the deprecated alias.
+
+    Parameters
+    ----------
+    progress : ProgressMode
+        Explicit progress mode ("auto", "rich", "plain", "none").
+    rich_interface : Optional[bool]
+        Deprecated alias. ``None`` means "not passed"; ``False`` maps to
+        ``"plain"`` and ``True`` maps to ``"auto"``. When provided, a
+        ``DeprecationWarning`` is emitted.
+
+    Returns
+    -------
+    ProgressMode
+        The effective progress mode.
+    """
+    if rich_interface is not None:
+        warnings.warn(
+            "The 'rich_interface' parameter is deprecated; use "
+            "progress='auto'|'rich'|'plain'|'none' instead.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        return "plain" if rich_interface is False else "auto"
+    return progress
 
 
 class SoftManager:
@@ -63,7 +95,12 @@ class SoftManager:
     '/tmp/file.txt'
     """
 
-    def __init__(self, dry_run: bool = False, force_download: bool = False) -> None:
+    def __init__(
+        self,
+        dry_run: bool = False,
+        force_download: bool = False,
+        console: Optional[Console] = None,
+    ) -> None:
         """
         Initialize SoftManager.
 
@@ -73,6 +110,10 @@ class SoftManager:
             If True, simulate operations without executing them, by default False
         force_download : bool, optional
             If True, bypass cache and force download/import, by default False
+        console : Console, optional
+            Shared Rich console used to render the progress display. When omitted,
+            a default ``Console`` is created (its terminal detection then drives
+            ``progress="auto"``).
         """
         self.file: Dict[str, Union[str, None]] = {}
         self.file["name"] = None
@@ -80,6 +121,7 @@ class SoftManager:
         self.file["sha512sum"] = None
         self.dry_run = dry_run
         self.force_download = force_download
+        self.console = console if console is not None else Console()
         logger.info(
             f"SoftManager initialized{' in dry-run mode' if dry_run else ''}{' with force download' if force_download else ''}"
         )
@@ -150,44 +192,6 @@ class SoftManager:
         except (ValueError, FileNotFoundError, OSError) as e:
             logger.warning(f"Checksum validation failed: {e}")
             return False
-
-    @staticmethod
-    def _download_file_raw(url: str, file_path: str) -> str:
-        """Downloads a file from a URL and saves it to a local file.
-
-        Parameters
-        ----------
-        url : str
-            The URL of the file to download.
-        file_path : str
-            The local path where the file will be saved.
-
-        Returns
-        -------
-        str
-            The path to the downloaded file.
-
-        Notes
-        -----
-        - Uses requests library to stream download in chunks of 1024 bytes
-        - Shows download progress using tqdm progress bar
-        - Sets timeout of 5 seconds for initial connection
-        """
-
-        chunkSize = 1024
-        r = requests.get(url, stream=True, timeout=5)
-        with open(file_path, "wb") as f:
-            pbar = tqdm(
-                unit="B",
-                total=int(r.headers["Content-Length"]),
-                unit_scale=True,
-                unit_divisor=1024,
-            )
-            for chunk in r.iter_content(chunk_size=chunkSize):
-                if chunk:
-                    pbar.update(len(chunk))
-                f.write(chunk)
-        return file_path
 
     @staticmethod
     def _create_destination_folder(path: str) -> None:
@@ -330,7 +334,8 @@ class SoftManager:
         file_path: str,
         filename: str,
         *,
-        rich_interface: bool = True,
+        progress: ProgressMode = "auto",
+        rich_interface: Optional[bool] = None,
         force: bool = False,
     ) -> Union[None, str]:
         """
@@ -344,8 +349,12 @@ class SoftManager:
             The directory path where the file should be saved.
         filename : str
             The name to be given to the downloaded file.
+        progress : ProgressMode, optional
+            Progress rendering mode: ``"auto"`` (default, picks rich on a TTY and
+            plain otherwise), ``"rich"``, ``"plain"`` or ``"none"``.
         rich_interface : bool, optional
-            Whether to use rich progress bar interface. Defaults to True.
+            Deprecated. Use ``progress`` instead. ``False`` maps to
+            ``progress="plain"`` and ``True`` maps to ``progress="auto"``.
         force : bool, optional
             If True, download even if file exists locally. Defaults to False.
 
@@ -364,6 +373,7 @@ class SoftManager:
         ... )
         '/downloads/EOS-4.29.3M.swi'
         """
+        mode = _resolve_progress_mode(progress, rich_interface)
         full_path = Path(file_path) / filename
 
         # Check cache unless force flag is set
@@ -383,12 +393,10 @@ class SoftManager:
 
         # Proceed with download
         if url is not False:
-            if not rich_interface:
-                return self._download_file_raw(
-                    url=url, file_path=os.path.join(file_path, filename)
-                )
-            rich_downloader = eos_downloader.helpers.DownloadProgressBar()
-            rich_downloader.download(urls=[url], dest_dir=file_path)
+            reporter = resolve_reporter(
+                mode, self.console, title=f"Downloading {filename}"
+            )
+            download_files_concurrently([(url, str(full_path), filename)], reporter)
             return os.path.join(file_path, filename)
 
         logger.error(f"Cannot download file {file_path}")
@@ -398,7 +406,9 @@ class SoftManager:
         self,
         object_arista: eos_downloader.logics.arista_xml_server.AristaXmlObjects,
         file_path: str,
-        rich_interface: bool = True,
+        *,
+        progress: ProgressMode = "auto",
+        rich_interface: Optional[bool] = None,
     ) -> tuple[str, bool]:
         """
         Downloads files from Arista EOS server with caching support.
@@ -406,7 +416,8 @@ class SoftManager:
         Downloads the EOS image and optional md5/sha512 files based on the
         provided EOS XML object. Each file is downloaded to the specified path
         with appropriate filenames. Uses cache to skip already downloaded files
-        unless force_download is enabled.
+        unless force_download is enabled. The files of a single download are
+        fetched concurrently and rendered in one shared progress display.
 
         Parameters
         ----------
@@ -414,8 +425,12 @@ class SoftManager:
             Object containing EOS image and hash file URLs.
         file_path : str
             Directory path where files should be downloaded.
+        progress : ProgressMode, optional
+            Progress rendering mode: ``"auto"`` (default), ``"rich"``,
+            ``"plain"`` or ``"none"``.
         rich_interface : bool, optional
-            Whether to use rich console output. Defaults to True.
+            Deprecated. Use ``progress`` instead. ``False`` maps to
+            ``progress="plain"`` and ``True`` maps to ``progress="auto"``.
 
         Returns
         -------
@@ -440,6 +455,8 @@ class SoftManager:
         >>> cached  # Will be False
         False
         """
+        mode = _resolve_progress_mode(progress, rich_interface)
+
         logger.info(
             f"Processing files for {object_arista.version} "
             f"(force_download={self.force_download})"
@@ -457,6 +474,8 @@ class SoftManager:
 
         # Track if all files were retrieved from cache
         all_files_cached = True
+        # Files that actually need downloading, streamed together under one display.
+        to_download: List[DownloadItem] = []
 
         for file_type, url in sorted(object_arista.urls.items(), reverse=True):
             logger.debug(f"Processing {file_type} from {url}")
@@ -472,27 +491,12 @@ class SoftManager:
             if filename is None:
                 logger.error(f"Filename not found for {file_type}")
                 raise ValueError(f"Filename not found for {file_type}")
-            if not self.dry_run:
-                # Check if file is already cached before download
-                full_path = Path(file_path) / filename
-                file_was_cached = full_path.exists() and not self.force_download
 
-                # download_file will check cache automatically
-                # unless self.force_download is True
-                self.download_file(
-                    url,
-                    file_path,
-                    filename,
-                    rich_interface=rich_interface,
-                    force=self.force_download,
-                )
+            full_path = Path(file_path) / filename
+            file_was_cached = full_path.exists() and not self.force_download
 
-                # Update cache tracking
-                if not file_was_cached:
-                    all_files_cached = False
-            else:
-                full_path = Path(file_path) / filename
-                if full_path.exists() and not self.force_download:
+            if self.dry_run:
+                if file_was_cached:
                     logger.info(f"[DRY-RUN] Would use cached file: {filename}")
                 else:
                     logger.info(
@@ -500,6 +504,19 @@ class SoftManager:
                         f"for version {object_arista.version}"
                     )
                     all_files_cached = False
+                continue
+
+            if file_was_cached:
+                logger.info(f"Using cached file: {full_path}")
+            else:
+                all_files_cached = False
+                to_download.append((url, str(full_path), filename))
+
+        if to_download:
+            reporter = resolve_reporter(
+                mode, self.console, title=f"Downloading {object_arista.version}"
+            )
+            download_files_concurrently(to_download, reporter)
 
         return file_path, all_files_cached
 
@@ -669,6 +686,7 @@ class SoftManager:
         self,
         object_arista: eos_downloader.logics.arista_xml_server.EosXmlObject,
         noztp: bool = False,
+        progress: ProgressMode = "auto",
     ) -> None:
         """
         Provisions EVE-NG with the specified Arista EOS object.
@@ -679,6 +697,9 @@ class SoftManager:
             The Arista EOS object containing version, filename, and URLs.
         noztp : bool, optional
             If True, disables ZTP (Zero Touch Provisioning). Defaults to False.
+        progress : ProgressMode, optional
+            Progress rendering mode: ``"auto"`` (default), ``"rich"``,
+            ``"plain"`` or ``"none"``.
 
         Raises
         ------
@@ -741,7 +762,7 @@ class SoftManager:
             logger.debug(
                 f"downloading file {filename} for version {object_arista.version}"
             )
-            self.download_file(url, file_path, filename, rich_interface=True)
+            self.download_file(url, file_path, filename, progress=progress)
 
         # Convert to QCOW2 format
         if eos_filename is None:

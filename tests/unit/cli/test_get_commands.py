@@ -20,7 +20,6 @@ from typer.testing import CliRunner
 
 from eos_downloader.cli.cli import app
 
-
 # Fixtures
 
 
@@ -134,8 +133,8 @@ class TestEosCommand:
         # Execute
         with patch("eos_downloader.cli.get.commands.download_files"):
             result = runner.invoke(
-            app,
-            ["get", "eos", "--latest"],
+                app,
+                ["get", "eos", "--latest"],
                 obj=mock_context,
             )
 
@@ -170,8 +169,8 @@ class TestEosCommand:
         # Execute
         with patch("eos_downloader.cli.get.commands.download_files"):
             result = runner.invoke(
-            app,
-            ["get", "eos", "--latest", "--branch", "4.29"],
+                app,
+                ["get", "eos", "--latest", "--branch", "4.29"],
                 obj=mock_context,
             )
 
@@ -245,8 +244,10 @@ class TestEosCommand:
         # Execute
         with patch("eos_downloader.cli.get.commands.download_files"):
             result = runner.invoke(
-            app,
-            ["get", "eos", 
+                app,
+                [
+                    "get",
+                    "eos",
                     "--version",
                     "4.29.3M",
                     "--import-docker",
@@ -287,8 +288,8 @@ class TestEosCommand:
         # Execute
         with patch("eos_downloader.cli.get.commands.SoftManager"):
             result = runner.invoke(
-            app,
-            ["get", "eos", "--version", "4.29.3M", "--skip-download"],
+                app,
+                ["get", "eos", "--version", "4.29.3M", "--skip-download"],
                 obj=mock_context,
             )
 
@@ -321,14 +322,16 @@ class TestEosCommand:
         with patch("eos_downloader.cli.get.commands.SoftManager") as mock_sm:
             with patch("eos_downloader.cli.get.commands.download_files"):
                 result = runner.invoke(
-            app,
-            ["get", "eos", "--version", "4.29.3M", "--dry-run"],
+                    app,
+                    ["get", "eos", "--version", "4.29.3M", "--dry-run"],
                     obj=mock_context,
                 )
 
         # Assert
         assert result.exit_code == 0
-        mock_sm.assert_called_once_with(dry_run=True, force_download=False)
+        mock_sm.assert_called_once_with(
+            dry_run=True, force_download=False, console=mock_console
+        )
 
     @patch("eos_downloader.cli.get.commands.initialize")
     @patch("eos_downloader.cli.get.commands.search_version")
@@ -352,12 +355,17 @@ class TestEosCommand:
 
         with patch("eos_downloader.cli.get.commands.download_files"):
             result = runner.invoke(
-            app,
-            ["get", "eos", 
-                    "--version", "4.29.3M",
+                app,
+                [
+                    "get",
+                    "eos",
+                    "--version",
+                    "4.29.3M",
                     "--import-docker",
-                    "--docker-name", "arista/ceos",
-                    "--docker-tag", "4.29.3M",
+                    "--docker-name",
+                    "arista/ceos",
+                    "--docker-tag",
+                    "4.29.3M",
                     "--dry-run",
                 ],
                 obj=mock_context,
@@ -698,7 +706,9 @@ class TestCvpCommand:
 
         # Assert
         assert result.exit_code == 0
-        mock_soft_manager.assert_called_once_with(dry_run=True, force_download=False)
+        mock_soft_manager.assert_called_once_with(
+            dry_run=True, force_download=False, console=mock_console
+        )
 
     @patch("eos_downloader.cli.get.commands.initialize")
     @patch("eos_downloader.cli.get.commands.AristaXmlQuerier")
@@ -825,7 +835,9 @@ class TestPathCommand:
         # Execute
         result = runner.invoke(
             app,
-            ["get", "path", 
+            [
+                "get",
+                "path",
                 "--source",
                 "/path/to/EOS-4.29.3M.swi",
                 "--output",
@@ -1069,7 +1081,9 @@ class TestPathCommand:
         # Execute
         result = runner.invoke(
             app,
-            ["get", "path", 
+            [
+                "get",
+                "path",
                 "--source",
                 "/path/to/cEOS.tar",
                 "--import-docker",
@@ -1115,7 +1129,9 @@ class TestPathCommand:
         # Execute
         result = runner.invoke(
             app,
-            ["get", "path", 
+            [
+                "get",
+                "path",
                 "--source",
                 "/path/to/cEOS.tar",
                 "--import-docker",
@@ -1157,7 +1173,9 @@ class TestPathCommand:
         # Execute
         result = runner.invoke(
             app,
-            ["get", "path", 
+            [
+                "get",
+                "path",
                 "--source",
                 "/path/to/cEOS.tar",
                 "--import-docker",
@@ -1257,7 +1275,14 @@ class TestEosContainerlabCommand:
 
         result = runner.invoke(
             app,
-            ["get", "eos", "--containerlab-topology", str(topo_file), "--version", "4.29.3M"],
+            [
+                "get",
+                "eos",
+                "--containerlab-topology",
+                str(topo_file),
+                "--version",
+                "4.29.3M",
+            ],
             obj=mock_context,
         )
 
@@ -1306,7 +1331,14 @@ class TestEosContainerlabCommand:
 
         result = runner.invoke(
             app,
-            ["get", "eos", "--containerlab-topology", str(topo_file), "--branch", "4.29"],
+            [
+                "get",
+                "eos",
+                "--containerlab-topology",
+                str(topo_file),
+                "--branch",
+                "4.29",
+            ],
             obj=mock_context,
         )
 

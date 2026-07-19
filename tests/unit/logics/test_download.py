@@ -1,10 +1,36 @@
 import os
 import subprocess
+import warnings
 import pytest
 from unittest.mock import Mock, patch, mock_open
 from pathlib import Path
-from eos_downloader.logics.download import SoftManager
+from eos_downloader.logics.download import SoftManager, _resolve_progress_mode
 from eos_downloader.logics.arista_xml_server import EosXmlObject
+
+
+class TestResolveProgressMode:
+    """Tests for the progress-mode resolution and deprecated alias."""
+
+    def test_explicit_mode_passthrough(self):
+        assert _resolve_progress_mode("plain", None) == "plain"
+
+    def test_rich_interface_false_maps_to_plain(self):
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            assert _resolve_progress_mode("auto", False) == "plain"
+        assert any(issubclass(w.category, DeprecationWarning) for w in caught)
+
+    def test_rich_interface_true_maps_to_auto(self):
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            assert _resolve_progress_mode("auto", True) == "auto"
+        assert any(issubclass(w.category, DeprecationWarning) for w in caught)
+
+    def test_no_alias_emits_no_warning(self):
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            _resolve_progress_mode("rich", None)
+        assert not caught
 
 
 @pytest.fixture
@@ -47,21 +73,6 @@ def test_soft_manager_init(dry_run, force_download):
     assert manager.dry_run == dry_run
     assert manager.force_download == force_download
     assert manager.file == {"name": None, "md5sum": None, "sha512sum": None}
-
-
-@patch("requests.get")
-@patch("tqdm.tqdm")
-def test_download_file_raw(mock_tqdm, mock_requests):
-    # Setup mock response
-    mock_response = Mock()
-    mock_response.headers = {"Content-Length": "1024"}
-    mock_response.iter_content.return_value = [b"data"]
-    mock_requests.return_value = mock_response
-
-    with patch("builtins.open", mock_open()) as mock_file:
-        result = SoftManager._download_file_raw("http://test.com/file", "/tmp/file")
-        assert result == "/tmp/file"
-        mock_file().write.assert_called_with(b"data")
 
 
 @patch("os.makedirs")
@@ -112,27 +123,29 @@ def test_compute_hash_md5sum(soft_manager):
 #                 soft_manager.checksum(check_type)
 
 
-@patch("eos_downloader.logics.download.SoftManager._download_file_raw")
-@patch("eos_downloader.helpers.DownloadProgressBar")
-def test_download_file(mock_progress_bar, mock_download_raw, soft_manager):
+@patch("eos_downloader.logics.download.download_files_concurrently")
+def test_download_file(mock_download, soft_manager):
     url = "http://test.com/file"
     file_path = "/tmp"
     filename = "test.swi"
 
-    # Test with rich interface
-    result = soft_manager.download_file(url, file_path, filename, rich_interface=True)
+    result = soft_manager.download_file(url, file_path, filename)
     assert result == os.path.join(file_path, filename)
-    mock_progress_bar.assert_called_once()
+    mock_download.assert_called_once()
+    # The single file is streamed as one (url, dest, name) item.
+    items = list(mock_download.call_args[0][0])
+    assert items == [(url, os.path.join(file_path, filename), filename)]
 
 
-@patch("eos_downloader.logics.download.SoftManager.download_file")
+@patch("eos_downloader.logics.download.download_files_concurrently")
 def test_downloads(mock_download, soft_manager, mock_eos_object):
-    path, was_cached = soft_manager.downloads(
-        mock_eos_object, "/tmp/downloads", rich_interface=True
-    )
+    path, was_cached = soft_manager.downloads(mock_eos_object, "/tmp/downloads")
     assert path == "/tmp/downloads"
     assert isinstance(was_cached, bool)
-    assert mock_download.call_count == len(mock_eos_object.urls)
+    # One shared concurrent batch for all (non-cached) files, not one call per file.
+    mock_download.assert_called_once()
+    items = list(mock_download.call_args[0][0])
+    assert len(items) == len(mock_eos_object.urls)
 
 
 @patch("shutil.which")
@@ -229,14 +242,14 @@ class TestFileCache:
         assert result is False
 
     @patch("pathlib.Path.exists")
-    @patch("eos_downloader.logics.download.SoftManager._download_file_raw")
+    @patch("eos_downloader.logics.download.download_files_concurrently")
     def test_download_file_uses_cache(self, mock_download, mock_exists):
         """Test that download_file uses cached file when available."""
         mock_exists.return_value = True
         manager = SoftManager()
 
         cached_path = manager.download_file(
-            "http://test.com/file.swi", "/tmp", "test.swi", rich_interface=False
+            "http://test.com/file.swi", "/tmp", "test.swi", progress="none"
         )
 
         # Should return cached path without downloading
@@ -244,15 +257,14 @@ class TestFileCache:
         mock_download.assert_not_called()
 
     @patch("pathlib.Path.exists")
-    @patch("eos_downloader.logics.download.SoftManager._download_file_raw")
+    @patch("eos_downloader.logics.download.download_files_concurrently")
     def test_download_file_bypasses_cache_with_force(self, mock_download, mock_exists):
         """Test that force flag bypasses cache."""
         mock_exists.return_value = True
-        mock_download.return_value = "/tmp/test.swi"
         manager = SoftManager(force_download=True)
 
         downloaded_path = manager.download_file(
-            "http://test.com/file.swi", "/tmp", "test.swi", rich_interface=False
+            "http://test.com/file.swi", "/tmp", "test.swi", progress="none"
         )
 
         # Should download despite cache
@@ -260,18 +272,17 @@ class TestFileCache:
         mock_download.assert_called_once()
 
     @patch("pathlib.Path.exists")
-    @patch("eos_downloader.logics.download.SoftManager._download_file_raw")
+    @patch("eos_downloader.logics.download.download_files_concurrently")
     def test_download_file_force_parameter(self, mock_download, mock_exists):
         """Test that force parameter overrides cache."""
         mock_exists.return_value = True
-        mock_download.return_value = "/tmp/test.swi"
         manager = SoftManager()
 
         forced_path = manager.download_file(
             "http://test.com/file.swi",
             "/tmp",
             "test.swi",
-            rich_interface=False,
+            progress="none",
             force=True,
         )
 
@@ -406,9 +417,11 @@ class TestDockerCache:
 class TestCacheIntegration:
     """Integration tests for cache functionality."""
 
-    @patch("eos_downloader.logics.download.SoftManager.download_file")
-    def test_downloads_propagates_force_flag(self, mock_download):
-        """Test that downloads() propagates force_download to download_file."""
+    @patch("pathlib.Path.exists")
+    @patch("eos_downloader.logics.download.download_files_concurrently")
+    def test_downloads_force_flag_bypasses_cache(self, mock_download, mock_exists):
+        """With force_download, an existing file is still (re-)downloaded."""
+        mock_exists.return_value = True  # File exists on disk
         mock_eos = Mock()
         mock_eos.version = "4.29.3M"
         mock_eos.filename = "test.swi"
@@ -418,12 +431,10 @@ class TestCacheIntegration:
         manager = SoftManager(force_download=True)
         path, was_cached = manager.downloads(mock_eos, "/tmp")
 
-        # Verify force was passed to download_file
-        mock_download.assert_called()
-        call_kwargs = mock_download.call_args[1]
-        assert call_kwargs.get("force") is True
+        # Cache is bypassed: the file is scheduled for download, not reported cached.
+        mock_download.assert_called_once()
+        assert was_cached is False
         assert path == "/tmp"
-        assert isinstance(was_cached, bool)
 
     @patch("pathlib.Path.exists")
     def test_dry_run_with_cache(self, mock_exists):
@@ -521,7 +532,7 @@ class TestDownloadFileEdgeCases:
             url=False,
             file_path="/tmp",
             filename="test.swi",
-            rich_interface=False,
+            progress="none",
         )
         assert result is None
 
@@ -532,7 +543,7 @@ class TestDownloadFileEdgeCases:
             url="http://test.com/file.swi",
             file_path="/tmp",
             filename="test.swi",
-            rich_interface=False,
+            progress="none",
         )
         assert result == "/tmp/test.swi"
 
@@ -733,7 +744,9 @@ class TestImportDockerCalledProcessError:
     @patch("subprocess.run")
     @patch("shutil.which")
     @patch("os.path.exists")
-    def test_import_docker_called_process_error(self, mock_exists, mock_which, mock_run):
+    def test_import_docker_called_process_error(
+        self, mock_exists, mock_which, mock_run
+    ):
         """Test import_docker raises RuntimeError on CalledProcessError."""
         mock_exists.return_value = True
         mock_which.return_value = "/usr/bin/docker"
