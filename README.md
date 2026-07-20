@@ -16,6 +16,7 @@ A project to download Arista softwares to local folder, Cloudvision or EVE-NG. I
 - 📦 **Multiple Formats**: Support for EOS (64-bit, vEOS, cEOS) and CloudVision Portal
 - 🐳 **Docker Integration**: Direct import to Docker/Podman registries
 - 🔧 **EVE-NG Support**: Automated provisioning for network simulation
+- 🧭 **Interactive Mode**: Guided wizard (`--interactive`) to pick format, version and options without memorizing flags
 - ⚡ **Fast Iterations**: Subsequent runs complete instantly using cached resources
 
 <img src='docs/imgs/logo.jpg' class="center" width="800px" />
@@ -62,6 +63,9 @@ ardl get eos --version 4.35.1F --format vEOS64-lab-qcow2
 
 # Force re-download/re-import (bypass cache)
 ardl get eos --version 4.29.4M --import-docker --force
+
+# Don't know the flags? Use the interactive wizard
+ardl get eos --interactive
 ```
 
 ### Smart Caching

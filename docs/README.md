@@ -52,6 +52,9 @@ ardl get eos --version 4.35.1F --format vEOS64-lab-qcow2
 
 # Download all cEOS images from a containerlab topology
 ardl get eos --clab topology.clab.yml --format cEOS
+
+# Don't know the flags? Use the interactive wizard
+ardl get eos --interactive
 ```
 
 ## Author
