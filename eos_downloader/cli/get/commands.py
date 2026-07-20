@@ -37,6 +37,7 @@ from .utils import (
     handle_docker_import,
     download_from_containerlab_topology,
 )
+from .interactive import run_interactive, require_interactive_context
 
 app = typer.Typer(
     cls=AliasedTyperGroup,
@@ -123,6 +124,12 @@ def eos(
         "--no-progress",
         help="Disable the download progress display (useful for CI/non-TTY)",
     ),
+    interactive: bool = typer.Option(
+        False,
+        "--interactive",
+        "-i",
+        help="Open a guided wizard to pick format, version and options",
+    ),
     containerlab_topology: Optional[Path] = typer.Option(
         None,
         "--containerlab-topology",
@@ -138,7 +145,24 @@ def eos(
     console, token, debug, log_level = initialize(ctx)
     progress: ProgressMode = "none" if no_progress else "auto"
 
-    if containerlab_topology is not None:
+    if interactive:
+        if version is not None or latest or branch is not None:
+            raise typer.BadParameter(
+                "--interactive is mutually exclusive with --version, --latest, and --branch"
+            )
+        require_interactive_context(console, token)
+        result = run_interactive("eos", console, token, output)
+        if result is None:
+            raise typer.Exit()
+        format = result.image_format
+        version = result.version
+        output = result.output
+        force = result.force
+        import_docker = result.import_docker
+        docker_name = result.docker_name
+        docker_tag = result.docker_tag
+        eve_ng = result.eve_ng
+    elif containerlab_topology is not None:
         if version is not None or latest or branch is not None:
             raise typer.BadParameter(
                 "--containerlab-topology is mutually exclusive with --version, --latest, and --branch"
@@ -166,9 +190,10 @@ def eos(
             progress=progress,
         )
 
-    version = search_version(
-        console, token, version, latest, branch, format, release_type
-    )
+    if not interactive:
+        version = search_version(
+            console, token, version, latest, branch, format, release_type
+        )
     if version is None:
         raise ValueError("Version is not set correctly")
     try:
@@ -264,11 +289,31 @@ def cvp(
         "--no-progress",
         help="Disable the download progress display (useful for CI/non-TTY)",
     ),
+    interactive: bool = typer.Option(
+        False,
+        "--interactive",
+        "-i",
+        help="Open a guided wizard to pick format, version and options",
+    ),
 ) -> int:
     """Download CVP image from Arista server."""
     # pylint: disable=unused-variable
     console, token, debug, log_level = initialize(ctx)
     progress: ProgressMode = "none" if no_progress else "auto"
+
+    if interactive:
+        if version is not None or latest or branch is not None:
+            raise typer.BadParameter(
+                "--interactive is mutually exclusive with --version, --latest, and --branch"
+            )
+        require_interactive_context(console, token)
+        result = run_interactive("cvp", console, token, output)
+        if result is None:
+            raise typer.Exit()
+        format = result.image_format
+        version = result.version
+        output = result.output
+        force = result.force
 
     if version is not None:
         console.print(

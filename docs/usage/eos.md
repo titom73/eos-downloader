@@ -32,6 +32,24 @@ ardl get eos --version 4.29.4M --force
 ardl get eos --version 4.29.4M --import-docker --force
 ```
 
+## Interactive mode
+
+If you don't know the exact flags, use `--interactive` (`-i`) to open a guided
+wizard. It lets you pick, with the arrow keys, the image format, the release type
+(`F`/`M`), the branch and the version, then offers format-dependent options
+(Docker import for cEOS images, EVE-NG provisioning for vEOS images), the output
+directory and a force-re-download toggle. Before downloading, it shows the
+equivalent command and asks for confirmation.
+
+```bash
+ardl get eos --interactive
+# or the short form
+ardl get eos -i
+```
+
+`--interactive` requires an interactive terminal and a token, and cannot be
+combined with `--version`, `--latest` or `--branch`.
+
 ## Smart Caching
 
 **eos-downloader** includes intelligent caching to avoid redundant downloads and Docker imports:
@@ -123,6 +141,10 @@ Options:
   --force                         Force download/import even if cached files
                                   or Docker images exist  [env var:
                                   ARISTA_GET_EOS_FORCE]
+  --no-progress                   Disable the download progress display
+                                  (useful for CI/non-TTY)
+  --interactive, -i               Open a guided wizard to pick format, version
+                                  and options
   --containerlab-topology, --clab FILE
                                   Path to containerlab topology file to
                                   download all cEOS images.
