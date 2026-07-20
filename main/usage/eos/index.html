@@ -409,6 +409,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#interactive-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interactive mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#smart-caching" class="md-nav__link">
     <span class="md-ellipsis">
       Smart Caching
@@ -1364,6 +1373,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#interactive-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interactive mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#smart-caching" class="md-nav__link">
     <span class="md-ellipsis">
       Smart Caching
@@ -1470,6 +1488,19 @@ ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </spa
 <span class="c1"># Force re-import of Docker image even if it exists</span>
 ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--version<span class="w"> </span><span class="m">4</span>.29.4M<span class="w"> </span>--import-docker<span class="w"> </span>--force
 </code></pre></div>
+<h3 id="interactive-mode">Interactive mode<a class="headerlink" href="#interactive-mode" title="Permanent link">¶</a></h3>
+<p>If you don’t know the exact flags, use <code>--interactive</code> (<code>-i</code>) to open a guided
+wizard. It lets you pick, with the arrow keys, the image format, the release type
+(<code>F</code>/<code>M</code>), the branch and the version, then offers format-dependent options
+(Docker import for cEOS images, EVE-NG provisioning for vEOS images), the output
+directory and a force-re-download toggle. Before downloading, it shows the
+equivalent command and asks for confirmation.</p>
+<div class="highlight"><pre><span></span><code>ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>--interactive
+<span class="c1"># or the short form</span>
+ardl<span class="w"> </span>get<span class="w"> </span>eos<span class="w"> </span>-i
+</code></pre></div>
+<p><code>--interactive</code> requires an interactive terminal and a token, and cannot be
+combined with <code>--version</code>, <code>--latest</code> or <code>--branch</code>.</p>
 <h3 id="smart-caching">Smart Caching<a class="headerlink" href="#smart-caching" title="Permanent link">¶</a></h3>
 <p><strong>eos-downloader</strong> includes intelligent caching to avoid redundant downloads and Docker imports:</p>
 <h4 id="file-caching">File Caching<a class="headerlink" href="#file-caching" title="Permanent link">¶</a></h4>
@@ -1554,6 +1585,10 @@ Options:
 <span class="w">  </span>--force<span class="w">                         </span>Force<span class="w"> </span>download/import<span class="w"> </span>even<span class="w"> </span><span class="k">if</span><span class="w"> </span>cached<span class="w"> </span>files
 <span class="w">                                  </span>or<span class="w"> </span>Docker<span class="w"> </span>images<span class="w"> </span>exist<span class="w">  </span><span class="o">[</span>env<span class="w"> </span>var:
 <span class="w">                                  </span>ARISTA_GET_EOS_FORCE<span class="o">]</span>
+<span class="w">  </span>--no-progress<span class="w">                   </span>Disable<span class="w"> </span>the<span class="w"> </span>download<span class="w"> </span>progress<span class="w"> </span>display
+<span class="w">                                  </span><span class="o">(</span>useful<span class="w"> </span><span class="k">for</span><span class="w"> </span>CI/non-TTY<span class="o">)</span>
+<span class="w">  </span>--interactive,<span class="w"> </span>-i<span class="w">               </span>Open<span class="w"> </span>a<span class="w"> </span>guided<span class="w"> </span>wizard<span class="w"> </span>to<span class="w"> </span>pick<span class="w"> </span>format,<span class="w"> </span>version
+<span class="w">                                  </span>and<span class="w"> </span>options
 <span class="w">  </span>--containerlab-topology,<span class="w"> </span>--clab<span class="w"> </span>FILE
 <span class="w">                                  </span>Path<span class="w"> </span>to<span class="w"> </span>containerlab<span class="w"> </span>topology<span class="w"> </span>file<span class="w"> </span>to
 <span class="w">                                  </span>download<span class="w"> </span>all<span class="w"> </span>cEOS<span class="w"> </span>images.
@@ -1583,7 +1618,7 @@ Options:
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 27, 2026 10:19:28 UTC">March 27, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="July 20, 2026 11:12:47 UTC">July 20, 2026</span>
   </span>
 
     
