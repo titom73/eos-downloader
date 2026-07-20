@@ -24,7 +24,7 @@ from eos_downloader.cli.get.interactive import (
     require_interactive_context,
     run_interactive,
 )
-from eos_downloader.models.version import EosVersion
+from eos_downloader.models.version import CvpVersion, EosVersion
 
 
 def _ans(value: Any) -> Mock:
@@ -143,7 +143,7 @@ def _patch_questionary(
     return stack
 
 
-def _mock_querier(branches: List[str], versions: List[EosVersion]) -> Mock:
+def _mock_querier(branches: List[str], versions: List[Any]) -> Mock:
     """Build a mock AristaXmlQuerier."""
     querier = Mock()
     querier.branches.return_value = branches
@@ -182,7 +182,7 @@ class TestRunInteractive:
         )
 
     def test_cvp_skips_release_type(self, console: Console) -> None:
-        versions = [EosVersion.from_str("2024.3.0")]
+        versions = [CvpVersion.from_str("2024.3.0")]
         querier = _mock_querier(["2024.3"], versions)
         with patch.object(interactive_module, "AristaXmlQuerier", return_value=querier):
             with _patch_questionary(
@@ -227,6 +227,32 @@ class TestRunInteractive:
             with _patch_questionary(
                 selects=[None],  # user hit Ctrl+C at the format step
                 confirms=[],
+                texts=[],
+                paths=[],
+            ):
+                result = run_interactive("eos", console, "token", ".")
+
+        assert result is None
+
+    def test_cancel_output_prompt_aborts(self, console: Console) -> None:
+        querier = _mock_querier(["4.29"], [EosVersion.from_str("4.29.3M")])
+        with patch.object(interactive_module, "AristaXmlQuerier", return_value=querier):
+            with _patch_questionary(
+                selects=["64", "F", "4.29", "4.29.3M"],
+                confirms=[],
+                texts=[],
+                paths=[None],  # Ctrl+C at the output-directory prompt
+            ):
+                result = run_interactive("eos", console, "token", ".")
+
+        assert result is None
+
+    def test_cancel_docker_confirm_aborts(self, console: Console) -> None:
+        querier = _mock_querier(["4.29"], [EosVersion.from_str("4.29.3M")])
+        with patch.object(interactive_module, "AristaXmlQuerier", return_value=querier):
+            with _patch_questionary(
+                selects=["cEOS", "M", "4.29", "4.29.3M"],
+                confirms=[None],  # Ctrl+C at the "Import into Docker?" prompt
                 texts=[],
                 paths=[],
             ):

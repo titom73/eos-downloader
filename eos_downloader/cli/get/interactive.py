@@ -10,8 +10,9 @@ reuse its normal download path.
 
 from __future__ import annotations
 
+import shlex
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import questionary
 import typer
@@ -42,23 +43,32 @@ class InteractiveResult:  # pylint: disable=too-many-instance-attributes
     eve_ng: bool = False
 
     def to_command(self) -> str:
-        """Render the equivalent non-interactive ``ardl get`` command."""
-        parts: List[str] = [
-            f"ardl get {self.package}",
-            f"--format {self.image_format}",
-            f"--version {self.version}",
-            f"--output {self.output}",
+        """Render the equivalent non-interactive ``ardl get`` command.
+
+        Arguments are quoted with :func:`shlex.join` so the recap stays accurate
+        and copy/paste-safe even when values contain spaces or shell
+        metacharacters.
+        """
+        args: List[str] = [
+            "ardl",
+            "get",
+            self.package,
+            "--format",
+            self.image_format,
+            "--version",
+            self.version,
+            "--output",
+            self.output,
         ]
         if self.force:
-            parts.append("--force")
+            args.append("--force")
         if self.import_docker:
-            parts.append("--import-docker")
-            parts.append(f"--docker-name {self.docker_name}")
+            args += ["--import-docker", "--docker-name", self.docker_name]
             if self.docker_tag:
-                parts.append(f"--docker-tag {self.docker_tag}")
+                args += ["--docker-tag", self.docker_tag]
         if self.eve_ng:
-            parts.append("--eve-ng")
-        return " ".join(parts)
+            args.append("--eve-ng")
+        return shlex.join(args)
 
 
 def require_interactive_context(console: Console, token: Optional[str]) -> None:
@@ -95,6 +105,18 @@ def _formats_for(package: AristaPackage) -> List[str]:
     return [fmt for fmt in mapping.keys() if fmt != "default"]
 
 
+class _Aborted(Exception):
+    """Raised internally when the user cancels a prompt (Ctrl+C)."""
+
+
+def _ask(prompt: Any) -> Any:
+    """Return the prompt's answer, or abort the wizard if it was cancelled."""
+    answer = prompt.ask()
+    if answer is None:
+        raise _Aborted
+    return answer
+
+
 def run_interactive(
     package: AristaPackage,
     console: Console,
@@ -122,81 +144,95 @@ def run_interactive(
     """
     querier = AristaXmlQuerier(token=token)
 
-    # 1. Format
-    image_format = questionary.select(
-        "Select image format:", choices=_formats_for(package)
-    ).ask()
-    if image_format is None:
-        return None
-
-    # 2. Release type (EOS only)
-    rtype: Optional[str] = None
-    if package == "eos":
-        rtype = questionary.select("Select release type:", choices=RTYPES).ask()
-        if rtype is None:
-            return None
-
-    # 3. Branch
-    branches = querier.branches(package=package)
-    if not branches:
-        console.print("[red]No branches found for this package.[/red]")
-        return None
-    branch = questionary.select("Select branch:", choices=branches).ask()
-    if branch is None:
-        return None
-
-    # 4. Version (newest first)
-    versions = querier.available_public_versions(
-        branch=branch, rtype=rtype, package=package
-    )
-    version_choices = [str(v) for v in sorted(versions, reverse=True)]
-    if not version_choices:
-        console.print(
-            f"[red]No versions found for branch {branch} "
-            f"with the selected criteria.[/red]"
+    # A cancelled prompt (Ctrl+C -> ``.ask()`` returns None) raises _Aborted via
+    # _ask(), which is caught here to abort the whole wizard consistently.
+    try:
+        # 1. Format
+        image_format = _ask(
+            questionary.select("Select image format:", choices=_formats_for(package))
         )
-        return None
-    version = questionary.select("Select version:", choices=version_choices).ask()
-    if version is None:
-        return None
 
-    result = InteractiveResult(
-        package=package,
-        image_format=image_format,
-        version=version,
-        output=output_default,
-    )
+        # 2. Release type (EOS only)
+        rtype: Optional[str] = None
+        if package == "eos":
+            rtype = _ask(questionary.select("Select release type:", choices=RTYPES))
 
-    # 5. Format-dependent options (EOS only)
-    if package == "eos":
-        if image_format in CEOS_FORMATS:
-            if questionary.confirm("Import into Docker?", default=False).ask():
-                result.import_docker = True
-                result.docker_name = (
-                    questionary.text("Docker image name:", default="arista/ceos").ask()
-                    or "arista/ceos"
-                )
-                result.docker_tag = (
-                    questionary.text("Docker image tag:", default=version).ask()
-                    or version
-                )
-        elif image_format.startswith(VEOS_PREFIX):
-            result.eve_ng = bool(
-                questionary.confirm("Provision EVE-NG?", default=False).ask()
+        # 3. Branch
+        branches = querier.branches(package=package)
+        if not branches:
+            console.print("[red]No branches found for this package.[/red]")
+            return None
+        branch = _ask(questionary.select("Select branch:", choices=branches))
+
+        # 4. Version (newest first)
+        versions = querier.available_public_versions(
+            branch=branch, rtype=rtype, package=package
+        )
+        version_choices = [str(v) for v in sorted(versions, reverse=True)]
+        if not version_choices:
+            console.print(
+                f"[red]No versions found for branch {branch} "
+                f"with the selected criteria.[/red]"
             )
+            return None
+        version = _ask(
+            questionary.select("Select version:", choices=version_choices)
+        )
 
-    # Common options
-    output = questionary.path("Output directory:", default=output_default).ask()
-    result.output = output or output_default
-    result.force = bool(
-        questionary.confirm("Force re-download if cached?", default=False).ask()
-    )
+        result = InteractiveResult(
+            package=package,
+            image_format=image_format,
+            version=version,
+            output=output_default,
+        )
 
-    # 6. Recap + confirmation
-    console.print("\n[bold]Equivalent command:[/bold]")
-    console.print(f"  [cyan]{result.to_command()}[/cyan]\n")
-    if not questionary.confirm("Start download?", default=True).ask():
-        console.print("[yellow]Aborted.[/yellow]")
+        # 5. Format-dependent options (EOS only)
+        if package == "eos":
+            _collect_eos_options(result, image_format, version)
+
+        # Common options
+        output = _ask(
+            questionary.path("Output directory:", default=output_default)
+        )
+        result.output = output or output_default
+        result.force = bool(
+            _ask(questionary.confirm("Force re-download if cached?", default=False))
+        )
+
+        # 6. Recap + confirmation (declining or cancelling aborts)
+        console.print("\n[bold]Equivalent command:[/bold]")
+        console.print(f"  [cyan]{result.to_command()}[/cyan]\n")
+        if not _ask(questionary.confirm("Start download?", default=True)):
+            console.print("[yellow]Aborted.[/yellow]")
+            return None
+    except _Aborted:
         return None
 
     return result
+
+
+def _collect_eos_options(
+    result: InteractiveResult, image_format: str, version: str
+) -> None:
+    """Prompt for the EOS format-dependent options, mutating ``result``.
+
+    Raises
+    ------
+    _Aborted
+        If any prompt is cancelled.
+    """
+    if image_format in CEOS_FORMATS:
+        if _ask(questionary.confirm("Import into Docker?", default=False)):
+            result.import_docker = True
+            result.docker_name = (
+                _ask(questionary.text("Docker image name:", default="arista/ceos"))
+                or "arista/ceos"
+            )
+            result.docker_tag = (
+                _ask(questionary.text("Docker image tag:", default=version))
+                or version
+            )
+    elif image_format.startswith(VEOS_PREFIX):
+        result.eve_ng = bool(
+            _ask(questionary.confirm("Provision EVE-NG?", default=False))
+        )
