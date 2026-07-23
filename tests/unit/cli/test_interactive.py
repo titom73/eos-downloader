@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from contextlib import ExitStack
 from typing import Any, Dict, List
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 import typer
@@ -259,6 +259,53 @@ class TestRunInteractive:
                 result = run_interactive("eos", console, "token", ".")
 
         assert result is None
+
+    def test_no_branches_returns_none(self, console: Console) -> None:
+        console = MagicMock()
+        querier = _mock_querier([], [EosVersion.from_str("4.29.3M")])
+        with patch.object(interactive_module, "AristaXmlQuerier", return_value=querier):
+            with _patch_questionary(
+                selects=["64", "F"],
+                confirms=[],
+                texts=[],
+                paths=[],
+            ):
+                result = run_interactive("eos", console, "token", ".")
+
+        assert result is None
+        console.print.assert_called_once()
+        assert "No branches found" in str(console.print.call_args)
+
+    def test_no_versions_returns_none(self, console: Console) -> None:
+        console = MagicMock()
+        querier = _mock_querier(["4.29"], [])
+        with patch.object(interactive_module, "AristaXmlQuerier", return_value=querier):
+            with _patch_questionary(
+                selects=["64", "F", "4.29"],
+                confirms=[],
+                texts=[],
+                paths=[],
+            ):
+                result = run_interactive("eos", console, "token", ".")
+
+        assert result is None
+        console.print.assert_called_once()
+        assert "No versions found for branch 4.29" in str(console.print.call_args)
+
+    def test_veos_flow_sets_eve_ng(self, console: Console) -> None:
+        querier = _mock_querier(["4.29"], [EosVersion.from_str("4.29.3M")])
+        with patch.object(interactive_module, "AristaXmlQuerier", return_value=querier):
+            with _patch_questionary(
+                selects=["vEOS-lab", "F", "4.29", "4.29.3M"],
+                confirms=[True, False, True],
+                texts=[],
+                paths=["."],
+            ):
+                result = run_interactive("eos", console, "token", ".")
+
+        assert result is not None
+        assert result.eve_ng is True
+        assert result.import_docker is False
 
 
 class TestInteractiveGuardrails:

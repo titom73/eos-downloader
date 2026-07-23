@@ -28,7 +28,6 @@ import os
 import shutil
 import hashlib
 import subprocess
-import warnings
 from typing import Union, Literal, Dict, List, Optional
 from pathlib import Path
 
@@ -45,37 +44,18 @@ from eos_downloader.helpers import (
     download_files_concurrently,
     resolve_reporter,
 )
+from eos_downloader.logics.download_support import (
+    compute_hash_md5sum,
+    convert_vmdk_to_qcow2,
+    docker_image_exists,
+    ensure_destination_folder,
+    fix_eve_permissions,
+    import_docker_archive,
+    resolve_progress_mode,
+)
 from eos_downloader.models.types import ProgressMode
 
-
-def _resolve_progress_mode(
-    progress: ProgressMode, rich_interface: Optional[bool]
-) -> ProgressMode:
-    """Resolve the effective progress mode, honouring the deprecated alias.
-
-    Parameters
-    ----------
-    progress : ProgressMode
-        Explicit progress mode ("auto", "rich", "plain", "none").
-    rich_interface : Optional[bool]
-        Deprecated alias. ``None`` means "not passed"; ``False`` maps to
-        ``"plain"`` and ``True`` maps to ``"auto"``. When provided, a
-        ``DeprecationWarning`` is emitted.
-
-    Returns
-    -------
-    ProgressMode
-        The effective progress mode.
-    """
-    if rich_interface is not None:
-        warnings.warn(
-            "The 'rich_interface' parameter is deprecated; use "
-            "progress='auto'|'rich'|'plain'|'none' instead.",
-            DeprecationWarning,
-            stacklevel=3,
-        )
-        return "plain" if rich_interface is False else "auto"
-    return progress
+_resolve_progress_mode = resolve_progress_mode
 
 
 class SoftManager:
@@ -206,10 +186,7 @@ class SoftManager:
         -------
         None
         """
-        try:
-            os.makedirs(path, exist_ok=True)
-        except OSError as e:
-            logger.critical(f"Error creating folder: {e}")
+        ensure_destination_folder(path)
 
     def _compute_hash_md5sum(self, file: str, hash_expected: str) -> bool:
         """
@@ -229,19 +206,7 @@ class SoftManager:
         bool
             True if both are equal, False if not.
         """
-        hash_md5 = hashlib.md5()
-        with open(file, "rb") as f:
-            while True:
-                chunk = f.read(4096)
-                if not chunk:
-                    break
-                hash_md5.update(chunk)
-        if hash_md5.hexdigest() == hash_expected:
-            return True
-        logger.warning(
-            f"Downloaded file is corrupt: local md5 ({hash_md5.hexdigest()}) is different to md5 from arista ({hash_expected})"
-        )
-        return False
+        return compute_hash_md5sum(file, hash_expected)
 
     def checksum(self, check_type: Literal["md5sum", "sha512sum", "md5"]) -> bool:
         """
@@ -548,47 +513,7 @@ class SoftManager:
         It uses 'docker images -q' to check for image existence.
         """
         # Try docker first, then podman
-        for cmd in ["docker", "podman"]:
-            # Check if command is available
-            if not shutil.which(cmd):
-                logger.debug(f"{cmd} command not found in PATH")  # noqa: E713
-                continue
-
-            try:
-                # Query for specific image:tag
-                result = subprocess.run(
-                    [cmd, "images", "-q", f"{image_name}:{image_tag}"],  # noqa: E231
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                    check=False,
-                )
-
-                # If output is not empty, image exists
-                if result.stdout.strip():
-                    logger.info(
-                        f"Docker image {image_name}:{image_tag} "  # noqa: E231
-                        f"found in local registry"
-                    )
-                    return True
-
-                logger.debug(
-                    f"Docker image {image_name}:{image_tag} "  # noqa: E231
-                    f"not found in local registry"  # noqa: E713
-                )
-                return False
-
-            except subprocess.TimeoutExpired:
-                logger.warning(f"{cmd} command timed out after 5 seconds")
-                continue
-
-            except (subprocess.SubprocessError, OSError) as e:
-                logger.debug(f"Error checking {cmd} images: {e}")
-                continue
-
-        # If we get here, neither docker nor podman worked
-        logger.warning("Unable to check Docker images (docker/podman not available)")
-        return False
+        return docker_image_exists(image_name, image_tag)
 
     def import_docker(
         self,
@@ -664,14 +589,12 @@ class SoftManager:
 
         # Proceed with import using subprocess.run for security (no shell injection)
         try:
-            cmd_args = [
-                docker_path,
-                "import",
-                str(local_file_path),
-                f"{docker_name}:{docker_tag}",
-            ]
-            logger.debug(f"Executing: {' '.join(cmd_args)}")
-            subprocess.run(cmd_args, check=True, capture_output=True, text=True)
+            import_docker_archive(
+                docker_path=docker_path,
+                local_file_path=str(local_file_path),
+                docker_name=docker_name,
+                docker_tag=docker_tag,
+            )
             logger.info(
                 f"Docker image {docker_name}:{docker_tag} "  # noqa: E231
                 f"imported successfully"
@@ -774,20 +697,10 @@ class SoftManager:
             qemu_img_path = shutil.which("qemu-img")
             if not qemu_img_path:
                 raise FileNotFoundError("qemu-img binary not found in PATH")
-            subprocess.run(
-                [
-                    qemu_img_path,
-                    "convert",
-                    "-f",
-                    "vmdk",
-                    "-O",
-                    "qcow2",
-                    vmdk_path,
-                    qcow2_path,
-                ],
-                check=True,
-                capture_output=True,
-                text=True,
+            convert_vmdk_to_qcow2(
+                qemu_img_path=qemu_img_path,
+                vmdk_path=vmdk_path,
+                qcow2_path=qcow2_path,
             )
         else:
             logger.info(
@@ -796,16 +709,7 @@ class SoftManager:
 
         logger.info("Applying unl_wrapper to fix permissions")
         if not self.dry_run:
-            unl_wrapper_path = "/opt/unetlab/wrappers/unl_wrapper"
-            if os.path.exists(unl_wrapper_path):
-                subprocess.run(
-                    [unl_wrapper_path, "-a", "fixpermissions"],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-            else:
-                logger.warning(f"unl_wrapper not found at {unl_wrapper_path}")
+            fix_eve_permissions(Path("/opt/unetlab/wrappers/unl_wrapper"))
         else:
             logger.info("[DRY-RUN] Would execute unl_wrapper to fix permissions")
         # os.system(f"rm -f {file_downloaded}")

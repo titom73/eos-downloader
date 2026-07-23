@@ -127,3 +127,17 @@ class TestConfigShow:
 
         assert result.exit_code == 0
         assert 'log_level = "debug"' in result.output
+
+    def test_show_with_invalid_config(self, runner: CliRunner, tmp_path: Path) -> None:
+        """Shows a dedicated message for invalid or empty config content."""
+        config_file = tmp_path / "config.toml"
+        config_file.write_text("[ardl\nbroken = true\n")
+
+        with patch(
+            "eos_downloader.cli.config.commands.find_config_file",
+            return_value=config_file,
+        ):
+            result = runner.invoke(app, ["config", "show"])
+
+        assert result.exit_code == 0
+        assert "Configuration file is empty or invalid." in result.output
