@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import sys, json; data=json.load(sys.stdin); f=data.get('file_path',''); (print(f'Blocked: refusing to edit sensitive file {f}', file=sys.stderr), sys.exit(1)) if ('.envrc' in f or f.endswith('.env')) else None\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import sys, json, subprocess; data=json.load(sys.stdin); f=data.get('file_path',''); subprocess.run(['uv','run','black',f,'--quiet']) if f.endswith('.py') else None\""
+          }
+        ]
+      }
+    ]
+  }
+}
