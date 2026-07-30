@@ -21,15 +21,18 @@ from eos_downloader.models.data import RTYPE_FEATURE
 from eos_downloader.models.types import ProgressMode
 from eos_downloader.logics.download import SoftManager
 from eos_downloader.logics.arista_server import AristaServer
-from eos_downloader.logics.arista_xml_server import (
-    EosXmlObject,
-    AristaXmlQuerier,
-    CvpXmlObject,
-)
-from eos_downloader.exceptions import AuthenticationError
+from eos_downloader.logics.arista_xml_server import EosXmlObject, CvpXmlObject
 
 from eos_downloader.cli.utils import AliasedTyperGroup
 
+from .command_helpers import (
+    build_download_object,
+    ensure_selection_mode_exclusive,
+    maybe_run_interactive,
+    print_exception_and_exit,
+    progress_mode_from_flag,
+    resolve_cvp_version,
+)
 from .utils import (
     initialize,
     search_version,
@@ -37,7 +40,6 @@ from .utils import (
     handle_docker_import,
     download_from_containerlab_topology,
 )
-from .interactive import run_interactive, require_interactive_context
 
 app = typer.Typer(
     cls=AliasedTyperGroup,
@@ -143,15 +145,19 @@ def eos(
     """Download EOS image from Arista server."""
     # pylint: disable=unused-variable
     console, token, debug, log_level = initialize(ctx)
-    progress: ProgressMode = "none" if no_progress else "auto"
+    progress: ProgressMode = progress_mode_from_flag(no_progress)
 
     if interactive:
-        if version is not None or latest or branch is not None:
-            raise typer.BadParameter(
-                "--interactive is mutually exclusive with --version, --latest, and --branch"
-            )
-        require_interactive_context(console, token)
-        result = run_interactive("eos", console, token, output)
+        result = maybe_run_interactive(
+            "eos",
+            console,
+            token,
+            output,
+            interactive=interactive,
+            version=version,
+            latest=latest,
+            branch=branch,
+        )
         if result is None:
             raise typer.Exit()
         format = result.image_format
@@ -163,10 +169,12 @@ def eos(
         docker_tag = result.docker_tag
         eve_ng = result.eve_ng
     elif containerlab_topology is not None:
-        if version is not None or latest or branch is not None:
-            raise typer.BadParameter(
-                "--containerlab-topology is mutually exclusive with --version, --latest, and --branch"
-            )
+        ensure_selection_mode_exclusive(
+            version,
+            latest,
+            branch,
+            option_name="--containerlab-topology",
+        )
         # Auto-default to cEOS format when using containerlab topology
         ceos_formats = ("cEOS", "cEOS64", "cEOSarm")
         if format not in ceos_formats:
@@ -196,18 +204,14 @@ def eos(
         )
     if version is None:
         raise ValueError("Version is not set correctly")
-    try:
-        eos_dl_obj = EosXmlObject(
-            searched_version=version, token=token, image_type=format
-        )
-    except Exception as exc:
-        # Only dump the locals-rich traceback in debug mode: it contains the
-        # Arista token and other sensitive locals.
-        if debug:
-            console.print_exception(show_locals=True)
-        else:
-            console.print(f"\n[red]Exception raised: {exc}[/red]")
-        raise typer.Exit(1) from exc
+    eos_dl_obj = build_download_object(
+        EosXmlObject,
+        console,
+        debug,
+        searched_version=version,
+        token=token,
+        image_type=format,
+    )
 
     cli = SoftManager(dry_run=dry_run, force_download=force, console=console)
 
@@ -219,12 +223,8 @@ def eos(
         else:
             try:
                 cli.provision_eve(eos_dl_obj, noztp=True, progress=progress)
-            except Exception as e:
-                if debug:
-                    console.print_exception(show_locals=True)
-                else:
-                    console.print(f"\n[red]Exception raised: {e}[/red]")
-                raise typer.Exit(1)
+            except Exception as error:  # pylint: disable=broad-exception-caught
+                print_exception_and_exit(console, debug, error)
 
     if import_docker:
         if dry_run:
@@ -299,15 +299,19 @@ def cvp(
     """Download CVP image from Arista server."""
     # pylint: disable=unused-variable
     console, token, debug, log_level = initialize(ctx)
-    progress: ProgressMode = "none" if no_progress else "auto"
+    progress: ProgressMode = progress_mode_from_flag(no_progress)
 
     if interactive:
-        if version is not None or latest or branch is not None:
-            raise typer.BadParameter(
-                "--interactive is mutually exclusive with --version, --latest, and --branch"
-            )
-        require_interactive_context(console, token)
-        result = run_interactive("cvp", console, token, output)
+        result = maybe_run_interactive(
+            "cvp",
+            console,
+            token,
+            output,
+            interactive=interactive,
+            version=version,
+            latest=latest,
+            branch=branch,
+        )
         if result is None:
             raise typer.Exit()
         format = result.image_format
@@ -315,50 +319,28 @@ def cvp(
         output = result.output
         force = result.force
 
-    if version is not None:
-        console.print(
-            f"Searching for EOS version [green]{version}[/green] for [blue]{format}[/blue] format..."
-        )
-    elif latest:
-        console.print(
-            f"Searching for [blue]latest[/blue] EOS version for [blue]{format}[/blue] format..."
-        )
-    elif branch is not None:
-        console.print(
-            f"Searching for EOS [b]latest[/b] version for [blue]{branch}[/blue] branch for [blue]{format}[/blue] format..."
-        )
-
-    if branch is not None or latest:
-        try:
-            querier = AristaXmlQuerier(token=token)
-            version_obj = querier.latest(package="cvp", branch=branch)
-            version = str(version_obj)
-        except AuthenticationError as auth_error:
-            console.print(f"[red]Authentication Error:[/red] {str(auth_error)}")
-            raise typer.Exit(1) from auth_error
-        except Exception as e:
-            # Never echo the token; only show the locals-rich traceback (which
-            # also contains the token) when debug mode is enabled.
-            if debug:
-                console.print_exception(show_locals=True)
-            else:
-                console.print(f"\n[red]Exception raised: {e}[/red]")
-            raise typer.Exit(1) from e
+    version = resolve_cvp_version(
+        console,
+        token,
+        version=version,
+        latest=latest,
+        branch=branch,
+        file_format=format,
+        debug=debug,
+    )
 
     console.print(f"version to download is {version}")
 
     if version is None:
         raise ValueError("Version is not set correctly")
-    try:
-        cvp_dl_obj = CvpXmlObject(
-            searched_version=version, token=token, image_type=format
-        )
-    except Exception as e:
-        if debug:
-            console.print_exception(show_locals=True)
-        else:
-            console.print(f"\n[red]Exception raised: {e}[/red]")
-        raise typer.Exit(1)
+    cvp_dl_obj = build_download_object(
+        CvpXmlObject,
+        console,
+        debug,
+        searched_version=version,
+        token=token,
+        image_type=format,
+    )
 
     cli = SoftManager(dry_run=dry_run, force_download=force, console=console)
     download_files(
@@ -423,7 +405,7 @@ def path(
 ) -> int:
     """Download image from Arista server using direct path."""
     console, token, debug, log_level = initialize(ctx)
-    progress: ProgressMode = "none" if no_progress else "auto"
+    progress: ProgressMode = progress_mode_from_flag(no_progress)
 
     if source is None:
         console.print("[red]Source is not set correctly ![/red]")
@@ -440,12 +422,8 @@ def path(
         file_url = ar_server.get_url(source)
         if log_level == "debug":
             console.print(f"URL to download file is: {file_url}")
-    except Exception as e:
-        if debug:
-            console.print_exception(show_locals=True)
-        else:
-            console.print(f"\n[red]Exception raised: {e}[/red]")
-        raise typer.Exit(1)
+    except Exception as error:  # pylint: disable=broad-exception-caught
+        print_exception_and_exit(console, debug, error)
 
     if file_url is None:
         console.print("File URL is set to None when we expect a string")
@@ -460,12 +438,8 @@ def path(
         cli.download_file(
             file_url, output, filename=filename, force=force, progress=progress
         )
-    except Exception as e:
-        if debug:
-            console.print_exception(show_locals=True)
-        else:
-            console.print(f"\n[red]Exception raised: {e}[/red]")
-        raise typer.Exit(1)
+    except Exception as error:  # pylint: disable=broad-exception-caught
+        print_exception_and_exit(console, debug, error)
 
     if import_docker:
         console.print(

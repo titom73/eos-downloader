@@ -174,6 +174,46 @@ class TestRichReporter:
         assert file_task.completed == 40
         assert total_task.completed == 40
 
+    def test_context_manager_starts_and_stops_live(
+        self, reporter: RichReporter
+    ) -> None:
+        """Entering and leaving the reporter drives the Live display."""
+        with patch.object(reporter, "_live") as mock_live:
+            with reporter as entered:
+                assert entered is reporter
+                mock_live.start.assert_called_once()
+            mock_live.stop.assert_called_once()
+
+    def test_advance_ignores_missing_total_task(self, reporter: RichReporter) -> None:
+        """A removed total task must not break per-file progress updates."""
+        handle = reporter.add_file("a", 100)
+        reporter._progress.remove_task(reporter._total_task)
+
+        reporter.advance(handle, 10)
+
+        file_task = next(t for t in reporter._progress.tasks if t.id == handle)
+        assert file_task.completed == 10
+
+    def test_complete_fills_known_total(self, reporter: RichReporter) -> None:
+        """complete() snaps a sized task to 100%."""
+        handle = reporter.add_file("a", 100)
+        reporter.advance(handle, 40)
+
+        reporter.complete(handle)
+
+        file_task = next(t for t in reporter._progress.tasks if t.id == handle)
+        assert file_task.completed == 100
+
+    def test_complete_leaves_indeterminate_task(self, reporter: RichReporter) -> None:
+        """complete() is a no-op for a task with an unknown size."""
+        handle = reporter.add_file("a", None)
+        reporter.advance(handle, 40)
+
+        reporter.complete(handle)
+
+        file_task = next(t for t in reporter._progress.tasks if t.id == handle)
+        assert file_task.completed == 40
+
 
 class TestSigintGuard:
     """Signal handling is scoped, with no import-time side effect."""
@@ -218,10 +258,33 @@ class TestSigintGuard:
             signal.signal(signal.SIGINT, original)
 
 
+    def test_guard_defers_to_default_handler(self) -> None:
+        """SIG_DFL previous handler still raises KeyboardInterrupt."""
+        original = signal.getsignal(signal.SIGINT)
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        try:
+            done = Event()
+            with sigint_guard(done):
+                handler = signal.getsignal(signal.SIGINT)
+                with pytest.raises(KeyboardInterrupt):
+                    handler(signal.SIGINT, None)  # type: ignore[misc]
+            assert done.is_set()
+        finally:
+            signal.signal(signal.SIGINT, original)
+
+    def test_guard_is_noop_outside_main_thread(self) -> None:
+        """A ValueError from signal.signal leaves the guard inert."""
+        done = Event()
+        with patch("signal.signal", side_effect=ValueError("not main thread")):
+            with sigint_guard(done):
+                pass
+        assert not done.is_set()
+
+
 class TestStreamToFile:
     """_stream_to_file streams a single file into a reporter."""
 
-    @patch("eos_downloader.helpers.requests.get")
+    @patch("eos_downloader.helpers.transfer.requests.get")
     @patch("builtins.open", new_callable=mock_open)
     def test_success(self, mock_file: Mock, mock_get: Mock) -> None:
         mock_get.return_value = _mock_response([b"data" * 64] * 4, "1024")
@@ -233,8 +296,8 @@ class TestStreamToFile:
         mock_file.assert_called_once_with("/tmp/file.txt", "wb")
         assert mock_file().write.call_count > 0
 
-    @patch("eos_downloader.helpers.os.remove")
-    @patch("eos_downloader.helpers.requests.get")
+    @patch("eos_downloader.helpers.transfer.os.remove")
+    @patch("eos_downloader.helpers.transfer.requests.get")
     @patch("builtins.open", new_callable=mock_open)
     def test_interrupted_by_event(
         self, mock_file: Mock, mock_get: Mock, mock_remove: Mock
@@ -258,7 +321,7 @@ class TestStreamToFile:
         # The partial file is removed so it is not later treated as cached.
         mock_remove.assert_called_once_with("/tmp/file.txt")
 
-    @patch("eos_downloader.helpers.requests.get")
+    @patch("eos_downloader.helpers.transfer.requests.get")
     @patch("builtins.open", new_callable=mock_open)
     def test_missing_content_length_does_not_crash(
         self, mock_file: Mock, mock_get: Mock
@@ -269,7 +332,7 @@ class TestStreamToFile:
         )
         assert interrupted is False
 
-    @patch("eos_downloader.helpers.requests.get")
+    @patch("eos_downloader.helpers.transfer.requests.get")
     def test_default_headers_sent(self, mock_get: Mock) -> None:
         mock_get.return_value = _mock_response([b"data"], "4")
         with patch("builtins.open", new_callable=mock_open):
@@ -280,7 +343,7 @@ class TestStreamToFile:
             )
         assert mock_get.call_args[1]["headers"] is not None
 
-    @patch("eos_downloader.helpers.requests.get")
+    @patch("eos_downloader.helpers.transfer.requests.get")
     @patch("builtins.open", new_callable=mock_open)
     def test_http_error_raises_before_writing(
         self, mock_file: Mock, mock_get: Mock
@@ -299,7 +362,7 @@ class TestStreamToFile:
         mock_file().write.assert_not_called()
         resp.close.assert_called_once()
 
-    @patch("eos_downloader.helpers.requests.get")
+    @patch("eos_downloader.helpers.transfer.requests.get")
     @patch("builtins.open", new_callable=mock_open)
     def test_empty_keep_alive_chunks_skipped(
         self, mock_file: Mock, mock_get: Mock
@@ -311,7 +374,7 @@ class TestStreamToFile:
         # Only the two non-empty chunks are written.
         assert mock_file().write.call_count == 2
 
-    @patch("eos_downloader.helpers.requests.get")
+    @patch("eos_downloader.helpers.transfer.requests.get")
     @patch("builtins.open", new_callable=mock_open)
     def test_response_closed_on_success(self, mock_file: Mock, mock_get: Mock) -> None:
         resp = _mock_response([b"data"], "4")
@@ -348,7 +411,7 @@ class _RecordingReporter(DownloadReporter):
 class TestDownloadFilesConcurrently:
     """download_files_concurrently drives one shared reporter over many files."""
 
-    @patch("eos_downloader.helpers.requests.get")
+    @patch("eos_downloader.helpers.transfer.requests.get")
     @patch("builtins.open", new_callable=mock_open)
     def test_all_files_completed(self, mock_file: Mock, mock_get: Mock) -> None:
         mock_get.return_value = _mock_response([b"data"], "4")
@@ -367,7 +430,7 @@ class TestDownloadFilesConcurrently:
         download_files_concurrently([], reporter)
         assert reporter.added == []
 
-    @patch("eos_downloader.helpers.requests.get")
+    @patch("eos_downloader.helpers.transfer.requests.get")
     @patch("builtins.open", new_callable=mock_open)
     def test_runs_concurrently(self, mock_file: Mock, mock_get: Mock) -> None:
         def slow_get(*args: Any, **kwargs: Any) -> Mock:

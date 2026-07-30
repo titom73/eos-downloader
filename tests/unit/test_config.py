@@ -11,6 +11,7 @@ from eos_downloader.config import (
     config_to_default_map,
     find_config_file,
     generate_template,
+    get_default_map,
     load_config,
 )
 
@@ -262,3 +263,40 @@ class TestGenerateTemplate:
         # Should parse without error
         config = tomllib.loads(uncommented)
         assert "ardl" in config
+
+
+class TestGetDefaultMap:
+    """Tests for get_default_map()."""
+
+    def test_no_config_file(self, tmp_path: Path) -> None:
+        """Return None when no configuration file is found."""
+        with patch("eos_downloader.config.find_config_file", return_value=None):
+            assert get_default_map() is None
+
+    def test_empty_config_file(self, tmp_path: Path) -> None:
+        """Return None when the configuration file is empty or unparsable."""
+        config_file = tmp_path / "ardl.toml"
+        config_file.write_text("")
+
+        with patch("eos_downloader.config.find_config_file", return_value=config_file):
+            assert get_default_map() is None
+
+    def test_config_without_ardl_section(self, tmp_path: Path) -> None:
+        """Return None when the config holds no ``ardl`` section."""
+        config_file = tmp_path / "ardl.toml"
+        config_file.write_text('[other]\nkey = "value"\n')
+
+        with patch("eos_downloader.config.find_config_file", return_value=config_file):
+            assert get_default_map() is None
+
+    def test_valid_config(self, tmp_path: Path) -> None:
+        """Return the default map built from a valid configuration file."""
+        config_file = tmp_path / "ardl.toml"
+        config_file.write_text(VALID_TOML)
+
+        with patch("eos_downloader.config.find_config_file", return_value=config_file):
+            default_map = get_default_map()
+
+        assert default_map is not None
+        assert default_map["token"] == "my-secret-token"
+        assert default_map["get"]["eos"]["format"] == "cEOS"

@@ -5,6 +5,10 @@ import pytest
 from unittest.mock import Mock, patch, mock_open
 from pathlib import Path
 from eos_downloader.logics.download import SoftManager, _resolve_progress_mode
+from eos_downloader.logics.download_support import (
+    ensure_destination_folder,
+    fix_eve_permissions,
+)
 from eos_downloader.logics.arista_xml_server import EosXmlObject
 
 
@@ -340,6 +344,28 @@ class TestDockerCache:
 
         result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
         assert result is True
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_docker_image_exists_podman_checked_when_docker_misses(
+        self, mock_which, mock_run
+    ):
+        """Test that podman is still queried when docker does not have the image."""
+        mock_which.return_value = "/usr/bin/runtime"
+
+        def run_side_effect(cmd_args, **kwargs):
+            result = Mock()
+            result.stdout = "image123\n" if cmd_args[0] == "podman" else ""
+            return result
+
+        mock_run.side_effect = run_side_effect
+
+        result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
+        assert result is True
+        assert [call.args[0][0] for call in mock_run.call_args_list] == [
+            "docker",
+            "podman",
+        ]
 
     @patch("subprocess.run")
     @patch("shutil.which")
@@ -950,3 +976,37 @@ class TestProvisionEveEdgeCases:
 
         # Should have called qemu-img convert but not unl_wrapper
         assert mock_run.call_count == 1  # Only qemu-img, not unl_wrapper
+
+
+class TestDownloadSupportHelpers:
+    """Tests for the standalone helpers in download_support."""
+
+    def test_ensure_destination_folder_creates_path(self, tmp_path):
+        """Nested folders are created when missing."""
+        target = tmp_path / "a" / "b"
+
+        ensure_destination_folder(str(target))
+
+        assert target.is_dir()
+
+    @patch("os.makedirs", side_effect=OSError("read-only filesystem"))
+    def test_ensure_destination_folder_logs_oserror(self, mock_makedirs):
+        """An OSError is logged instead of propagating to the caller."""
+        ensure_destination_folder("/nowhere/at/all")
+
+        mock_makedirs.assert_called_once()
+
+    @patch("subprocess.run")
+    def test_fix_eve_permissions_runs_wrapper(self, mock_run, tmp_path):
+        """The wrapper is invoked with fixpermissions when present."""
+        wrapper = tmp_path / "unl_wrapper"
+        wrapper.write_text("#!/bin/sh\n")
+
+        assert fix_eve_permissions(wrapper) is True
+        assert mock_run.call_args.args[0] == [str(wrapper), "-a", "fixpermissions"]
+
+    @patch("subprocess.run")
+    def test_fix_eve_permissions_missing_wrapper(self, mock_run, tmp_path):
+        """A missing wrapper is reported without running anything."""
+        assert fix_eve_permissions(tmp_path / "absent") is False
+        mock_run.assert_not_called()

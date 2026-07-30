@@ -518,6 +518,81 @@ class TestEosCommand:
         assert result.exit_code == 1
         mock_console.print_exception.assert_called()
 
+    @patch("eos_downloader.cli.get.commands.initialize")
+    @patch("eos_downloader.cli.get.commands.maybe_run_interactive")
+    @patch("eos_downloader.cli.get.commands.EosXmlObject")
+    @patch("eos_downloader.cli.get.commands.SoftManager")
+    @patch("eos_downloader.cli.get.commands.download_files")
+    def test_eos_command_interactive_result_is_applied(
+        self,
+        mock_download_files: Mock,
+        mock_soft_manager: Mock,
+        mock_eos_xml: Mock,
+        mock_maybe_run_interactive: Mock,
+        mock_init: Mock,
+        runner: CliRunner,
+        mock_context: dict,
+    ) -> None:
+        """Interactive EOS flow applies the returned selections."""
+        mock_console = MagicMock()
+        mock_init.return_value = (mock_console, "test-token", False, "info")
+        mock_maybe_run_interactive.return_value = MagicMock(
+            image_format="cEOS",
+            version="4.29.3M",
+            output="/downloads",
+            force=True,
+            import_docker=False,
+            docker_name="arista/ceos",
+            docker_tag="4.29.3M",
+            eve_ng=False,
+        )
+
+        result = runner.invoke(app, ["get", "eos", "--interactive"], obj=mock_context)
+
+        assert result.exit_code == 0
+        mock_eos_xml.assert_called_once_with(
+            searched_version="4.29.3M", token="test-token", image_type="cEOS"
+        )
+        mock_soft_manager.assert_called_once_with(
+            dry_run=False, force_download=True, console=mock_console
+        )
+
+    @patch("eos_downloader.cli.get.commands.initialize")
+    @patch("eos_downloader.cli.get.commands.download_from_containerlab_topology")
+    def test_eos_command_containerlab_auto_defaults_ceos_and_no_progress(
+        self,
+        mock_download_from_containerlab: Mock,
+        mock_init: Mock,
+        runner: CliRunner,
+        mock_context: dict,
+        tmp_path: Path,
+    ) -> None:
+        """Containerlab flow auto-defaults to cEOS and disables progress when asked."""
+        topology = tmp_path / "lab.yml"
+        topology.write_text("name: test\n")
+        mock_console = MagicMock()
+        mock_init.return_value = (mock_console, "test-token", False, "info")
+        mock_download_from_containerlab.return_value = 0
+
+        result = runner.invoke(
+            app,
+            [
+                "get",
+                "eos",
+                "--containerlab-topology",
+                str(topology),
+                "--format",
+                "64",
+                "--no-progress",
+            ],
+            obj=mock_context,
+        )
+
+        assert result.exit_code == 0
+        kwargs = mock_download_from_containerlab.call_args.kwargs
+        assert kwargs["image_format"] == "cEOS"
+        assert kwargs["progress"] == "none"
+
 
 class TestCvpCommand:
     """Test suite for cvp download command."""
@@ -558,7 +633,7 @@ class TestCvpCommand:
         mock_download_files.assert_called_once()
 
     @patch("eos_downloader.cli.get.commands.initialize")
-    @patch("eos_downloader.cli.get.commands.AristaXmlQuerier")
+    @patch("eos_downloader.cli.get.commands.resolve_cvp_version")
     @patch("eos_downloader.cli.get.commands.CvpXmlObject")
     @patch("eos_downloader.cli.get.commands.SoftManager")
     @patch("eos_downloader.cli.get.commands.download_files")
@@ -567,7 +642,7 @@ class TestCvpCommand:
         mock_download_files: Mock,
         mock_soft_manager: Mock,
         mock_cvp_xml: Mock,
-        mock_querier_class: Mock,
+        mock_resolve_cvp_version: Mock,
         mock_init: Mock,
         runner: CliRunner,
         mock_context: dict,
@@ -581,11 +656,7 @@ class TestCvpCommand:
             False,
             "info",
         )
-        mock_querier = MagicMock()
-        mock_version = MagicMock()
-        mock_version.__str__ = lambda self: "2024.3.0"
-        mock_querier.latest.return_value = mock_version
-        mock_querier_class.return_value = mock_querier
+        mock_resolve_cvp_version.return_value = "2024.3.0"
 
         # Execute
         result = runner.invoke(
@@ -596,10 +667,10 @@ class TestCvpCommand:
 
         # Assert
         assert result.exit_code == 0
-        mock_querier.latest.assert_called_once_with(package="cvp", branch=None)
+        mock_resolve_cvp_version.assert_called_once()
 
     @patch("eos_downloader.cli.get.commands.initialize")
-    @patch("eos_downloader.cli.get.commands.AristaXmlQuerier")
+    @patch("eos_downloader.cli.get.commands.resolve_cvp_version")
     @patch("eos_downloader.cli.get.commands.CvpXmlObject")
     @patch("eos_downloader.cli.get.commands.SoftManager")
     @patch("eos_downloader.cli.get.commands.download_files")
@@ -608,7 +679,7 @@ class TestCvpCommand:
         mock_download_files: Mock,
         mock_soft_manager: Mock,
         mock_cvp_xml: Mock,
-        mock_querier_class: Mock,
+        mock_resolve_cvp_version: Mock,
         mock_init: Mock,
         runner: CliRunner,
         mock_context: dict,
@@ -622,11 +693,7 @@ class TestCvpCommand:
             False,
             "info",
         )
-        mock_querier = MagicMock()
-        mock_version = MagicMock()
-        mock_version.__str__ = lambda self: "2024.2.0"
-        mock_querier.latest.return_value = mock_version
-        mock_querier_class.return_value = mock_querier
+        mock_resolve_cvp_version.return_value = "2024.2.0"
 
         # Execute
         result = runner.invoke(
@@ -637,7 +704,7 @@ class TestCvpCommand:
 
         # Assert
         assert result.exit_code == 0
-        mock_querier.latest.assert_called_once_with(package="cvp", branch="2024.2")
+        mock_resolve_cvp_version.assert_called_once()
 
     @patch("eos_downloader.cli.get.commands.initialize")
     @patch("eos_downloader.cli.get.commands.CvpXmlObject")
@@ -711,10 +778,10 @@ class TestCvpCommand:
         )
 
     @patch("eos_downloader.cli.get.commands.initialize")
-    @patch("eos_downloader.cli.get.commands.AristaXmlQuerier")
+    @patch("eos_downloader.cli.get.commands.resolve_cvp_version")
     def test_cvp_command_querier_error(
         self,
-        mock_querier_class: Mock,
+        mock_resolve_cvp_version: Mock,
         mock_init: Mock,
         runner: CliRunner,
         mock_context: dict,
@@ -728,7 +795,7 @@ class TestCvpCommand:
             False,
             "info",
         )
-        mock_querier_class.side_effect = Exception("API error")
+        mock_resolve_cvp_version.side_effect = typer.Exit(1)
 
         # Execute
         result = runner.invoke(
