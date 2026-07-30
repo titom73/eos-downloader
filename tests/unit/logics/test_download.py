@@ -343,6 +343,28 @@ class TestDockerCache:
 
     @patch("subprocess.run")
     @patch("shutil.which")
+    def test_docker_image_exists_podman_checked_when_docker_misses(
+        self, mock_which, mock_run
+    ):
+        """Test that podman is still queried when docker does not have the image."""
+        mock_which.return_value = "/usr/bin/runtime"
+
+        def run_side_effect(cmd_args, **kwargs):
+            result = Mock()
+            result.stdout = "image123\n" if cmd_args[0] == "podman" else ""
+            return result
+
+        mock_run.side_effect = run_side_effect
+
+        result = SoftManager._docker_image_exists("arista/ceos", "4.29.3M")
+        assert result is True
+        assert [call.args[0][0] for call in mock_run.call_args_list] == [
+            "docker",
+            "podman",
+        ]
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
     def test_docker_image_exists_timeout(self, mock_which, mock_run):
         """Test handling of subprocess timeout."""
         mock_which.return_value = "/usr/bin/docker"

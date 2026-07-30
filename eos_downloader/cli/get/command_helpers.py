@@ -99,15 +99,15 @@ def resolve_cvp_version(
     """Resolve the CVP version selection, including latest/branch flows."""
     if version is not None:
         console.print(
-            f"Searching for EOS version [green]{version}[/green] for [blue]{file_format}[/blue] format..."
+            f"Searching for CVP version [green]{version}[/green] for [blue]{file_format}[/blue] format..."
         )
     elif latest:
         console.print(
-            f"Searching for [blue]latest[/blue] EOS version for [blue]{file_format}[/blue] format..."
+            f"Searching for [blue]latest[/blue] CVP version for [blue]{file_format}[/blue] format..."
         )
     elif branch is not None:
         console.print(
-            f"Searching for EOS [b]latest[/b] version for [blue]{branch}[/blue] branch for [blue]{file_format}[/blue] format..."
+            f"Searching for CVP [b]latest[/b] version for [blue]{branch}[/blue] branch for [blue]{file_format}[/blue] format..."
         )
 
     if branch is None and not latest:

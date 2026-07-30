@@ -58,6 +58,8 @@ def compute_hash_md5sum(file_path: str, hash_expected: str) -> bool:
 
 def docker_image_exists(image_name: str, image_tag: str) -> bool:
     """Check if a Docker or Podman image with the requested tag exists locally."""
+    checked_any = False
+
     for cmd in ["docker", "podman"]:
         if not shutil.which(cmd):
             logger.debug(f"{cmd} command not found in PATH")
@@ -71,12 +73,6 @@ def docker_image_exists(image_name: str, image_tag: str) -> bool:
                 timeout=5,
                 check=False,
             )
-            if result.stdout.strip():
-                logger.info(f"Docker image {image_name}:{image_tag} found in local registry")
-                return True
-
-            logger.debug(f"Docker image {image_name}:{image_tag} not found in local registry")
-            return False
         except subprocess.TimeoutExpired:
             logger.warning(f"{cmd} command timed out after 5 seconds")
             continue
@@ -84,7 +80,16 @@ def docker_image_exists(image_name: str, image_tag: str) -> bool:
             logger.debug(f"Error checking {cmd} images: {error}")
             continue
 
-    logger.warning("Unable to check Docker images (docker/podman not available)")
+        checked_any = True
+        if result.stdout.strip():
+            logger.info(f"Image {image_name}:{image_tag} found in local {cmd} registry")
+            return True
+
+        logger.debug(f"Image {image_name}:{image_tag} not found in local {cmd} registry")
+
+    if not checked_any:
+        logger.warning("Unable to check Docker images (docker/podman not available)")
+
     return False
 
 
