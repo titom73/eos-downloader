@@ -178,6 +178,8 @@ markers = [
 
 [tool.coverage.run]
 source = ['eos_downloader']
+# Keep local runs aligned with the CI jobs, which pass --cov-branch.
+branch = true
 omit = [
     "*/test*",
     "tests/*",

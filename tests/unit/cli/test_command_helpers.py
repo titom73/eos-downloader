@@ -164,3 +164,45 @@ def test_resolve_cvp_version_authentication_error(mock_querier_class: Mock) -> N
             file_format="ova",
             debug=False,
         )
+
+@patch("eos_downloader.cli.get.command_helpers.AristaXmlQuerier")
+def test_resolve_cvp_version_branch(mock_querier_class: Mock) -> None:
+    mock_querier = MagicMock()
+    mock_querier.latest.return_value = "2024.3.1"
+    mock_querier_class.return_value = mock_querier
+    console = MagicMock()
+
+    result = resolve_cvp_version(
+        console,
+        "token",
+        version=None,
+        latest=False,
+        branch="2024.3",
+        file_format="ova",
+        debug=False,
+    )
+
+    assert result == "2024.3.1"
+    mock_querier.latest.assert_called_once_with(package="cvp", branch="2024.3")
+    # Messages must refer to CVP, not EOS, on the CVP code path.
+    printed = " ".join(str(call.args[0]) for call in console.print.call_args_list)
+    assert "CVP" in printed
+    assert "EOS" not in printed
+
+
+@patch("eos_downloader.cli.get.command_helpers.AristaXmlQuerier")
+def test_resolve_cvp_version_generic_error(mock_querier_class: Mock) -> None:
+    mock_querier = MagicMock()
+    mock_querier.latest.side_effect = RuntimeError("boom")
+    mock_querier_class.return_value = mock_querier
+
+    with pytest.raises(typer.Exit):
+        resolve_cvp_version(
+            MagicMock(),
+            "token",
+            version=None,
+            latest=True,
+            branch=None,
+            file_format="ova",
+            debug=False,
+        )
